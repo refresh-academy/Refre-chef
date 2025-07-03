@@ -2,7 +2,6 @@ const express = require('express');
 const cors = require('cors');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
-const bcrypt = require('bcrypt');
 
 const app = express();
 const port = 3000;
@@ -58,6 +57,37 @@ app.get('/api/ricette', async (req, res) => {
   }
 });
 
+app.post('/api/salvaRicetta', async (req, res) => {
+  const { id_user, id_ricetta } = req.body;
+
+  if (!id_user || !id_ricetta) {
+    return res.status(400).json({ error: 'id_user and id_ricetta are required.' });
+  }
+
+  try {
+    // Optional: Check for duplicates first
+    const existing = await dbAll(
+      `SELECT * FROM ricetteSalvate WHERE id_user = ? AND id_ricetta = ?`,
+      [id_user, id_ricetta]
+    );
+
+    if (existing.length > 0) {
+      return res.status(409).json({ error: 'Recipe already saved by this user.' });
+    }
+
+    const result = await dbRun(
+      `INSERT INTO ricetteSalvate (id_user, id_ricetta) VALUES (?, ?)`,
+      [id_user, id_ricetta]
+    );
+
+    res.status(201).json({ message: 'Recipe saved successfully', saveId: result.id });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to save recipe', details: err.message });
+  }
+});
+
+
+
 // POST /api/users (create user with nickname and hashed password)
 app.post('/api/users', async (req, res) => {
   const { nickname, email, password } = req.body;
@@ -76,6 +106,28 @@ app.post('/api/users', async (req, res) => {
     res.status(201).json({ message: 'User created successfully', userId: result.id });
   } catch (err) {
     res.status(500).json({ error: 'Failed to create user', details: err.message });
+  }
+});
+
+app.get('/api/ricetteSalvate/:id_user', async (req, res) => {
+  const { id_user } = req.params;
+
+  if (!id_user) {
+    return res.status(400).json({ error: 'User ID is required.' });
+  }
+
+  try {
+    const savedRecipes = await dbAll(
+      `SELECT r.id, r.nome, r.tipologia, r.ingredienti, r.alimentazione, r.immagine, r.preparazione, r.author_id
+       FROM ricettario r
+       INNER JOIN ricetteSalvate s ON r.id = s.id_ricetta
+       WHERE s.id_user = ?`,
+      [id_user]
+    );
+
+    res.status(200).json(savedRecipes);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to retrieve saved recipes', details: err.message });
   }
 });
 
