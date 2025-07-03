@@ -35,13 +35,45 @@ const dbAll = (query, params = []) => {
   });
 };
 
-// New endpoint: /api/ricette
-app.get('/ricette', async (req, res) => {
+const dbRun = (query, params = []) => {
+  return new Promise((resolve, reject) => {
+    db.run(query, params, function (err) {
+      if (err) {
+        reject(err);
+      } else {
+        resolve({ id: this.lastID, changes: this.changes });
+      }
+    });
+  });
+};
+
+// GET /api/ricette
+app.get('/api/ricette', async (req, res) => {
   try {
-    const ricette = await dbAll('SELECT * FROM ricettario'); // Adjust table/fields as needed
+    const ricette = await dbAll('SELECT * FROM ricette');
     res.json(ricette);
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/users
+app.post('/api/users', async (req, res) => {
+  const { nickname, email, password } = req.body;
+
+  // Basic validation
+  if (!nickname || !email || !password) {
+    return res.status(400).json({ error: 'Name, email, and password are required.' });
+  }
+
+  try {
+    const result = await dbRun(
+      `INSERT INTO utenti (nickname, email, password) VALUES (?, ?, ?)`,
+      [nickname, email, password]
+    );
+    res.status(201).json({ message: 'User created successfully', userId: result.id });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to create user', details: err.message });
   }
 });
 
