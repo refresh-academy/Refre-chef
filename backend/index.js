@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
+const bcrypt = require('bcrypt');
 
 const app = express();
 const port = 3000;
@@ -57,25 +58,58 @@ app.get('/api/ricette', async (req, res) => {
   }
 });
 
-// POST /api/users
+// POST /api/users (create user with nickname and hashed password)
 app.post('/api/users', async (req, res) => {
   const { nickname, email, password } = req.body;
 
-  // Basic validation
   if (!nickname || !email || !password) {
-    return res.status(400).json({ error: 'Name, email, and password are required.' });
+    return res.status(400).json({ error: 'Nickname, email, and password are required.' });
   }
 
   try {
+    // No hashing here, store password as-is
     const result = await dbRun(
       `INSERT INTO utenti (nickname, email, password) VALUES (?, ?, ?)`,
       [nickname, email, password]
     );
+
     res.status(201).json({ message: 'User created successfully', userId: result.id });
   } catch (err) {
     res.status(500).json({ error: 'Failed to create user', details: err.message });
   }
 });
+
+
+// POST /api/login (login with password check)
+app.post('/api/login', async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ error: 'Email and password are required.' });
+  }
+
+  try {
+    const users = await dbAll('SELECT * FROM utenti WHERE email = ?', [email]);
+
+    if (users.length === 0) {
+      return res.status(401).json({ error: 'Invalid email or password.' });
+    }
+
+    const user = users[0];
+
+    // Compare plain text passwords
+    if (password !== user.password) {
+      return res.status(401).json({ error: 'Invalid email or password.' });
+    }
+
+    const userId = user.id_user || user.id || user.rowid;
+
+    res.status(200).json({ message: 'Login successful', userId: userId, nickname: user.nickname });
+  } catch (err) {
+    res.status(500).json({ error: 'Login failed', details: err.message });
+  }
+});
+
 
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
