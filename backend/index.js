@@ -51,7 +51,7 @@ const dbRun = (query, params = []) => {
 // GET /api/ricette
 app.get('/api/ricette', async (req, res) => {
   try {
-    const ricette = await dbAll('SELECT * FROM ricette');
+    const ricette = await dbAll('SELECT * FROM ricettario');
     res.json(ricette);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -107,6 +107,25 @@ app.post('/api/login', async (req, res) => {
     res.status(200).json({ message: 'Login successful', userId: userId, nickname: user.nickname });
   } catch (err) {
     res.status(500).json({ error: 'Login failed', details: err.message });
+  }
+});
+app.post('/api/aggiungiRicetta', async (req, res) => {
+  const { nome, tipologia, ingredienti, alimentazione, immagine, preparazione, author_id } = req.body;
+
+  if (!nome || !tipologia || !ingredienti || !alimentazione || !preparazione || !author_id) {
+    return res.status(400).json({ error: 'Missing required fields.' });
+  }
+
+  try {
+    const result = await dbRun(
+      `INSERT INTO ricettario (nome, tipologia, ingredienti, alimentazione, immagine, preparazione, author_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [nome, tipologia, ingredienti, alimentazione, immagine || null, preparazione, author_id]
+    );
+
+    res.status(201).json({ message: 'Recipe created successfully', recipeId: result.id });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to create recipe', details: err.message });
   }
 });
 
