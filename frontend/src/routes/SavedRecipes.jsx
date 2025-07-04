@@ -28,6 +28,30 @@ const SavedRecipes = () => {
     fetchRecipes();
   }, [userId]);
 
+  const handleRemove = async (ricettaId) => {
+    const id_user = localStorage.getItem('userId');
+    if (!id_user) {
+      alert('Devi essere loggato per rimuovere le ricette.');
+      return;
+    }
+    try {
+      const res = await fetch('http://localhost:3000/api/salvaRicetta', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id_user, id_ricetta: ricettaId }),
+        credentials: 'include',
+      });
+      if (res.ok) {
+        setRecipes((prev) => prev.filter(r => r.id !== ricettaId));
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Errore nella rimozione della ricetta salvata');
+      }
+    } catch {
+      alert('Errore di rete nella rimozione.');
+    }
+  };
+
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] p-4">
       <h1 className="text-2xl font-bold mb-4">Ricette Salvate</h1>
@@ -47,6 +71,12 @@ const SavedRecipes = () => {
             {ricetta.immagine && (
               <img src={ricetta.immagine} alt={ricetta.nome} className="mt-2 max-h-40 object-cover rounded" />
             )}
+            <button
+              className="mt-4 px-3 py-1 rounded bg-red-500 text-white hover:bg-red-600 transition"
+              onClick={() => handleRemove(ricetta.id)}
+            >
+              Rimuovi
+            </button>
           </div>
         ))}
       </div>

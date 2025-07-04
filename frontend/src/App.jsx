@@ -67,6 +67,7 @@ const Layout = ({ user }) => {
                       className="w-full text-left px-4 py-2 hover:bg-gray-100"
                       onClick={() => {
                         if (typeof window.setUser === 'function') window.setUser(null);
+                        localStorage.removeItem('userId');
                         setDropdownOpen(false);
                       }}
                     >

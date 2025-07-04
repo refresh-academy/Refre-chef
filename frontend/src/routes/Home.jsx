@@ -20,7 +20,9 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [page, setPage] = useState(1);
+  const [saved, setSaved] = useState([]);
   const { search } = useOutletContext();
+  const userId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
 
   useEffect(() => {
     const fetchRecipes = async () => {
@@ -41,6 +43,18 @@ const Home = () => {
       }
     };
     fetchRecipes();
+
+    // Recupero ricette salvate dell'utente
+    const id_user = localStorage.getItem('userId');
+    if (id_user) {
+      fetch(`http://localhost:3000/api/ricetteSalvate/${id_user}`)
+        .then(res => res.json())
+        .then(data => {
+          if (Array.isArray(data)) {
+            setSaved(data.map(r => r.id));
+          }
+        });
+    }
   }, []);
 
   // Filter recipes by search (all words must match in any field)
@@ -83,6 +97,52 @@ const Home = () => {
   // Reset to page 1 when search changes
   useEffect(() => { setPage(1); }, [search]);
 
+  // Funzione per salvare la ricetta
+  const handleSaveRecipe = async (ricettaId) => {
+    const id_user = localStorage.getItem('userId');
+    if (!id_user) {
+      alert('Devi essere loggato per salvare le ricette.');
+      return;
+    }
+    if (saved.includes(ricettaId)) {
+      // Se già salvata, rimuovi
+      try {
+        const res = await fetch('http://localhost:3000/api/salvaRicetta', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id_user, id_ricetta: ricettaId }),
+          credentials: 'include',
+        });
+        if (res.ok) {
+          setSaved((prev) => prev.filter(id => id !== ricettaId));
+        } else {
+          const data = await res.json();
+          alert(data.error || 'Errore nella rimozione della ricetta salvata');
+        }
+      } catch {
+        alert('Errore di rete nella rimozione.');
+      }
+    } else {
+      // Se non salvata, salva
+      try {
+        const res = await fetch('http://localhost:3000/api/salvaRicetta', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id_user, id_ricetta: ricettaId }),
+          credentials: 'include',
+        });
+        if (res.ok) {
+          setSaved((prev) => [...prev, ricettaId]);
+        } else {
+          const data = await res.json();
+          alert(data.error || 'Errore nel salvataggio della ricetta');
+        }
+      } catch {
+        alert('Errore di rete nel salvataggio.');
+      }
+    }
+  };
+
   return (
     <div
       className="min-h-[60vh] flex flex-col items-center justify-center p-4 w-full"
@@ -121,6 +181,21 @@ const Home = () => {
                   <div className="mb-1"><span className="font-semibold">Ingredienti:</span> {highlight(ricetta.ingredienti || '', search)}</div>
                   <div className="mb-1"><span className="font-semibold">Preparazione:</span> {highlight(ricetta.preparazione || '', search)}</div>
                   <div className="mb-1"><span className="font-semibold">Creatore:</span> {highlight(ricetta.author || '', search)}</div>
+                  <div className="mb-1">
+                    {userId ? (
+                      <button
+                        onClick={() => handleSaveRecipe(ricetta.id)}
+                        disabled={loading}
+                        className={`px-3 py-1 rounded transition ${
+                          saved.includes(ricetta.id)
+                            ? 'bg-green-400 text-white cursor-not-allowed opacity-60'
+                            : 'bg-blue-500 text-white hover:bg-blue-600'
+                        }`}
+                      >
+                        {saved.includes(ricetta.id) ? 'Salvata (clicca per rimuovere)' : 'Salva ricetta'}
+                      </button>
+                    ) : null}
+                  </div>
                 </div>
               </div>
             );

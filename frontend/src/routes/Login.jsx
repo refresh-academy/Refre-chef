@@ -27,6 +27,7 @@ const Login = ({ setUser }) => {
       } else {
         setSuccess('Login successful! Benvenuto, ' + data.nickname);
         if (setUser) setUser({ userId: data.userId, nickname: data.nickname });
+        localStorage.setItem('userId', data.userId);
         navigate('/');
       }
     } catch (err) {

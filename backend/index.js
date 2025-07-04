@@ -51,7 +51,7 @@ const dbRun = (query, params = []) => {
 app.get('/api/ricette', async (req, res) => {
   try {
     const ricette = await dbAll(`
-      SELECT r.nome, r.tipologia, r.ingredienti, r.alimentazione, r.immagine, r.preparazione, r.author_id, u.nickname as author
+      SELECT r.id, r.nome, r.tipologia, r.ingredienti, r.alimentazione, r.immagine, r.preparazione, r.author_id, u.nickname as author
       FROM ricettario r
       LEFT JOIN utenti u ON r.author_id = u.id_user
     `);
@@ -89,8 +89,6 @@ app.post('/api/salvaRicetta', async (req, res) => {
     res.status(500).json({ error: 'Failed to save recipe', details: err.message });
   }
 });
-
-
 
 // POST /api/users (create user with nickname and hashed password)
 app.post('/api/users', async (req, res) => {
@@ -135,7 +133,6 @@ app.get('/api/ricetteSalvate/:id_user', async (req, res) => {
   }
 });
 
-
 // POST /api/login (login with password check)
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
@@ -165,6 +162,7 @@ app.post('/api/login', async (req, res) => {
     res.status(500).json({ error: 'Login failed', details: err.message });
   }
 });
+
 app.post('/api/aggiungiRicetta', async (req, res) => {
   const { nome, tipologia, ingredienti, alimentazione, immagine, preparazione, author_id } = req.body;
 
@@ -185,6 +183,25 @@ app.post('/api/aggiungiRicetta', async (req, res) => {
   }
 });
 
+app.delete('/api/salvaRicetta', async (req, res) => {
+  const { id_user, id_ricetta } = req.body;
+  if (!id_user || !id_ricetta) {
+    return res.status(400).json({ error: 'id_user and id_ricetta are required.' });
+  }
+  try {
+    const result = await dbRun(
+      `DELETE FROM ricetteSalvate WHERE id_user = ? AND id_ricetta = ?`,
+      [id_user, id_ricetta]
+    );
+    if (result.changes > 0) {
+      res.status(200).json({ message: 'Recipe removed from saved.' });
+    } else {
+      res.status(404).json({ error: 'Recipe not found in saved.' });
+    }
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to remove saved recipe', details: err.message });
+  }
+});
 
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
