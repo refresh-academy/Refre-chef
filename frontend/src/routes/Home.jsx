@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useOutletContext } from 'react-router';
 
-const RECIPES_PER_PAGE = 9;
+const RECIPES_PER_PAGE = 10;
 
 function highlight(text, query) {
   if (!query || typeof text !== 'string') return text;
@@ -15,14 +15,15 @@ function highlight(text, query) {
   );
 }
 
-const Home = () => {
+const Home = (props) => {
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [page, setPage] = useState(1);
   const [saved, setSaved] = useState([]);
   const { search } = useOutletContext();
-  const userId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
+  // Prendo userId solo da props.user, così la visibilità è reattiva e sicura
+  const userId = props.user ? props.user.userId : null;
 
   useEffect(() => {
     const fetchRecipes = async () => {
@@ -44,10 +45,9 @@ const Home = () => {
     };
     fetchRecipes();
 
-    // Recupero ricette salvate dell'utente
-    const id_user = localStorage.getItem('userId');
-    if (id_user) {
-      fetch(`http://localhost:3000/api/ricetteSalvate/${id_user}`)
+    // Recupero ricette salvate dell'utente SOLO se loggato
+    if (userId) {
+      fetch(`http://localhost:3000/api/ricetteSalvate/${userId}`)
         .then(res => res.json())
         .then(data => {
           if (Array.isArray(data)) {
@@ -99,8 +99,7 @@ const Home = () => {
 
   // Funzione per salvare la ricetta
   const handleSaveRecipe = async (ricettaId) => {
-    const id_user = localStorage.getItem('userId');
-    if (!id_user) {
+    if (!userId) {
       alert('Devi essere loggato per salvare le ricette.');
       return;
     }
@@ -110,7 +109,7 @@ const Home = () => {
         const res = await fetch('http://localhost:3000/api/salvaRicetta', {
           method: 'DELETE',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id_user, id_ricetta: ricettaId }),
+          body: JSON.stringify({ id_user: userId, id_ricetta: ricettaId }),
           credentials: 'include',
         });
         if (res.ok) {
@@ -128,7 +127,7 @@ const Home = () => {
         const res = await fetch('http://localhost:3000/api/salvaRicetta', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id_user, id_ricetta: ricettaId }),
+          body: JSON.stringify({ id_user: userId, id_ricetta: ricettaId }),
           credentials: 'include',
         });
         if (res.ok) {

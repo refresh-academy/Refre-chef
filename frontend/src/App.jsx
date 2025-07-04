@@ -104,7 +104,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route element={<Layout user={user} />}>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<Home user={user} />} />
           <Route path="/login" element={<Login setUser={setUser} />} />
           <Route path="/register" element={<Registration />} />
           <Route path="/saved-recipes/:userId" element={<SavedRecipes />} />
