@@ -6,6 +6,7 @@ import Home from './routes/Home.jsx'
 import Login from './routes/Login.jsx'
 import Registration from './routes/Registration.jsx'
 import SavedRecipes from './routes/SavedRecipes.jsx'
+import AddRecipe from './routes/AddRecipe.jsx'
 
 const Layout = ({ user }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -51,6 +52,9 @@ const Layout = ({ user }) => {
         <div className="flex flex-row items-center gap-2 pr-4">
           {user ? (
             <>
+              <Link to="/add-recipe" className="flex items-center justify-center pr-4">
+                <p>Crea ricetta</p>
+              </Link>
               <Link to={`/saved-recipes/${user.userId}`} className="flex items-center justify-center pr-10">
                 <p>Ricette Salvate</p>
               </Link>
@@ -108,6 +112,7 @@ function App() {
           <Route path="/login" element={<Login setUser={setUser} />} />
           <Route path="/register" element={<Registration />} />
           <Route path="/saved-recipes/:userId" element={<SavedRecipes />} />
+          <Route path="/add-recipe" element={<AddRecipe user={user} />} />
         </Route>
       </Routes>
     </BrowserRouter>
