@@ -102,22 +102,24 @@ const Home = () => {
         {!loading && !error && filteredRecipes.length === 0 && (
           <div>Nessuna ricetta trovata.</div>
         )}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+        <div className="grid grid-cols-1 gap-6 w-full">
           {paginatedRecipes.map((ricetta, idx) => {
             const relevant = getRelevantKeywords(ricetta, search);
             return (
-              <div key={ricetta.id || idx} className="bg-white rounded shadow p-4 flex flex-col">
-                <h2 className="text-xl font-bold mb-2">{highlight(ricetta.nome || '', search)}</h2>
-                {relevant.length > 0 && search && (
-                  <div className="mb-2 text-xs text-gray-600">Parole chiave trovate: {relevant.join(', ')}</div>
-                )}
-                <div className="mb-1"><span className="font-semibold">Tipologia:</span> {highlight(ricetta.tipologia || '', search)}</div>
-                <div className="mb-1"><span className="font-semibold">Alimentazione:</span> {highlight(ricetta.alimentazione || '', search)}</div>
-                <div className="mb-1"><span className="font-semibold">Ingredienti:</span> {highlight(ricetta.ingredienti || '', search)}</div>
-                <div className="mb-1"><span className="font-semibold">Preparazione:</span> {highlight(ricetta.preparazione || '', search)}</div>
+              <div key={ricetta.id || idx} className="bg-white rounded shadow p-4 flex flex-row items-center gap-6 min-h-[180px]">
                 {ricetta.immagine && (
-                  <img src={ricetta.immagine} alt={ricetta.nome} className="mt-2 max-h-40 object-cover rounded" />
+                  <img src={ricetta.immagine} alt={ricetta.nome} className="w-40 h-40 object-cover rounded flex-shrink-0" />
                 )}
+                <div className="flex flex-col flex-1">
+                  <h2 className="text-xl font-bold mb-2">{highlight(ricetta.nome || '', search)}</h2>
+                  {relevant.length > 0 && search && (
+                    <div className="mb-2 text-xs text-gray-600">Parole chiave trovate: {relevant.join(', ')}</div>
+                  )}
+                  <div className="mb-1"><span className="font-semibold">Tipologia:</span> {highlight(ricetta.tipologia || '', search)}</div>
+                  <div className="mb-1"><span className="font-semibold">Alimentazione:</span> {highlight(ricetta.alimentazione || '', search)}</div>
+                  <div className="mb-1"><span className="font-semibold">Ingredienti:</span> {highlight(ricetta.ingredienti || '', search)}</div>
+                  <div className="mb-1"><span className="font-semibold">Preparazione:</span> {highlight(ricetta.preparazione || '', search)}</div>
+                </div>
               </div>
             );
           })}
