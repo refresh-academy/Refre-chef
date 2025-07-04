@@ -50,7 +50,11 @@ const dbRun = (query, params = []) => {
 // GET /api/ricette
 app.get('/api/ricette', async (req, res) => {
   try {
-    const ricette = await dbAll('SELECT nome, tipologia, ingredienti, alimentazione, immagine, preparazione  FROM ricettario');
+    const ricette = await dbAll(`
+      SELECT r.nome, r.tipologia, r.ingredienti, r.alimentazione, r.immagine, r.preparazione, r.author_id, u.nickname as author
+      FROM ricettario r
+      LEFT JOIN utenti u ON r.author_id = u.id_user
+    `);
     res.json(ricette);
   } catch (err) {
     res.status(500).json({ error: err.message });

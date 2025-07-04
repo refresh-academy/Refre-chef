@@ -54,8 +54,8 @@ const Home = () => {
       ricetta.tipologia,
       ricetta.preparazione,
       ricetta.alimentazione,
-    ].map(f => (typeof f === 'string' ? f.toLowerCase() : ''));
-    // All words must be found in at least one field
+      ricetta.author,
+    ].map(f => (typeof f === 'string' ? f.toLowerCase() : String(f || '')));
     return words.every(word => fields.some(field => field.includes(word)));
   });
 
@@ -70,6 +70,7 @@ const Home = () => {
       { label: 'Alimentazione', value: ricetta.alimentazione },
       { label: 'Ingredienti', value: ricetta.ingredienti },
       { label: 'Preparazione', value: ricetta.preparazione },
+      { label: 'Creatore', value: ricetta.author },
     ];
     return fields
       .filter(f => typeof f.value === 'string' && words.some(word => f.value.toLowerCase().includes(word)))
@@ -119,6 +120,7 @@ const Home = () => {
                   <div className="mb-1"><span className="font-semibold">Alimentazione:</span> {highlight(ricetta.alimentazione || '', search)}</div>
                   <div className="mb-1"><span className="font-semibold">Ingredienti:</span> {highlight(ricetta.ingredienti || '', search)}</div>
                   <div className="mb-1"><span className="font-semibold">Preparazione:</span> {highlight(ricetta.preparazione || '', search)}</div>
+                  <div className="mb-1"><span className="font-semibold">Creatore:</span> {highlight(ricetta.author || '', search)}</div>
                 </div>
               </div>
             );
