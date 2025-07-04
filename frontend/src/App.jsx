@@ -5,6 +5,7 @@ import  logorefreChef from '/logorefreChef.png'
 import Home from './routes/Home.jsx'
 import Login from './routes/Login.jsx'
 import Registration from './routes/Registration.jsx'
+import SavedRecipes from './routes/SavedRecipes.jsx'
 
 const Layout = ({ user }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -88,6 +89,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login setUser={setUser} />} />
           <Route path="/register" element={<Registration />} />
+          <Route path="/saved-recipes/:userId" element={<SavedRecipes />} />
         </Route>
       </Routes>
     </BrowserRouter>
