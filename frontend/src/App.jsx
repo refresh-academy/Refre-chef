@@ -7,6 +7,8 @@ import Login from './routes/Login.jsx'
 import Registration from './routes/Registration.jsx'
 import SavedRecipes from './routes/SavedRecipes.jsx'
 import AddRecipe from './routes/AddRecipe.jsx'
+import Ricetta from './routes/Ricetta.jsx'
+
 
 const Layout = ({ user }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -113,6 +115,7 @@ function App() {
           <Route path="/register" element={<Registration />} />
           <Route path="/saved-recipes/:userId" element={<SavedRecipes />} />
           <Route path="/add-recipe" element={<AddRecipe user={user} />} />
+          <Route path="/ricetta/:id" element={<Ricetta user={user} />} />
         </Route>
       </Routes>
     </BrowserRouter>
