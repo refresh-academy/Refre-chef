@@ -187,7 +187,7 @@ const Home = (props) => {
                         disabled={loading}
                         className={`px-3 py-1 rounded transition ${
                           saved.includes(ricetta.id)
-                            ? 'bg-green-400 text-white cursor-not-allowed opacity-60'
+                            ? 'bg-green-400 text-white cursor-pointer'
                             : 'bg-blue-500 text-white hover:bg-blue-600'
                         }`}
                       >
