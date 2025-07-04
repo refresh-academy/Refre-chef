@@ -3,6 +3,7 @@ import './App.css'
 import { BrowserRouter, Routes, Route, Link, Outlet } from "react-router";
 import  logorefreChef from '/logorefreChef.png'
 import Home from './routes/Home.jsx'
+import Login from './routes/Login.jsx'
 
 const Layout = () => {
   return(<div className='min-h-screen flex flex-col'>
@@ -30,6 +31,7 @@ function App() {
         <Routes>
           <Route element={<Layout />}>
             <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
           </Route>
         </Routes>
       </BrowserRouter>
