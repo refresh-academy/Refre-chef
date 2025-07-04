@@ -2,11 +2,24 @@ import { useEffect, useState } from 'react';
 
 const RECIPES_PER_PAGE = 9;
 
+function highlight(text, query) {
+  if (!query || typeof text !== 'string') return text;
+  // Split query into words, ignore extra spaces
+  const words = query.trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return text;
+  // Build a regex for all words
+  const regex = new RegExp(`(${words.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'gi');
+  return text.split(regex).map((part, i) =>
+    regex.test(part) ? <mark key={i} className="bg-yellow-200 px-1 rounded">{part}</mark> : part
+  );
+}
+
 const Home = () => {
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [page, setPage] = useState(1);
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
     const fetchRecipes = async () => {
@@ -29,8 +42,44 @@ const Home = () => {
     fetchRecipes();
   }, []);
 
-  const totalPages = Math.ceil(recipes.length / RECIPES_PER_PAGE);
-  const paginatedRecipes = recipes.slice((page - 1) * RECIPES_PER_PAGE, page * RECIPES_PER_PAGE);
+  // Filter recipes by search (all words must match in any field)
+  const filteredRecipes = recipes.filter((ricetta) => {
+    if (!search) return true;
+    const words = search.trim().toLowerCase().split(/\s+/).filter(Boolean);
+    if (words.length === 0) return true;
+    const fields = [
+      ricetta.nome,
+      ricetta.ingredienti,
+      ricetta.tipologia,
+      ricetta.preparazione,
+      ricetta.alimentazione,
+    ].map(f => (typeof f === 'string' ? f.toLowerCase() : ''));
+    // All words must be found in at least one field
+    return words.every(word => fields.some(field => field.includes(word)));
+  });
+
+  // Find relevant keywords for each recipe
+  function getRelevantKeywords(ricetta, query) {
+    if (!query) return [];
+    const words = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+    if (words.length === 0) return [];
+    const fields = [
+      { label: 'Nome', value: ricetta.nome },
+      { label: 'Tipologia', value: ricetta.tipologia },
+      { label: 'Alimentazione', value: ricetta.alimentazione },
+      { label: 'Ingredienti', value: ricetta.ingredienti },
+      { label: 'Preparazione', value: ricetta.preparazione },
+    ];
+    return fields
+      .filter(f => typeof f.value === 'string' && words.some(word => f.value.toLowerCase().includes(word)))
+      .map(f => f.label);
+  }
+
+  const totalPages = Math.ceil(filteredRecipes.length / RECIPES_PER_PAGE);
+  const paginatedRecipes = filteredRecipes.slice((page - 1) * RECIPES_PER_PAGE, page * RECIPES_PER_PAGE);
+
+  // Reset to page 1 when search changes
+  useEffect(() => { setPage(1); }, [search]);
 
   return (
     <div
@@ -47,24 +96,37 @@ const Home = () => {
     >
       <div className="w-full max-w-5xl bg-white/80 rounded-lg shadow-lg p-6 flex flex-col items-center">
         <h1 className="text-2xl font-bold mb-4">Tutte le Ricette</h1>
+        <input
+          type="text"
+          placeholder="Cerca nelle ricette..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          className="mb-6 w-full max-w-md p-2 border rounded shadow focus:outline-none focus:ring-2 focus:ring-refresh-blue"
+        />
         {loading && <div>Caricamento...</div>}
         {error && <div className="text-red-500 mb-4">{error}</div>}
-        {!loading && !error && recipes.length === 0 && (
+        {!loading && !error && filteredRecipes.length === 0 && (
           <div>Nessuna ricetta trovata.</div>
         )}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
-          {paginatedRecipes.map((ricetta, idx) => (
-            <div key={ricetta.id || idx} className="bg-white rounded shadow p-4 flex flex-col">
-              <h2 className="text-xl font-bold mb-2">{ricetta.nome}</h2>
-              <div className="mb-1"><span className="font-semibold">Tipologia:</span> {ricetta.tipologia}</div>
-              <div className="mb-1"><span className="font-semibold">Alimentazione:</span> {ricetta.alimentazione}</div>
-              <div className="mb-1"><span className="font-semibold">Ingredienti:</span> {ricetta.ingredienti}</div>
-              <div className="mb-1"><span className="font-semibold">Preparazione:</span> {ricetta.preparazione}</div>
-              {ricetta.immagine && (
-                <img src={ricetta.immagine} alt={ricetta.nome} className="mt-2 max-h-40 object-cover rounded" />
-              )}
-            </div>
-          ))}
+          {paginatedRecipes.map((ricetta, idx) => {
+            const relevant = getRelevantKeywords(ricetta, search);
+            return (
+              <div key={ricetta.id || idx} className="bg-white rounded shadow p-4 flex flex-col">
+                <h2 className="text-xl font-bold mb-2">{highlight(ricetta.nome || '', search)}</h2>
+                {relevant.length > 0 && search && (
+                  <div className="mb-2 text-xs text-gray-600">Parole chiave trovate: {relevant.join(', ')}</div>
+                )}
+                <div className="mb-1"><span className="font-semibold">Tipologia:</span> {highlight(ricetta.tipologia || '', search)}</div>
+                <div className="mb-1"><span className="font-semibold">Alimentazione:</span> {highlight(ricetta.alimentazione || '', search)}</div>
+                <div className="mb-1"><span className="font-semibold">Ingredienti:</span> {highlight(ricetta.ingredienti || '', search)}</div>
+                <div className="mb-1"><span className="font-semibold">Preparazione:</span> {highlight(ricetta.preparazione || '', search)}</div>
+                {ricetta.immagine && (
+                  <img src={ricetta.immagine} alt={ricetta.nome} className="mt-2 max-h-40 object-cover rounded" />
+                )}
+              </div>
+            );
+          })}
         </div>
         {totalPages > 1 && (
           <div className="flex gap-2 mt-6">
