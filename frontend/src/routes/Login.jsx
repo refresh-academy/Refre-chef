@@ -1,11 +1,13 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router';
 
-const Login = () => {
+const Login = ({ setUser }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -24,6 +26,8 @@ const Login = () => {
         setError(data.error || 'Login failed');
       } else {
         setSuccess('Login successful! Benvenuto, ' + data.nickname);
+        if (setUser) setUser({ userId: data.userId, nickname: data.nickname });
+        navigate('/');
       }
     } catch (err) {
       setError('Errore di rete.');
