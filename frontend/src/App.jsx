@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route, Link, Outlet } from "react-router";
 import  logorefreChef from '/logorefreChef.png'
 import Home from './routes/Home.jsx'
 import Login from './routes/Login.jsx'
+import Registration from './routes/Registration.jsx'
 
 const Layout = () => {
   return(<div className='min-h-screen flex flex-col'>
@@ -32,6 +33,7 @@ function App() {
           <Route element={<Layout />}>
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Registration />} />
           </Route>
         </Routes>
       </BrowserRouter>
