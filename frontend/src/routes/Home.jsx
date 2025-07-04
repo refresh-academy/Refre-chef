@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useOutletContext } from 'react-router';
 
 const RECIPES_PER_PAGE = 9;
 
@@ -19,7 +20,7 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [page, setPage] = useState(1);
-  const [search, setSearch] = useState('');
+  const { search } = useOutletContext();
 
   useEffect(() => {
     const fetchRecipes = async () => {
@@ -96,13 +97,6 @@ const Home = () => {
     >
       <div className="w-full max-w-5xl bg-white/80 rounded-lg shadow-lg p-6 flex flex-col items-center">
         <h1 className="text-2xl font-bold mb-4">Tutte le Ricette</h1>
-        <input
-          type="text"
-          placeholder="Cerca nelle ricette..."
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          className="mb-6 w-full max-w-md p-2 border rounded shadow focus:outline-none focus:ring-2 focus:ring-refresh-blue"
-        />
         {loading && <div>Caricamento...</div>}
         {error && <div className="text-red-500 mb-4">{error}</div>}
         {!loading && !error && filteredRecipes.length === 0 && (
