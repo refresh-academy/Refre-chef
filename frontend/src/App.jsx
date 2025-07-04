@@ -14,8 +14,11 @@ const Layout = () => {
           <p className='text-black'>RefreChef</p>
         </Link>
         <div className="flex-2" />
-        <Link to={'/login'} className="flex items-center justify-center pr-20">
+        <Link to={'/login'} className="flex items-center justify-center pr-10">
           <p>Login</p>
+        </Link>
+        <Link to={'/register'} className="flex items-center justify-center pr-10">
+          <p>Register</p>
         </Link>
       </div>
       <div className='flex flex-row bg-refresh-light-blue items-center w-screen px-20 py-4'>
