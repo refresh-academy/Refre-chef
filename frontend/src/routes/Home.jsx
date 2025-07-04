@@ -179,6 +179,10 @@ const Home = (props) => {
                   <div className="mb-1"><span className="font-semibold">Alimentazione:</span> {highlight(ricetta.alimentazione || '', search)}</div>
                   <div className="mb-1"><span className="font-semibold">Ingredienti:</span> {highlight(ricetta.ingredienti || '', search)}</div>
                   <div className="mb-1"><span className="font-semibold">Preparazione:</span> {highlight(ricetta.preparazione || '', search)}</div>
+                  <div className="mb-1"><span className="font-semibold">Origine:</span> {highlight(ricetta.origine || '', search)}</div>
+                  <div className="mb-1"><span className="font-semibold">Allergeni:</span> {highlight(ricetta.allergeni || '', search)}</div>
+                  <div className="mb-1"><span className="font-semibold">Tempo di preparazione:</span> {ricetta.tempo_preparazione ? `${ricetta.tempo_preparazione} min` : ''}</div>
+                  <div className="mb-1"><span className="font-semibold">Kcal:</span> {ricetta.kcal || ''}</div>
                   <div className="mb-1"><span className="font-semibold">Creatore:</span> {highlight(ricetta.author || '', search)}</div>
                   <div className="mb-1">
                     {userId ? (
