@@ -164,7 +164,7 @@ app.post('/api/login', async (req, res) => {
 });
 
 app.post('/api/aggiungiRicetta', async (req, res) => {
-  const { nome, tipologia, ingredienti, alimentazione, immagine, preparazione, author_id } = req.body;
+  const { nome, tipologia, ingredienti, alimentazione, immagine, preparazione, origine, allergeni, tempo_preparazione, kcal, author_id } = req.body;
 
   if (!nome || !tipologia || !ingredienti || !alimentazione || !preparazione || !author_id) {
     return res.status(400).json({ error: 'Missing required fields.' });
@@ -172,9 +172,9 @@ app.post('/api/aggiungiRicetta', async (req, res) => {
 
   try {
     const result = await dbRun(
-      `INSERT INTO ricettario (nome, tipologia, ingredienti, alimentazione, immagine, preparazione, author_id)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [nome, tipologia, ingredienti, alimentazione, immagine || null, preparazione, author_id]
+      `INSERT INTO ricettario (nome, tipologia, ingredienti, alimentazione, immagine, preparazione, origine, allergeni, tempo_preparazione, kcal, author_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [nome, tipologia, ingredienti, alimentazione, immagine || null, preparazione, origine || null, allergeni || null, tempo_preparazione || null, kcal || null, author_id]
     );
 
     res.status(201).json({ message: 'Recipe created successfully', recipeId: result.id });
