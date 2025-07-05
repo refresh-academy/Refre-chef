@@ -15,6 +15,63 @@ function highlight(text, query) {
   );
 }
 
+function RecipeCard({ ricetta, userId, saved, handleSaveRecipe, handleRecipeClick, search, relevant }) {
+  const [imgError, setImgError] = useState(false);
+  const imageUrl = ricetta.immagine && ricetta.immagine.trim() !== '' && !imgError ? ricetta.immagine : '/fallback-food.jpg';
+  return (
+    <div
+      key={ricetta.id}
+      className="bg-white rounded shadow p-4 flex flex-row items-center gap-6 min-h-[180px] cursor-pointer hover:shadow-lg transition-shadow relative"
+      onClick={() => handleRecipeClick(ricetta.id)}
+    >
+      <div className="relative w-40 h-40 flex-shrink-0">
+        <img
+          src={imageUrl}
+          alt={ricetta.nome || 'Immagine di default'}
+          className="w-full h-full object-cover rounded"
+          onError={() => setImgError(true)}
+        />
+        {userId && (
+          <span
+            onClick={(e) => handleSaveRecipe(ricetta.id, e)}
+            className={`absolute top-2 left-2 text-2xl cursor-pointer transition-colors z-10 ${
+              saved.includes(ricetta.id)
+                ? 'text-red-500 hover:text-red-600'
+                : 'text-gray-400 hover:text-red-500'
+            }`}
+            title={saved.includes(ricetta.id) ? 'Rimuovi dalle salvate' : 'Salva ricetta'}
+          >
+            {saved.includes(ricetta.id) ? '❤️' : '🤍'}
+          </span>
+        )}
+      </div>
+      <div className="flex flex-col flex-1">
+        <h2 className="text-xl font-bold mb-2">{highlight(ricetta.nome || '', search)}</h2>
+        {relevant.length > 0 && search && (
+          <div className="mb-2 text-xs text-gray-600">Parole chiave trovate: {relevant.join(', ')}</div>
+        )}
+        <div className="mb-1"><span className="font-semibold">Tipologia:</span> {highlight(ricetta.tipologia || '', search)}</div>
+        <div className="mb-1"><span className="font-semibold">Alimentazione:</span> {highlight(ricetta.alimentazione || '', search)}</div>
+        <div className="mb-1"><span className="font-semibold">Ingredienti:</span> {highlight(ricetta.ingredienti || '', search)}</div>
+        <div className="mb-1"><span className="font-semibold">Preparazione:</span> {highlight(ricetta.preparazione || '', search)}</div>
+        <div className="mb-1"><span className="font-semibold">Origine:</span> {highlight(ricetta.origine || '', search)}</div>
+        <div className="mb-1"><span className="font-semibold">Allergeni:</span> {highlight(ricetta.allergeni || '', search)}</div>
+        <div className="mb-1 flex flex-row items-center gap-4">
+          <div className="flex flex-row items-center gap-2">
+            <span className="font-semibold" title="Tempo di preparazione">⏱️</span>
+            <span className="text-sm">{ricetta.tempo_preparazione ? `${ricetta.tempo_preparazione} min` : ''}</span>
+          </div>
+          <div className="flex flex-row items-center gap-2">
+            <span className="font-semibold" title="Kcal"> 🔥 Kcal</span>
+            <span className="text-sm">{ricetta.kcal || ''}</span>
+          </div>
+        </div>
+        <div className="mb-1"><span className="font-semibold">Creatore:</span> {highlight(ricetta.author || '', search)}</div>
+      </div>
+    </div>
+  );
+}
+
 const Home = (props) => {
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -193,66 +250,16 @@ const Home = (props) => {
           {paginatedRecipes.map((ricetta, idx) => {
             const relevant = getRelevantKeywords(ricetta, search);
             return (
-              <div 
-                key={ricetta.id || idx} 
-                className="bg-white rounded shadow p-4 flex flex-row items-center gap-6 min-h-[180px] cursor-pointer hover:shadow-lg transition-shadow relative"
-                onClick={() => handleRecipeClick(ricetta.id)}
-              >
-                {ricetta.immagine && (
-                  <div className="relative w-40 h-40 flex-shrink-0">
-                    <img src={ricetta.immagine} alt={ricetta.nome} className="w-full h-full object-cover rounded" />
-                    {userId && (
-                      <span
-                        onClick={(e) => handleSaveRecipe(ricetta.id, e)}
-                        className={`absolute top-2 left-2 text-2xl cursor-pointer transition-colors z-10 ${
-                          saved.includes(ricetta.id)
-                            ? 'text-red-500 hover:text-red-600'
-                            : 'text-gray-400 hover:text-red-500'
-                        }`}
-                        title={saved.includes(ricetta.id) ? 'Rimuovi dalle salvate' : 'Salva ricetta'}
-                      >
-                        {saved.includes(ricetta.id) ? '❤️' : '🤍'}
-                      </span>
-                    )}
-                  </div>
-                )}
-                {!ricetta.immagine && userId && (
-                  <span
-                    onClick={(e) => handleSaveRecipe(ricetta.id, e)}
-                    className={`absolute top-2 left-2 text-2xl cursor-pointer transition-colors z-10 ${
-                      saved.includes(ricetta.id)
-                        ? 'text-red-500 hover:text-red-600'
-                        : 'text-gray-400 hover:text-red-500'
-                    }`}
-                    title={saved.includes(ricetta.id) ? 'Rimuovi dalle salvate' : 'Salva ricetta'}
-                  >
-                    {saved.includes(ricetta.id) ? '❤️' : '🤍'}
-                  </span>
-                )}
-                <div className="flex flex-col flex-1">
-                  <h2 className="text-xl font-bold mb-2">{highlight(ricetta.nome || '', search)}</h2>
-                  {relevant.length > 0 && search && (
-                    <div className="mb-2 text-xs text-gray-600">Parole chiave trovate: {relevant.join(', ')}</div>
-                  )}
-                  <div className="mb-1"><span className="font-semibold">Tipologia:</span> {highlight(ricetta.tipologia || '', search)}</div>
-                  <div className="mb-1"><span className="font-semibold">Alimentazione:</span> {highlight(ricetta.alimentazione || '', search)}</div>
-                  <div className="mb-1"><span className="font-semibold">Ingredienti:</span> {highlight(ricetta.ingredienti || '', search)}</div>
-                  <div className="mb-1"><span className="font-semibold">Preparazione:</span> {highlight(ricetta.preparazione || '', search)}</div>
-                  <div className="mb-1"><span className="font-semibold">Origine:</span> {highlight(ricetta.origine || '', search)}</div>
-                  <div className="mb-1"><span className="font-semibold">Allergeni:</span> {highlight(ricetta.allergeni || '', search)}</div>
-                  <div className="mb-1 flex flex-row items-center gap-4">
-                    <div className="flex flex-row items-center gap-2">
-                      <span className="font-semibold" title="Tempo di preparazione">⏱️</span>
-                      <span className="text-sm">{ricetta.tempo_preparazione ? `${ricetta.tempo_preparazione} min` : ''}</span>
-                    </div>
-                    <div className="flex flex-row items-center gap-2">
-                      <span className="font-semibold" title="Kcal">🔥</span>
-                      <span className="text-sm">{ricetta.kcal || ''}</span>
-                    </div>
-                  </div>
-                  <div className="mb-1"><span className="font-semibold">Creatore:</span> {highlight(ricetta.author || '', search)}</div>
-                </div>
-              </div>
+              <RecipeCard
+                key={ricetta.id || idx}
+                ricetta={ricetta}
+                userId={userId}
+                saved={saved}
+                handleSaveRecipe={handleSaveRecipe}
+                handleRecipeClick={handleRecipeClick}
+                search={search}
+                relevant={relevant}
+              />
             );
           })}
         </div>
