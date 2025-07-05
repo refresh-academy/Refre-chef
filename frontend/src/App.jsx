@@ -14,6 +14,7 @@ const Layout = ({ user }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [maxTime, setMaxTime] = useState('');
+  const [alimentazione, setAlimentazione] = useState('');
   const dropdownRef = useRef(null);
   const location = useLocation();
   // Close dropdown on outside click
@@ -40,26 +41,6 @@ const Layout = ({ user }) => {
             <p className='text-black'>RefreChef</p>
           </Link>
         </div>
-        {location.pathname === '/' && (
-          <div className="flex-1 flex justify-center items-center gap-4">
-            <input
-              type="text"
-              placeholder="Cerca nelle ricette..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="w-72 p-2 border rounded shadow focus:outline-none focus:ring-2 focus:ring-refresh-blue"
-            />
-            <input
-              type="number"
-              min="0"
-              value={maxTime}
-              onChange={e => setMaxTime(e.target.value)}
-              placeholder="Tempo massimo (min)"
-              className="w-40 p-2 border rounded shadow focus:outline-none focus:ring-2 focus:ring-refresh-blue"
-              style={{maxWidth: '160px'}}
-            />
-          </div>
-        )}
         <div className="flex-1" />
         <div className="flex flex-row items-center gap-2 pr-4">
           {user ? (
@@ -105,10 +86,43 @@ const Layout = ({ user }) => {
           )}
         </div>
       </div>
-      <div className='flex flex-row bg-refresh-light-blue items-center w-screen px-20 py-4'>
-        <h1 className='text-black text-2xl font-bold'>Questa è la navbar</h1>
+      <div className='flex flex-row bg-white items-center w-screen px-20 py-4'>
+        {(location.pathname === '/' || location.pathname.startsWith('/saved-recipes/')) && (
+          <div className="flex items-center gap-4">
+            <input
+              type="text"
+              placeholder="Cerca nelle ricette..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="w-72 p-2 border rounded shadow focus:outline-none focus:ring-2 focus:ring-refresh-blue"
+            />
+            <input
+              type="number"
+              min="0"
+              value={maxTime}
+              onChange={e => setMaxTime(e.target.value)}
+              placeholder="Tempo massimo (min)"
+              className="w-40 p-2 border rounded shadow focus:outline-none focus:ring-2 focus:ring-refresh-blue"
+              style={{maxWidth: '160px'}}
+            />
+            <select
+              value={alimentazione}
+              onChange={e => setAlimentazione(e.target.value)}
+              className="w-48 p-2 border rounded shadow focus:outline-none focus:ring-2 focus:ring-refresh-blue"
+            >
+              <option value="">🍽️ Tutte le alimentazioni</option>
+              <option value="Onnivora">🥩 Onnivoro</option>
+              <option value="Vegetariana">🥬 Vegetariano</option>
+              <option value="Vegana">🌱 Vegano</option>
+            </select>
+          </div>
+        )}
       </div>
-      <Outlet context={location.pathname === '/' ? { search, setSearch, maxTime, setMaxTime } : { search: '', setSearch: () => {}, maxTime: '', setMaxTime: () => {} }} />
+      <Outlet context={
+        (location.pathname === '/' || location.pathname.startsWith('/saved-recipes/'))
+          ? { search, setSearch, maxTime, setMaxTime, alimentazione, setAlimentazione }
+          : { search: '', setSearch: () => {}, maxTime: '', setMaxTime: () => {}, alimentazione: '', setAlimentazione: () => {} }
+      } />
   </div>)
 }
 

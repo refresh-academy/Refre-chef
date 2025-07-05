@@ -76,7 +76,7 @@ app.post('/api/salvaRicetta', async (req, res) => {
     );
 
     if (existing.length > 0) {
-      return res.status(409).json({ error: 'Recipe already saved by this user.' });
+      return res.status(200).json({ message: 'Recipe already saved by this user.' });
     }
 
     const result = await dbRun(

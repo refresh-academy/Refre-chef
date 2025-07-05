@@ -21,7 +21,7 @@ const Home = (props) => {
   const [error, setError] = useState('');
   const [page, setPage] = useState(1);
   const [saved, setSaved] = useState([]);
-  const { search, maxTime } = useOutletContext();
+  const { search, maxTime, alimentazione } = useOutletContext();
   const navigate = useNavigate();
   // Prendo userId solo da props.user, così la visibilità è reattiva e sicura
   const userId = props.user ? props.user.userId : null;
@@ -58,7 +58,7 @@ const Home = (props) => {
     }
   }, []);
 
-  // Filter recipes by search (all words must match in any field) and maxTime
+  // Filter recipes by search (all words must match in any field), maxTime, and alimentazione
   const filteredRecipes = recipes.filter((ricetta) => {
     // Search filter
     if (!search) {
@@ -82,6 +82,12 @@ const Home = (props) => {
     // Max time filter
     if (maxTime && !isNaN(Number(maxTime))) {
       if (!ricetta.tempo_preparazione || Number(ricetta.tempo_preparazione) > Number(maxTime)) {
+        return false;
+      }
+    }
+    // Alimentazione filter
+    if (alimentazione && alimentazione !== '') {
+      if (!ricetta.alimentazione || ricetta.alimentazione !== alimentazione) {
         return false;
       }
     }
@@ -189,11 +195,39 @@ const Home = (props) => {
             return (
               <div 
                 key={ricetta.id || idx} 
-                className="bg-white rounded shadow p-4 flex flex-row items-center gap-6 min-h-[180px] cursor-pointer hover:shadow-lg transition-shadow"
+                className="bg-white rounded shadow p-4 flex flex-row items-center gap-6 min-h-[180px] cursor-pointer hover:shadow-lg transition-shadow relative"
                 onClick={() => handleRecipeClick(ricetta.id)}
               >
                 {ricetta.immagine && (
-                  <img src={ricetta.immagine} alt={ricetta.nome} className="w-40 h-40 object-cover rounded flex-shrink-0" />
+                  <div className="relative w-40 h-40 flex-shrink-0">
+                    <img src={ricetta.immagine} alt={ricetta.nome} className="w-full h-full object-cover rounded" />
+                    {userId && (
+                      <span
+                        onClick={(e) => handleSaveRecipe(ricetta.id, e)}
+                        className={`absolute top-2 left-2 text-2xl cursor-pointer transition-colors z-10 ${
+                          saved.includes(ricetta.id)
+                            ? 'text-red-500 hover:text-red-600'
+                            : 'text-gray-400 hover:text-red-500'
+                        }`}
+                        title={saved.includes(ricetta.id) ? 'Rimuovi dalle salvate' : 'Salva ricetta'}
+                      >
+                        {saved.includes(ricetta.id) ? '❤️' : '🤍'}
+                      </span>
+                    )}
+                  </div>
+                )}
+                {!ricetta.immagine && userId && (
+                  <span
+                    onClick={(e) => handleSaveRecipe(ricetta.id, e)}
+                    className={`absolute top-2 left-2 text-2xl cursor-pointer transition-colors z-10 ${
+                      saved.includes(ricetta.id)
+                        ? 'text-red-500 hover:text-red-600'
+                        : 'text-gray-400 hover:text-red-500'
+                    }`}
+                    title={saved.includes(ricetta.id) ? 'Rimuovi dalle salvate' : 'Salva ricetta'}
+                  >
+                    {saved.includes(ricetta.id) ? '❤️' : '🤍'}
+                  </span>
                 )}
                 <div className="flex flex-col flex-1">
                   <h2 className="text-xl font-bold mb-2">{highlight(ricetta.nome || '', search)}</h2>
@@ -206,24 +240,17 @@ const Home = (props) => {
                   <div className="mb-1"><span className="font-semibold">Preparazione:</span> {highlight(ricetta.preparazione || '', search)}</div>
                   <div className="mb-1"><span className="font-semibold">Origine:</span> {highlight(ricetta.origine || '', search)}</div>
                   <div className="mb-1"><span className="font-semibold">Allergeni:</span> {highlight(ricetta.allergeni || '', search)}</div>
-                  <div className="mb-1"><span className="font-semibold">Tempo di preparazione:</span> {ricetta.tempo_preparazione ? `${ricetta.tempo_preparazione} min` : ''}</div>
-                  <div className="mb-1"><span className="font-semibold">Kcal:</span> {ricetta.kcal || ''}</div>
-                  <div className="mb-1"><span className="font-semibold">Creatore:</span> {highlight(ricetta.author || '', search)}</div>
-                  <div className="mb-1">
-                    {userId ? (
-                      <button
-                        onClick={(e) => handleSaveRecipe(ricetta.id, e)}
-                        disabled={loading}
-                        className={`px-3 py-1 rounded transition ${
-                          saved.includes(ricetta.id)
-                            ? 'bg-green-400 text-white cursor-pointer'
-                            : 'bg-blue-500 text-white hover:bg-blue-600'
-                        }`}
-                      >
-                        {saved.includes(ricetta.id) ? 'Salvata (clicca per rimuovere)' : 'Salva ricetta'}
-                      </button>
-                    ) : null}
+                  <div className="mb-1 flex flex-row items-center gap-4">
+                    <div className="flex flex-row items-center gap-2">
+                      <span className="font-semibold" title="Tempo di preparazione">⏱️</span>
+                      <span className="text-sm">{ricetta.tempo_preparazione ? `${ricetta.tempo_preparazione} min` : ''}</span>
+                    </div>
+                    <div className="flex flex-row items-center gap-2">
+                      <span className="font-semibold" title="Kcal">🔥</span>
+                      <span className="text-sm">{ricetta.kcal || ''}</span>
+                    </div>
                   </div>
+                  <div className="mb-1"><span className="font-semibold">Creatore:</span> {highlight(ricetta.author || '', search)}</div>
                 </div>
               </div>
             );
