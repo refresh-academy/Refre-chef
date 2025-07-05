@@ -13,6 +13,7 @@ import Ricetta from './routes/Ricetta.jsx'
 const Layout = ({ user }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [search, setSearch] = useState('');
+  const [maxTime, setMaxTime] = useState('');
   const dropdownRef = useRef(null);
   const location = useLocation();
   // Close dropdown on outside click
@@ -40,13 +41,22 @@ const Layout = ({ user }) => {
           </Link>
         </div>
         {location.pathname === '/' && (
-          <div className="flex-1 flex justify-center">
+          <div className="flex-1 flex justify-center items-center gap-4">
             <input
               type="text"
               placeholder="Cerca nelle ricette..."
               value={search}
               onChange={e => setSearch(e.target.value)}
               className="w-72 p-2 border rounded shadow focus:outline-none focus:ring-2 focus:ring-refresh-blue"
+            />
+            <input
+              type="number"
+              min="0"
+              value={maxTime}
+              onChange={e => setMaxTime(e.target.value)}
+              placeholder="Tempo massimo (min)"
+              className="w-40 p-2 border rounded shadow focus:outline-none focus:ring-2 focus:ring-refresh-blue"
+              style={{maxWidth: '160px'}}
             />
           </div>
         )}
@@ -98,7 +108,7 @@ const Layout = ({ user }) => {
       <div className='flex flex-row bg-refresh-light-blue items-center w-screen px-20 py-4'>
         <h1 className='text-black text-2xl font-bold'>Questa è la navbar</h1>
       </div>
-      <Outlet context={location.pathname === '/' ? { search, setSearch } : { search: '', setSearch: () => {} }} />
+      <Outlet context={location.pathname === '/' ? { search, setSearch, maxTime, setMaxTime } : { search: '', setSearch: () => {}, maxTime: '', setMaxTime: () => {} }} />
   </div>)
 }
 

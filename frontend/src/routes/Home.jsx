@@ -21,7 +21,7 @@ const Home = (props) => {
   const [error, setError] = useState('');
   const [page, setPage] = useState(1);
   const [saved, setSaved] = useState([]);
-  const { search } = useOutletContext();
+  const { search, maxTime } = useOutletContext();
   const navigate = useNavigate();
   // Prendo userId solo da props.user, così la visibilità è reattiva e sicura
   const userId = props.user ? props.user.userId : null;
@@ -58,20 +58,34 @@ const Home = (props) => {
     }
   }, []);
 
-  // Filter recipes by search (all words must match in any field)
+  // Filter recipes by search (all words must match in any field) and maxTime
   const filteredRecipes = recipes.filter((ricetta) => {
-    if (!search) return true;
-    const words = search.trim().toLowerCase().split(/\s+/).filter(Boolean);
-    if (words.length === 0) return true;
-    const fields = [
-      ricetta.nome,
-      ricetta.ingredienti,
-      ricetta.tipologia,
-      ricetta.preparazione,
-      ricetta.alimentazione,
-      ricetta.author,
-    ].map(f => (typeof f === 'string' ? f.toLowerCase() : String(f || '')));
-    return words.every(word => fields.some(field => field.includes(word)));
+    // Search filter
+    if (!search) {
+      // continue
+    } else {
+      const words = search.trim().toLowerCase().split(/\s+/).filter(Boolean);
+      if (words.length > 0) {
+        const fields = [
+          ricetta.nome,
+          ricetta.ingredienti,
+          ricetta.tipologia,
+          ricetta.preparazione,
+          ricetta.alimentazione,
+          ricetta.author,
+        ].map(f => (typeof f === 'string' ? f.toLowerCase() : String(f || '')));
+        if (!words.every(word => fields.some(field => field.includes(word)))) {
+          return false;
+        }
+      }
+    }
+    // Max time filter
+    if (maxTime && !isNaN(Number(maxTime))) {
+      if (!ricetta.tempo_preparazione || Number(ricetta.tempo_preparazione) > Number(maxTime)) {
+        return false;
+      }
+    }
+    return true;
   });
 
   // Find relevant keywords for each recipe
