@@ -37,32 +37,25 @@ const Ricetta = () => {
     return (
         <div className="flex flex-col items-center justify-center min-h-[60vh] p-4">
             <div className="w-full max-w-2xl bg-white/90 rounded-lg shadow-lg p-6 flex flex-col items-center">
-                <h1 className="text-3xl font-bold mb-4">Ricetta</h1>
+                <h1 className="text-3xl font-bold mb-4">{ricetta.nome}</h1>
                 {ricetta.immagine && (
                     <img src={ricetta.immagine} alt={ricetta.nome} className="w-64 h-64 object-cover rounded mb-4" />
                 )}
-                <div className="w-full flex flex-col gap-2">
-                    <div><span className="font-semibold">Tipologia:</span> {ricetta.tipologia}</div>
-                    <div><span className="font-semibold">Alimentazione:</span> {ricetta.alimentazione}</div>
-                    <div><span className="font-semibold">Ingredienti:</span> {ricetta.ingredienti}</div>
-                    <div><span className="font-semibold">Preparazione:</span> {ricetta.preparazione}</div>
-                    <div><span className="font-semibold">Origine:</span> {ricetta.origine}</div>
-                    <div><span className="font-semibold">Allergeni:</span> {ricetta.allergeni}</div>
-                    <div><span className="font-semibold">Tempo di preparazione:</span> {ricetta.tempo_preparazione ? `${ricetta.tempo_preparazione} min` : ''}</div>
-                    <div><span className="font-semibold">Kcal:</span> {ricetta.kcal}</div>
-                    <div><span className="font-semibold">Creatore:</span> {ricetta.author}</div>
+                <div className="w-full flex flex-col gap-3">
+                    <div className="bg-gray-50 p-3 rounded"><span className="font-semibold">Tipologia:</span> {ricetta.tipologia}</div>
+                    <div className="bg-gray-50 p-3 rounded"><span className="font-semibold">Alimentazione:</span> {ricetta.alimentazione}</div>
+                    <div className="bg-gray-50 p-3 rounded"><span className="font-semibold">Ingredienti:</span> {ricetta.ingredienti}</div>
+                    <div className="bg-gray-50 p-3 rounded"><span className="font-semibold">Preparazione:</span> {ricetta.preparazione}</div>
+                    <div className="bg-gray-50 p-3 rounded"><span className="font-semibold">Origine:</span> {ricetta.origine}</div>
+                    <div className="bg-gray-50 p-3 rounded"><span className="font-semibold">Allergeni:</span> {ricetta.allergeni}</div>
+                    <div className="bg-gray-50 p-3 rounded"><span className="font-semibold">Tempo di preparazione:</span> {ricetta.tempo_preparazione ? `${ricetta.tempo_preparazione} min` : ''}</div>
+                    <div className="bg-gray-50 p-3 rounded"><span className="font-semibold">Kcal:</span> {ricetta.kcal}</div>
+                    <div className="bg-gray-50 p-3 rounded"><span className="font-semibold">Creatore:</span> {ricetta.author}</div>
                 </div>
                 <button onClick={() => navigate(-1)} className="mt-6 px-4 py-2 rounded bg-refresh-blue text-white font-bold hover:bg-refresh-pink transition">Torna indietro</button>
             </div>
         </div>
     );
 };
-
-
-
-
-
-
-
 
 export default Ricetta;

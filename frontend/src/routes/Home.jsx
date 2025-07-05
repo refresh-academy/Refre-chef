@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useOutletContext } from 'react-router';
+import { useOutletContext, useNavigate } from 'react-router';
 
 const RECIPES_PER_PAGE = 10;
 
@@ -22,6 +22,7 @@ const Home = (props) => {
   const [page, setPage] = useState(1);
   const [saved, setSaved] = useState([]);
   const { search } = useOutletContext();
+  const navigate = useNavigate();
   // Prendo userId solo da props.user, così la visibilità è reattiva e sicura
   const userId = props.user ? props.user.userId : null;
 
@@ -98,7 +99,8 @@ const Home = (props) => {
   useEffect(() => { setPage(1); }, [search]);
 
   // Funzione per salvare la ricetta
-  const handleSaveRecipe = async (ricettaId) => {
+  const handleSaveRecipe = async (ricettaId, event) => {
+    event.stopPropagation(); // Prevent navigation when clicking save button
     if (!userId) {
       alert('Devi essere loggato per salvare le ricette.');
       return;
@@ -142,6 +144,11 @@ const Home = (props) => {
     }
   };
 
+  // Funzione per navigare alla ricetta
+  const handleRecipeClick = (ricettaId) => {
+    navigate(`/ricetta/${ricettaId}`);
+  };
+
   return (
     <div
       className="min-h-[60vh] flex flex-col items-center justify-center p-4 w-full"
@@ -166,7 +173,11 @@ const Home = (props) => {
           {paginatedRecipes.map((ricetta, idx) => {
             const relevant = getRelevantKeywords(ricetta, search);
             return (
-              <div key={ricetta.id || idx} className="bg-white rounded shadow p-4 flex flex-row items-center gap-6 min-h-[180px]">
+              <div 
+                key={ricetta.id || idx} 
+                className="bg-white rounded shadow p-4 flex flex-row items-center gap-6 min-h-[180px] cursor-pointer hover:shadow-lg transition-shadow"
+                onClick={() => handleRecipeClick(ricetta.id)}
+              >
                 {ricetta.immagine && (
                   <img src={ricetta.immagine} alt={ricetta.nome} className="w-40 h-40 object-cover rounded flex-shrink-0" />
                 )}
@@ -187,7 +198,7 @@ const Home = (props) => {
                   <div className="mb-1">
                     {userId ? (
                       <button
-                        onClick={() => handleSaveRecipe(ricetta.id)}
+                        onClick={(e) => handleSaveRecipe(ricetta.id, e)}
                         disabled={loading}
                         className={`px-3 py-1 rounded transition ${
                           saved.includes(ricetta.id)

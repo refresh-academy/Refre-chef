@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router';
+import { useParams, useNavigate } from 'react-router';
 
 const SavedRecipes = () => {
   const { userId } = useParams();
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchRecipes = async () => {
@@ -28,7 +29,8 @@ const SavedRecipes = () => {
     fetchRecipes();
   }, [userId]);
 
-  const handleRemove = async (ricettaId) => {
+  const handleRemove = async (ricettaId, event) => {
+    event.stopPropagation(); // Prevent navigation when clicking remove button
     const id_user = localStorage.getItem('userId');
     if (!id_user) {
       alert('Devi essere loggato per rimuovere le ricette.');
@@ -52,6 +54,11 @@ const SavedRecipes = () => {
     }
   };
 
+  // Funzione per navigare alla ricetta
+  const handleRecipeClick = (ricettaId) => {
+    navigate(`/ricetta/${ricettaId}`);
+  };
+
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] p-4">
       <h1 className="text-2xl font-bold mb-4">Ricette Salvate</h1>
@@ -62,7 +69,11 @@ const SavedRecipes = () => {
       )}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-5xl">
         {recipes.map((ricetta) => (
-          <div key={ricetta.id} className="bg-white rounded shadow p-4 flex flex-col">
+          <div 
+            key={ricetta.id} 
+            className="bg-white rounded shadow p-4 flex flex-col cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => handleRecipeClick(ricetta.id)}
+          >
             <h2 className="text-xl font-bold mb-2">{ricetta.nome}</h2>
             <div className="mb-1"><span className="font-semibold">Tipologia:</span> {ricetta.tipologia}</div>
             <div className="mb-1"><span className="font-semibold">Alimentazione:</span> {ricetta.alimentazione}</div>
@@ -73,7 +84,7 @@ const SavedRecipes = () => {
             )}
             <button
               className="mt-4 px-3 py-1 rounded bg-red-500 text-white hover:bg-red-600 transition"
-              onClick={() => handleRemove(ricetta.id)}
+              onClick={(e) => handleRemove(ricetta.id, e)}
             >
               Rimuovi
             </button>
