@@ -3,6 +3,7 @@ import './App.css'
 import { BrowserRouter, Routes, Route, Link, Outlet, useLocation } from "react-router";
 import  logorefreChef from '/logorefreChef.png'
 import Home from './routes/Home.jsx'
+import Benvenuti from './routes/Welcome.jsx'
 import Login from './routes/Login.jsx'
 import Registration from './routes/Registration.jsx'
 import SavedRecipes from './routes/SavedRecipes.jsx'
@@ -135,6 +136,7 @@ function App() {
       <Routes>
         <Route element={<Layout user={user} />}>
           <Route path="/" element={<Home user={user} />} />
+          <Route path="/welcome" element= {<Benvenuti />} />
           <Route path="/login" element={<Login setUser={setUser} />} />
           <Route path="/register" element={<Registration />} />
           <Route path="/saved-recipes/:userId" element={<SavedRecipes />} />
