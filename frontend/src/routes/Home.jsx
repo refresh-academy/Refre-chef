@@ -34,11 +34,10 @@ function RecipeCard({ ricetta, userId, saved, handleSaveRecipe, handleRecipeClic
         {userId && (
           <span
             onClick={(e) => handleSaveRecipe(ricetta.id, e)}
-            className={`absolute top-2 left-2 text-2xl cursor-pointer transition-colors z-10 ${
-              saved.includes(ricetta.id)
-                ? 'text-red-500 hover:text-red-600'
-                : 'text-gray-400 hover:text-red-500'
-            }`}
+            className={`absolute top-2 left-2 text-2xl cursor-pointer transition-colors z-10 ${saved.includes(ricetta.id)
+              ? 'text-red-500 hover:text-red-600'
+              : 'text-gray-400 hover:text-red-500'
+              }`}
             title={saved.includes(ricetta.id) ? 'Rimuovi dalle salvate' : 'Salva ricetta'}
           >
             {saved.includes(ricetta.id) ? '❤️' : '🤍'}
@@ -50,20 +49,20 @@ function RecipeCard({ ricetta, userId, saved, handleSaveRecipe, handleRecipeClic
         {relevant.length > 0 && search && (
           <div className="mb-2 text-xs text-gray-600">Parole chiave trovate: {relevant.join(', ')}</div>
         )}
-        <div className="mb-1"><span className="font-semibold">Ingredienti:</span> {highlight(ricetta.ingredienti || '', search)}</div>
-        <div className="mb-1"><span className="font-semibold">Descrizione:</span> {highlight(ricetta.descrizione || '', search)}</div>
-        <div className="mb-1"><span className="font-semibold">Allergeni:</span> {highlight(ricetta.allergeni || '', search)}</div>
-        <div className="mb-1 flex flex-row items-center gap-4">
+        <div className="flex flex-row items-center gap-2">
           <div className="flex flex-row items-center gap-2">
             <span className="font-semibold" title="Tempo di preparazione">⏱️</span>
             <span className="text-sm">{ricetta.tempo_preparazione ? `${ricetta.tempo_preparazione} min` : ''}</span>
           </div>
-          <div className="flex flex-row items-center gap-2">
-            <span className="font-semibold" title="Kcal"> 🔥 Kcal</span>
-            <span className="text-sm">{ricetta.kcal || ''}</span>
-            <span classNamr="font-semibold" title="Porzioni">🍽️</span>
-            <span className="text-sm">{ricetta.porzioni || ''} persone</span>
-          </div>
+          <span className="font-semibold" title="Kcal"> 🔥 Kcal</span>
+          <span className="text-sm">{ricetta.kcal || ''}</span>
+          <span classNamr="font-semibold" title="Porzioni">🍽️</span>
+          <span className="text-sm">{ricetta.porzioni || ''} persone</span>
+        </div>
+        <div className="mb-1"><span className="font-semibold">Ingredienti:</span> {highlight(ricetta.ingredienti || '', search)}</div>
+        <div className="mb-1"><span className="font-semibold">Descrizione:</span> {highlight(ricetta.descrizione || '', search)}</div>
+        <div className="mb-1"><span className="font-semibold">Allergeni:</span> {highlight(ricetta.allergeni || '', search)}</div>
+        <div className="mb-1 flex flex-row items-center gap-4">
         </div>
         <div className="mb-1"><span className="font-semibold">Creatore:</span> {highlight(ricetta.author || '', search)}</div>
       </div>
@@ -77,7 +76,7 @@ const Home = (props) => {
   const [error, setError] = useState('');
   const [page, setPage] = useState(1);
   const [saved, setSaved] = useState([]);
-  const { search, maxTime, maxKcal,  alimentazione } = useOutletContext();
+  const { search, maxTime, maxKcal, alimentazione } = useOutletContext();
   const navigate = useNavigate();
   // Prendo userId solo da props.user, così la visibilità è reattiva e sicura
   const userId = props.user ? props.user.userId : null;
