@@ -77,7 +77,7 @@ const Home = (props) => {
   const [error, setError] = useState('');
   const [page, setPage] = useState(1);
   const [saved, setSaved] = useState([]);
-  const { search, maxTime, alimentazione } = useOutletContext();
+  const { search, maxTime, maxKcal,  alimentazione } = useOutletContext();
   const navigate = useNavigate();
   // Prendo userId solo da props.user, così la visibilità è reattiva e sicura
   const userId = props.user ? props.user.userId : null;
@@ -138,6 +138,12 @@ const Home = (props) => {
     // Max time filter
     if (maxTime && !isNaN(Number(maxTime))) {
       if (!ricetta.tempo_preparazione || Number(ricetta.tempo_preparazione) > Number(maxTime)) {
+        return false;
+      }
+    }
+    //Max Kcal filter
+    if (maxKcal && !isNaN(Number(maxKcal))) {
+      if (!ricetta.kcal || Number(ricetta.kcal) > Number(maxKcal)) {
         return false;
       }
     }

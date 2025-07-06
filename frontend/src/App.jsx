@@ -16,6 +16,7 @@ const Layout = ({ user }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [maxTime, setMaxTime] = useState('');
+  const [maxKcal, setMaxKcal] = useState('');
   const [alimentazione, setAlimentazione] = useState('');
   const dropdownRef = useRef(null);
   const location = useLocation();
@@ -60,7 +61,7 @@ const Layout = ({ user }) => {
                   className="pr-8 cursor-pointer select-none"
                   onClick={() => setDropdownOpen((open) => !open)}
                 >
-                  Benvenuto, {user.nickname}!
+                  Welcome, {user.nickname}!
                 </span>
                 {dropdownOpen && (
                   <div className="absolute right-0 mt-2 w-32 bg-white border rounded shadow z-10">
@@ -146,6 +147,15 @@ const Layout = ({ user }) => {
               className="w-40 p-2 border rounded shadow focus:outline-none focus:ring-2 focus:ring-refresh-blue"
               style={{maxWidth: '160px'}}
             />
+            <input
+              type="number"
+              min="0"
+              value={maxKcal}
+              onChange={e => setMaxKcal(e.target.value)}
+              placeholder="Chilocalorie massime"
+              className="w-40 p-2 border rounded shadow focus:outline-none focus:ring-2 focus:ring-refresh-blue"
+              style={{maxWidth: '160px'}}
+            />
             <select
               value={alimentazione}
               onChange={e => setAlimentazione(e.target.value)}
@@ -161,8 +171,8 @@ const Layout = ({ user }) => {
       )}
       <Outlet context={
         location.pathname === '/ricette'
-          ? { search, setSearch, maxTime, setMaxTime, alimentazione, setAlimentazione }
-          : { search: '', setSearch: () => {}, maxTime: '', setMaxTime: () => {}, alimentazione: '', setAlimentazione: () => {} }
+          ? { search, setSearch, maxTime, setMaxTime, maxKcal, setMaxKcal, alimentazione, setAlimentazione }
+          : { search: '', setSearch: () => {}, maxTime: '', setMaxTime: () => {}, maxKcal: '', setMaxKcal: () => {}, alimentazione: '', setAlimentazione: () => {} }
       } />
   </div>)
 }
