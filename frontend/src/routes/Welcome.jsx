@@ -1,37 +1,46 @@
 import logorefreChef from '/logorefreChef.png'
-import { useState, useEffect } from 'react'
-import {Outlet} from 'react-router'
-import backGroundImg from '/background.webp'
 import { Link } from 'react-router'
+import backGroundImg from '/background.webp'
 
 const Benvenuti = () => {
     return (
-        <>
-        <div className="flex flex-col md:flex-row w-full h-screen relative">
-            {/* Su mobile: stack verticale, su desktop: affiancate */}
+        <div className="relative w-full h-screen overflow-hidden">
+            {/* Background Image */}
             <img 
-                className="flex-1 w-1/2 h-1/2 md:h-full object-cover" 
                 src={backGroundImg}
                 alt="Background"
-            />
-            <img 
-                className="flex-1 w-1/2 h-1/2 md:h-full object-cover" 
-                src={backGroundImg}
-                alt="Background"
+                className="absolute inset-0 w-full h-full object-cover object-center z-0"
             />
             
-            {/* Logo responsive */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <img 
-                    src={logorefreChef} 
-                    className="w-100 h-100 bg-white opacity-75 rounded-lg p-3 md:p-4 shadow-xl"
-                    alt="Logo RefreChef"
-                />
-                <h1 className=" bg-white opacity-75 text-2xl text-cyan-600 text-shadow-md px-6 py-3 rounded-lg">Benvenuti su Refrechef!</h1>
-                <Link to="/ricette" className="text-cyan-600 hover:text-cyan-800">Vai alle ricette</Link>
+            {/* Gradient overlay */}
+            <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-white/20 z-10" />
+
+            {/* Content */}
+            <div className="relative z-20 flex flex-col items-center justify-center h-full px-6 text-center space-y-6">
+                {/* Logo */}
+                <div className="bg-white/80 p-4 rounded-2xl shadow-2xl backdrop-blur-md">
+                    <img 
+                        src={logorefreChef} 
+                        alt="Logo RefreChef"
+                        className="w-48 md:w-64 object-contain"
+                    />
+                </div>
+
+                {/* Heading */}
+                <h1 className="text-3xl md:text-5xl font-bold text-cyan-700 drop-shadow-lg bg-white/80 px-6 py-3 rounded-xl backdrop-blur-sm">
+                    Benvenuti su RefreChef!
+                </h1>
+                <h2 className="text-xl md:text-2xl font-bold text-gray-800 bg-white/80 px-4 py-2 rounded-lg backdrop-blur-sm"> Ricette deliziose con un pizzico di originalità </h2>
+
+                {/* Link Button */}
+                <Link 
+                    to="/ricette" 
+                    className="bg-cyan-600 text-white px-6 py-3 rounded-full shadow-lg hover:bg-cyan-700 transition-all duration-300"
+                >
+                    Vai alle ricette
+                </Link>
             </div>
         </div>
-        </>
     )
 }
 
