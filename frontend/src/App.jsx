@@ -41,7 +41,7 @@ const Layout = ({ user }) => {
             <img src={logorefreChef} className="w-10 h-10" alt="Refrechef-logo" />
             <p className='text-black'>RefreChef</p>
           </Link>
-          <Link to={'/ricette'} className='ml-4 text-blue-700 font-semibold hover:underline'>Ricette</Link>
+          <Link to={'/ricette'} className='ml-4 text-cyan-700 font-semibold'>Ricette</Link>
         </div>
         <div className="flex-1" />
         <div className="flex flex-row items-center gap-2 pr-4">
