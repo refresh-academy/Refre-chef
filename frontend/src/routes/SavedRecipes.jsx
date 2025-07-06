@@ -1,6 +1,38 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router';
 
+function RecipeCard({ ricetta, handleRemove, handleRecipeClick }) {
+  const [imgError, setImgError] = useState(false);
+  const imageUrl = ricetta.immagine && ricetta.immagine.trim() !== '' && !imgError ? ricetta.immagine : '/fallback-food.jpg';
+  return (
+    <div
+      key={ricetta.id}
+      className="bg-white rounded shadow p-4 flex flex-col cursor-pointer hover:shadow-lg transition-shadow"
+      onClick={() => handleRecipeClick(ricetta.id)}
+    >
+      <h2 className="text-xl font-bold mb-2">{ricetta.nome}</h2>
+      <div className="relative w-full flex justify-center">
+        <img
+          src={imageUrl}
+          alt={ricetta.nome || 'Immagine di default'}
+          className="mt-2 max-h-40 object-cover rounded"
+          onError={() => setImgError(true)}
+        />
+      </div>
+      <div className="mb-1"><span className="font-semibold">Tipologia:</span> {ricetta.tipologia}</div>
+      <div className="mb-1"><span className="font-semibold">Alimentazione:</span> {ricetta.alimentazione}</div>
+      <div className="mb-1"><span className="font-semibold">Ingredienti:</span> {ricetta.ingredienti}</div>
+      <div className="mb-1"><span className="font-semibold">Preparazione:</span> {ricetta.preparazione}</div>
+      <button
+        className="mt-4 px-3 py-1 rounded bg-red-500 text-white hover:bg-red-600 transition"
+        onClick={(e) => handleRemove(ricetta.id, e)}
+      >
+        Rimuovi
+      </button>
+    </div>
+  );
+}
+
 const SavedRecipes = () => {
   const { userId } = useParams();
   const [recipes, setRecipes] = useState([]);
@@ -69,26 +101,12 @@ const SavedRecipes = () => {
       )}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-5xl">
         {recipes.map((ricetta) => (
-          <div 
-            key={ricetta.id} 
-            className="bg-white rounded shadow p-4 flex flex-col cursor-pointer hover:shadow-lg transition-shadow"
-            onClick={() => handleRecipeClick(ricetta.id)}
-          >
-            <h2 className="text-xl font-bold mb-2">{ricetta.nome}</h2>
-            <div className="mb-1"><span className="font-semibold">Tipologia:</span> {ricetta.tipologia}</div>
-            <div className="mb-1"><span className="font-semibold">Alimentazione:</span> {ricetta.alimentazione}</div>
-            <div className="mb-1"><span className="font-semibold">Ingredienti:</span> {ricetta.ingredienti}</div>
-            <div className="mb-1"><span className="font-semibold">Preparazione:</span> {ricetta.preparazione}</div>
-            {ricetta.immagine && (
-              <img src={ricetta.immagine} alt={ricetta.nome} className="mt-2 max-h-40 object-cover rounded" />
-            )}
-            <button
-              className="mt-4 px-3 py-1 rounded bg-red-500 text-white hover:bg-red-600 transition"
-              onClick={(e) => handleRemove(ricetta.id, e)}
-            >
-              Rimuovi
-            </button>
-          </div>
+          <RecipeCard
+            key={ricetta.id}
+            ricetta={ricetta}
+            handleRemove={handleRemove}
+            handleRecipeClick={handleRecipeClick}
+          />
         ))}
       </div>
     </div>

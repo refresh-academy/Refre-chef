@@ -58,7 +58,7 @@ const AddRecipe = ({ user }) => {
         setError(data.error || 'Errore nel salvataggio della ricetta');
       } else {
         setSuccess('Ricetta aggiunta con successo!');
-        setTimeout(() => navigate('/'), 1200);
+        setTimeout(() => navigate('/ricette'), 1200);
       }
     } catch {
       setError('Errore di rete.');

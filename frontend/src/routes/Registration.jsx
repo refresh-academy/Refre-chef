@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router';
 
 const Registration = () => {
   const [nickname, setNickname] = useState('');
@@ -7,6 +8,7 @@ const Registration = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -25,6 +27,7 @@ const Registration = () => {
         setError(data.error || 'Registrazione fallita');
       } else {
         setSuccess('Registrazione avvenuta con successo! Benvenuto, ' + nickname);
+        navigate('/ricette');
       }
     } catch (err) {
       setError('Errore di rete.');

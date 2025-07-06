@@ -2,6 +2,7 @@ import logorefreChef from '/logorefreChef.png'
 import { useState, useEffect } from 'react'
 import {Outlet} from 'react-router'
 import backGroundImg from '/background.webp'
+import { Link } from 'react-router'
 
 const Benvenuti = () => {
     return (
@@ -27,6 +28,7 @@ const Benvenuti = () => {
                     alt="Logo RefreChef"
                 />
                 <h1 className=" bg-white opacity-75 text-2xl text-cyan-600 text-shadow-md px-6 py-3 rounded-lg">Benvenuti su Refrechef!</h1>
+                <Link to="/ricette" className="text-cyan-600 hover:text-cyan-800">Vai alle ricette</Link>
             </div>
         </div>
         </>

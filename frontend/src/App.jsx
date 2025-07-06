@@ -41,6 +41,7 @@ const Layout = ({ user }) => {
             <img src={logorefreChef} className="w-10 h-10" alt="Refrechef-logo" />
             <p className='text-black'>RefreChef</p>
           </Link>
+          <Link to={'/ricette'} className='ml-4 text-blue-700 font-semibold hover:underline'>Ricette</Link>
         </div>
         <div className="flex-1" />
         <div className="flex flex-row items-center gap-2 pr-4">
@@ -88,7 +89,7 @@ const Layout = ({ user }) => {
         </div>
       </div>
       <div className='flex flex-row bg-white items-center w-screen px-20 py-4'>
-        {(location.pathname === '/' || location.pathname.startsWith('/saved-recipes/')) && (
+        {location.pathname === '/ricette' && (
           <div className="flex items-center gap-4">
             <input
               type="text"
@@ -120,7 +121,7 @@ const Layout = ({ user }) => {
         )}
       </div>
       <Outlet context={
-        (location.pathname === '/' || location.pathname.startsWith('/saved-recipes/'))
+        location.pathname === '/ricette'
           ? { search, setSearch, maxTime, setMaxTime, alimentazione, setAlimentazione }
           : { search: '', setSearch: () => {}, maxTime: '', setMaxTime: () => {}, alimentazione: '', setAlimentazione: () => {} }
       } />
@@ -135,8 +136,8 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route element={<Layout user={user} />}>
-          <Route path="/" element={<Home user={user} />} />
-          <Route path="/welcome" element= {<Benvenuti />} />
+          <Route path="/" element={<Benvenuti />} />
+          <Route path="/ricette" element={<Home user={user} />} />
           <Route path="/login" element={<Login setUser={setUser} />} />
           <Route path="/register" element={<Registration />} />
           <Route path="/saved-recipes/:userId" element={<SavedRecipes />} />
