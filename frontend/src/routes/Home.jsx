@@ -50,11 +50,8 @@ function RecipeCard({ ricetta, userId, saved, handleSaveRecipe, handleRecipeClic
         {relevant.length > 0 && search && (
           <div className="mb-2 text-xs text-gray-600">Parole chiave trovate: {relevant.join(', ')}</div>
         )}
-        <div className="mb-1"><span className="font-semibold">Tipologia:</span> {highlight(ricetta.tipologia || '', search)}</div>
-        <div className="mb-1"><span className="font-semibold">Alimentazione:</span> {highlight(ricetta.alimentazione || '', search)}</div>
         <div className="mb-1"><span className="font-semibold">Ingredienti:</span> {highlight(ricetta.ingredienti || '', search)}</div>
-        <div className="mb-1"><span className="font-semibold">Preparazione:</span> {highlight(ricetta.preparazione || '', search)}</div>
-        <div className="mb-1"><span className="font-semibold">Origine:</span> {highlight(ricetta.origine || '', search)}</div>
+        <div className="mb-1"><span className="font-semibold">Descrizione:</span> {highlight(ricetta.descrizione || '', search)}</div>
         <div className="mb-1"><span className="font-semibold">Allergeni:</span> {highlight(ricetta.allergeni || '', search)}</div>
         <div className="mb-1 flex flex-row items-center gap-4">
           <div className="flex flex-row items-center gap-2">
@@ -64,6 +61,8 @@ function RecipeCard({ ricetta, userId, saved, handleSaveRecipe, handleRecipeClic
           <div className="flex flex-row items-center gap-2">
             <span className="font-semibold" title="Kcal"> 🔥 Kcal</span>
             <span className="text-sm">{ricetta.kcal || ''}</span>
+            <span classNamr="font-semibold" title="Porzioni">🍽️</span>
+            <span className="text-sm">{ricetta.porzioni || ''} persone</span>
           </div>
         </div>
         <div className="mb-1"><span className="font-semibold">Creatore:</span> {highlight(ricetta.author || '', search)}</div>
