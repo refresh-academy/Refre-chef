@@ -1,20 +1,46 @@
 import { useEffect, useState } from "react"
 import { useParams, useNavigate } from "react-router"
 
+const isLoggedIn = (userId) => {
+    return userId && userId !== 'null' && userId !== '' && userId !== undefined && userId !== 'undefined';
+};
+
 const Ricetta = () => {
     const { id } = useParams();
     const [ricetta, setRicetta] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [imgError, setImgError] = useState(false);
-    const [saved, setSaved] = useState(false);
-    const [userId, setUserId] = useState(null);
     const [showCopied, setShowCopied] = useState(false);
+    const [userId, setUserId] = useState(null);
+    const [saved, setSaved] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
-        setUserId(localStorage.getItem('userId'));
+        const stored = localStorage.getItem('userId');
+        if (isLoggedIn(stored)) {
+            setUserId(stored);
+        } else {
+            setUserId(null);
+        }
     }, []);
+
+    useEffect(() => {
+        // Check if this recipe is saved for the user
+        const checkSaved = async () => {
+            if (!isLoggedIn(userId)) return;
+            try {
+                const res = await fetch(`http://localhost:3000/api/ricetteSalvate/${userId}`);
+                const data = await res.json();
+                if (Array.isArray(data)) {
+                    setSaved(data.some(r => String(r.id) === String(id)));
+                }
+            } catch {
+                // Silently ignore errors
+            }
+        };
+        checkSaved();
+    }, [userId, id]);
 
     useEffect(() => {
         const fetchRecipe = async () => {
@@ -39,24 +65,9 @@ const Ricetta = () => {
         fetchRecipe();
     }, [id]);
 
-    useEffect(() => {
-        // Check if this recipe is saved for the user
-        const checkSaved = async () => {
-            if (!userId) return;
-            try {
-                const res = await fetch(`http://localhost:3000/api/ricetteSalvate/${userId}`);
-                const data = await res.json();
-                if (Array.isArray(data)) {
-                    setSaved(data.some(r => String(r.id) === String(id)));
-                }
-            } catch {}
-        };
-        checkSaved();
-    }, [userId, id]);
-
     const handleSaveRecipe = async (event) => {
         event.stopPropagation();
-        if (!userId) {
+        if (!isLoggedIn(userId)) {
             alert('Devi essere loggato per salvare le ricette.');
             return;
         }
@@ -133,7 +144,7 @@ const Ricetta = () => {
                         className="w-full h-full object-cover rounded"
                         onError={() => setImgError(true)}
                     />
-                    {userId && (
+                    {isLoggedIn(userId) && (
                         <span
                             onClick={handleSaveRecipe}
                             className={`absolute top-2 left-2 text-3xl cursor-pointer transition-colors z-10 ${
@@ -151,8 +162,14 @@ const Ricetta = () => {
                     <div className="bg-gray-50 p-3 rounded"><span className="font-semibold">Tipologia:</span> {ricetta.tipologia}</div>
                     <div className="bg-gray-50 p-3 rounded"><span className="font-semibold">Alimentazione:</span> {ricetta.alimentazione}</div>
                     <div className="bg-gray-50 p-3 rounded"><span className="font-semibold">Ingredienti:</span> {ricetta.ingredienti}</div>
-                    <div className="bg-gray-50 p-3 rounded"><span className="font-semibold">Preparazione:</span> {ricetta.preparazione}</div>
+                    {ricetta.preparazione_dettagliata && (
+                      <div className="bg-gray-50 p-3 rounded whitespace-pre-line">
+                        <span className="font-semibold">Passaggi dettagliati:</span>
+                        <div className="mt-1">{ricetta.preparazione_dettagliata}</div>
+                      </div>
+                    )}
                     <div className="bg-gray-50 p-3 rounded"><span className="font-semibold">Origine:</span> {ricetta.origine}</div>
+                    <div className="bg-gray-50 p-3 rounded"><span className="font-semibold">Porzioni:</span> {ricetta.porzioni}</div>
                     <div className="bg-gray-50 p-3 rounded"><span className="font-semibold">Allergeni:</span> {ricetta.allergeni}</div>
                     <div className="bg-gray-50 p-3 rounded"><span className="font-semibold">Tempo di preparazione:</span> {ricetta.tempo_preparazione ? `${ricetta.tempo_preparazione} min` : ''}</div>
                     <div className="bg-gray-50 p-3 rounded"><span className="font-semibold">Kcal:</span> {ricetta.kcal}</div>

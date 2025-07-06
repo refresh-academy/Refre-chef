@@ -51,7 +51,7 @@ const dbRun = (query, params = []) => {
 app.get('/api/ricette', async (req, res) => {
   try {
     const ricette = await dbAll(`
-      SELECT r.id, r.nome, r.tipologia, r.ingredienti, r.alimentazione, r.immagine, r.preparazione, r.origine, r.allergeni, r.tempo_preparazione, r.kcal, r.author_id, u.nickname as author
+      SELECT r.id, r.nome, r.tipologia, r.ingredienti, r.alimentazione, r.immagine, r.preparazione, r.preparazione_dettagliata, r.origine, r.porzioni, r.allergeni, r.tempo_preparazione, r.kcal, r.author_id, u.nickname as author
       FROM ricettario r
       LEFT JOIN utenti u ON r.author_id = u.id_user
     `);
