@@ -88,8 +88,9 @@ const Layout = ({ user }) => {
           )}
         </div>
       </div>
-      <div className='flex flex-row bg-white items-center w-screen px-20 py-4'>
-        {location.pathname === '/ricette' && (
+      {/* Only show the second navbar on /ricette */}
+      {location.pathname === '/ricette' && (
+        <div className='flex flex-row bg-white items-center w-screen px-20 py-4'>
           <div className="flex items-center gap-4">
             <input
               type="text"
@@ -118,8 +119,8 @@ const Layout = ({ user }) => {
               <option value="Vegana">🌱 Vegano</option>
             </select>
           </div>
-        )}
-      </div>
+        </div>
+      )}
       <Outlet context={
         location.pathname === '/ricette'
           ? { search, setSearch, maxTime, setMaxTime, alimentazione, setAlimentazione }
