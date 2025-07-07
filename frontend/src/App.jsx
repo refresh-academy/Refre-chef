@@ -42,27 +42,27 @@ const Layout = ({ user }) => {
         <div className='flex flex-row items-center font-bold gap-5 p-2'>
           <Link to={'/'} className='flex flex-row items-center font-bold gap-5'>
             <img src={logorefreChef} className="w-10 h-10" alt="Refrechef-logo" />
-            <p className='text-black'>RefreChef</p>
+            <p className='text-refresh-blue font-extrabold'>RefreChef</p>
           </Link>
-          <Link to={'/ricette'} className='ml-4 text-refresh-blue font-semibold hidden md:inline'>Ricette</Link>
+          <Link to={'/ricette'} className='ml-4 text-refresh-blue font-semibold hover:bg-white hover:text-refresh-pink rounded px-3 py-1 transition hidden md:inline'>Ricette</Link>
         </div>
         <div className="flex-1" />
         {/* Desktop nav links */}
         <div className="hidden md:flex flex-row items-center gap-2 pr-4">
           {user ? (
             <>
-              <Link to="/add-recipe" className="flex items-center justify-center pr-4">
+              <Link to="/add-recipe" className="flex items-center justify-center pr-4 text-refresh-blue font-semibold hover:bg-white hover:text-refresh-pink rounded px-3 py-1 transition">
                 <p>Crea ricetta</p>
               </Link>
-              <Link to={`/saved-recipes/${user.userId}`} className="flex items-center justify-center pr-10">
+              <Link to={`/saved-recipes/${user.userId}`} className="flex items-center justify-center pr-10 text-refresh-blue font-semibold hover:bg-white hover:text-refresh-pink rounded px-3 py-1 transition">
                 <p>Ricette Salvate</p>
               </Link>
-              <Link to="/grocery-list" className="flex items-center justify-center pr-10">
+              <Link to="/grocery-list" className="flex items-center justify-center pr-10 text-refresh-blue font-semibold hover:bg-white hover:text-refresh-pink rounded px-3 py-1 transition">
                 <p>Lista Spesa</p>
               </Link>
               <div className="relative" ref={dropdownRef}>
                 <span
-                  className="pr-8 cursor-pointer select-none"
+                  className="pr-8 cursor-pointer select-none text-refresh-blue font-semibold hover:bg-white hover:text-refresh-pink rounded px-3 py-1 transition"
                   onClick={() => setDropdownOpen((open) => !open)}
                 >
                   Welcome, {user.nickname}!
@@ -70,7 +70,7 @@ const Layout = ({ user }) => {
                 {dropdownOpen && (
                   <div className="absolute right-0 mt-2 w-32 bg-white border rounded shadow z-10">
                     <button
-                      className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                      className="w-full text-left px-4 py-2 text-refresh-blue font-semibold hover:bg-white hover:text-refresh-pink rounded transition"
                       onClick={() => {
                         if (typeof window.setUser === 'function') window.setUser(null);
                         localStorage.removeItem('userId');
@@ -85,10 +85,10 @@ const Layout = ({ user }) => {
             </>
           ) : (
             <>
-              <Link to={'/login'} className="flex items-center justify-center pr-8">
+              <Link to={'/login'} className="flex items-center justify-center pr-8 text-refresh-blue font-semibold hover:bg-white hover:text-refresh-pink rounded px-3 py-1 transition">
                 <p>Login</p>
               </Link>
-              <Link to={'/register'} className="flex items-center justify-center pr-10">
+              <Link to={'/register'} className="flex items-center justify-center pr-10 text-refresh-blue font-semibold hover:bg-white hover:text-refresh-pink rounded px-3 py-1 transition">
                 <p>Register</p>
               </Link>
             </>
@@ -105,14 +105,14 @@ const Layout = ({ user }) => {
           </button>
           {mobileMenuOpen && (
             <div className="absolute top-16 right-4 bg-white border rounded shadow-lg z-50 flex flex-col min-w-[180px]">
-              <Link to={'/ricette'} className="px-4 py-2 hover:bg-gray-100 border-b" onClick={() => setMobileMenuOpen(false)}>Ricette</Link>
+              <Link to={'/ricette'} className='px-4 py-2 text-refresh-blue font-semibold hover:bg-white hover:text-refresh-pink border-b rounded transition' onClick={() => setMobileMenuOpen(false)}>Ricette</Link>
               {user ? (
                 <>
-                  <Link to="/add-recipe" className="px-4 py-2 hover:bg-gray-100 border-b" onClick={() => setMobileMenuOpen(false)}>Crea ricetta</Link>
-                  <Link to={`/saved-recipes/${user.userId}`} className="px-4 py-2 hover:bg-gray-100 border-b" onClick={() => setMobileMenuOpen(false)}>Ricette Salvate</Link>
-                  <Link to="/grocery-list" className="px-4 py-2 hover:bg-gray-100 border-b" onClick={() => setMobileMenuOpen(false)}>Lista Spesa</Link>
+                  <Link to="/add-recipe" className="px-4 py-2 text-refresh-blue font-semibold hover:bg-white hover:text-refresh-pink border-b rounded transition" onClick={() => setMobileMenuOpen(false)}>Crea ricetta</Link>
+                  <Link to={`/saved-recipes/${user.userId}`} className="px-4 py-2 text-refresh-blue font-semibold hover:bg-white hover:text-refresh-pink border-b rounded transition" onClick={() => setMobileMenuOpen(false)}>Ricette Salvate</Link>
+                  <Link to="/grocery-list" className="px-4 py-2 text-refresh-blue font-semibold hover:bg-white hover:text-refresh-pink border-b rounded transition" onClick={() => setMobileMenuOpen(false)}>Lista Spesa</Link>
                   <button
-                    className="px-4 py-2 text-left hover:bg-gray-100 border-b"
+                    className="px-4 py-2 text-left text-refresh-blue font-semibold hover:bg-white hover:text-refresh-pink border-b rounded transition"
                     onClick={() => {
                       if (typeof window.setUser === 'function') window.setUser(null);
                       localStorage.removeItem('userId');
@@ -124,8 +124,8 @@ const Layout = ({ user }) => {
                 </>
               ) : (
                 <>
-                  <Link to={'/login'} className="px-4 py-2 hover:bg-gray-100 border-b" onClick={() => setMobileMenuOpen(false)}>Login</Link>
-                  <Link to={'/register'} className="px-4 py-2 hover:bg-gray-100 border-b" onClick={() => setMobileMenuOpen(false)}>Register</Link>
+                  <Link to={'/login'} className="px-4 py-2 text-refresh-blue font-semibold hover:bg-white hover:text-refresh-pink border-b rounded transition" onClick={() => setMobileMenuOpen(false)}>Login</Link>
+                  <Link to={'/register'} className="px-4 py-2 text-refresh-blue font-semibold hover:bg-white hover:text-refresh-pink border-b rounded transition" onClick={() => setMobileMenuOpen(false)}>Register</Link>
                 </>
               )}
             </div>
