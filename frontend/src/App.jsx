@@ -190,6 +190,7 @@ function App() {
           <Route path="/login" element={<Login setUser={setUser} />} />
           <Route path="/register" element={<Registration />} />
           <Route path="/saved-recipes/:userId" element={<SavedRecipes />} />
+          <Route path="/saved-recipes" element={<SavedRecipes />} />
           <Route path="/add-recipe" element={<AddRecipe user={user} />} />
           <Route path="/ricetta/:id" element={<Ricetta user={user} />} />
         </Route>

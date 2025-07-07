@@ -40,6 +40,14 @@ const SavedRecipes = () => {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
+  // Redirect to /saved-recipes if userId param is present
+  useEffect(() => {
+    if (userId !== undefined) {
+      navigate('/saved-recipes', { replace: true });
+      return;
+    }
+  }, [userId, navigate]);
+
   useEffect(() => {
     const fetchRecipes = async () => {
       setLoading(true);
