@@ -24,7 +24,12 @@ const Ricetta = () => {
     const checkSaved = async () => {
       if (!isLoggedIn(userId)) return;
       try {
-        const res = await fetch(`http://localhost:3000/api/ricetteSalvate/${userId}`);
+        const token = localStorage.getItem('token');
+        const res = await fetch('http://localhost:3000/api/ricetteSalvate', {
+          headers: {
+            'Authorization': token ? `Bearer ${token}` : '',
+          },
+        });
         const data = await res.json();
         if (Array.isArray(data)) {
           setSaved(data.some((r) => String(r.id) === String(id)));
@@ -65,16 +70,17 @@ const Ricetta = () => {
       alert("Devi essere loggato per salvare le ricette.");
       return;
     }
-
+    const token = localStorage.getItem('token');
     try {
       const method = saved ? "DELETE" : "POST";
       const res = await fetch("http://localhost:3000/api/salvaRicetta", {
         method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id_user: userId, id_ricetta: id }),
-        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          'Authorization': token ? `Bearer ${token}` : '',
+        },
+        body: JSON.stringify({ id_ricetta: id }),
       });
-
       if (res.ok) {
         setSaved(!saved);
       } else {

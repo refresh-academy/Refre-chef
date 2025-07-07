@@ -104,7 +104,12 @@ const Home = (props) => {
 
     // Recupero ricette salvate dell'utente SOLO se loggato
     if (userId) {
-      fetch(`http://localhost:3000/api/ricetteSalvate/${userId}`)
+      const token = localStorage.getItem('token');
+      fetch('http://localhost:3000/api/ricetteSalvate', {
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : '',
+        },
+      })
         .then(res => res.json())
         .then(data => {
           if (Array.isArray(data)) {
@@ -187,14 +192,17 @@ const Home = (props) => {
       alert('Devi essere loggato per salvare le ricette.');
       return;
     }
+    const token = localStorage.getItem('token');
     if (saved.includes(ricettaId)) {
       // Se già salvata, rimuovi
       try {
         const res = await fetch('http://localhost:3000/api/salvaRicetta', {
           method: 'DELETE',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id_user: userId, id_ricetta: ricettaId }),
-          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': token ? `Bearer ${token}` : '',
+          },
+          body: JSON.stringify({ id_ricetta: ricettaId }),
         });
         if (res.ok) {
           setSaved((prev) => prev.filter(id => id !== ricettaId));
@@ -210,9 +218,11 @@ const Home = (props) => {
       try {
         const res = await fetch('http://localhost:3000/api/salvaRicetta', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id_user: userId, id_ricetta: ricettaId }),
-          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': token ? `Bearer ${token}` : '',
+          },
+          body: JSON.stringify({ id_ricetta: ricettaId }),
         });
         if (res.ok) {
           setSaved((prev) => [...prev, ricettaId]);
