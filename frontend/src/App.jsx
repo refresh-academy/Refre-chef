@@ -44,7 +44,7 @@ const Layout = ({ user }) => {
             <img src={logorefreChef} className="w-10 h-10" alt="Refrechef-logo" />
             <p className='text-black'>RefreChef</p>
           </Link>
-          <Link to={'/ricette'} className='ml-4 text-blue-700 font-semibold hover:underline hidden md:inline'>Ricette</Link>
+          <Link to={'/ricette'} className='ml-4 text-refresh-blue font-semibold hidden md:inline'>Ricette</Link>
         </div>
         <div className="flex-1" />
         {/* Desktop nav links */}
