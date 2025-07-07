@@ -181,10 +181,11 @@ const Ricetta = () => {
               {/* Bottone cuore a destra */}
               <button
                 onClick={handleSaveRecipe}
-                title={saved ? "Rimuovi dalle salvate" : "Salva ricetta"}
-                className={`absolute top-5 right-5 text-3xl ${saved ? "text-red-500" : "text-white"} drop-shadow-md hover:scale-110 transition-transform`}
+                title={saved ? "Rimuovi dai segnalibri" : "Aggiungi ai segnalibri"}
+                aria-label={saved ? "Rimuovi dai segnalibri" : "Aggiungi ai segnalibri"}
+                className={`absolute top-5 right-5 text-3xl drop-shadow-md hover:scale-110 transition-transform ${saved ? "text-refresh-blue hover:text-refresh-pink" : "text-gray-400 hover:text-refresh-blue"}`}
               >
-                {saved ? "❤️" : "🤍"}
+                <i className={`${saved ? 'fa-solid' : 'fa-regular'} fa-bookmark`}></i>
               </button>
             </>
           )}

@@ -31,12 +31,13 @@ function RecipeCard({ ricetta, userId, saved, handleSaveRecipe, handleRecipeClic
           onClick={(e) => handleSaveRecipe(ricetta.id, e)}
           className={`absolute top-2 right-2 text-2xl cursor-pointer transition-colors z-20 ${
             saved.includes(ricetta.id)
-              ? 'text-red-500 hover:text-red-600'
-              : 'text-gray-400 hover:text-red-500'
+              ? 'text-refresh-blue hover:text-refresh-pink'
+              : 'text-gray-400 hover:text-refresh-blue'
           }`}
-          title={saved.includes(ricetta.id) ? 'Rimuovi dalle salvate' : 'Salva ricetta'}
+          title={saved.includes(ricetta.id) ? 'Rimuovi dai segnalibri' : 'Aggiungi ai segnalibri'}
+          aria-label={saved.includes(ricetta.id) ? 'Rimuovi dai segnalibri' : 'Aggiungi ai segnalibri'}
         >
-          {saved.includes(ricetta.id) ? '❤️' : '🤍'}
+          <i className={`${saved.includes(ricetta.id) ? 'fa-solid' : 'fa-regular'} fa-bookmark`}></i>
         </span>
       )}
       <div className="relative w-40 h-40 flex-shrink-0">
