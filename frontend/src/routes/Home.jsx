@@ -50,10 +50,7 @@ function RecipeCard({ ricetta, userId, saved, handleSaveRecipe, handleRecipeClic
         {relevant.length > 0 && search && (
           <div className="mb-2 text-xs text-gray-600">Parole chiave trovate: {relevant.join(', ')}</div>
         )}
-        <div className="mb-1"><span className="font-semibold">Ingredienti:</span> {highlight(ricetta.ingredienti || '', search)}</div>
-        <div className="mb-1"><span className="font-semibold">Descrizione:</span> {highlight(ricetta.descrizione || '', search)}</div>
-        <div className="mb-1"><span className="font-semibold">Allergeni:</span> {highlight(ricetta.allergeni || '', search)}</div>
-        <div className="mb-1 flex flex-row items-center gap-4">
+          <div className="mb-1 flex flex-row items-center gap-4">
           <div className="flex flex-row items-center gap-2">
             <span className="font-semibold" title="Tempo di preparazione">⏱️</span>
             <span className="text-sm">{ricetta.tempo_preparazione ? `${ricetta.tempo_preparazione} min` : ''}</span>
@@ -65,6 +62,10 @@ function RecipeCard({ ricetta, userId, saved, handleSaveRecipe, handleRecipeClic
             <span className="text-sm">{ricetta.porzioni || ''} persone</span>
           </div>
         </div>
+        <div className="mb-1"><span className="font-semibold">Ingredienti:</span> {highlight(ricetta.ingredienti || '', search)}</div>
+        <div className="mb-1"><span className="font-semibold">Descrizione:</span> {highlight(ricetta.descrizione || '', search)}</div>
+        <div className="mb-1"><span className="font-semibold">Allergeni:</span> {highlight(ricetta.allergeni || '', search)}</div>
+      
         <div className="mb-1"><span className="font-semibold">Creatore:</span> {highlight(ricetta.author || '', search)}</div>
       </div>
     </div>
