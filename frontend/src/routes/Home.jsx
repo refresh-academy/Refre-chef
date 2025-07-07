@@ -18,12 +18,27 @@ function highlight(text, query) {
 function RecipeCard({ ricetta, userId, saved, handleSaveRecipe, handleRecipeClick, search, relevant }) {
   const [imgError, setImgError] = useState(false);
   const imageUrl = ricetta.immagine && ricetta.immagine.trim() !== '' && !imgError ? ricetta.immagine : '/fallback-food.jpg';
+
   return (
     <div
       key={ricetta.id}
       className="bg-white rounded shadow p-4 flex flex-row items-center gap-6 min-h-[180px] cursor-pointer hover:shadow-lg transition-shadow relative"
       onClick={() => handleRecipeClick(ricetta.id)}
     >
+      {/* Cuoricino in alto a destra della scheda */}
+      {userId && (
+        <span
+          onClick={(e) => handleSaveRecipe(ricetta.id, e)}
+          className={`absolute top-2 right-2 text-2xl cursor-pointer transition-colors z-20 ${
+            saved.includes(ricetta.id)
+              ? 'text-red-500 hover:text-red-600'
+              : 'text-gray-400 hover:text-red-500'
+          }`}
+          title={saved.includes(ricetta.id) ? 'Rimuovi dalle salvate' : 'Salva ricetta'}
+        >
+          {saved.includes(ricetta.id) ? '❤️' : '🤍'}
+        </span>
+      )}
       <div className="relative w-40 h-40 flex-shrink-0">
         <img
           src={imageUrl}
@@ -31,19 +46,6 @@ function RecipeCard({ ricetta, userId, saved, handleSaveRecipe, handleRecipeClic
           className="w-full h-full object-cover rounded"
           onError={() => setImgError(true)}
         />
-        {userId && (
-          <span
-            onClick={(e) => handleSaveRecipe(ricetta.id, e)}
-            className={`absolute top-2 left-2 text-2xl cursor-pointer transition-colors z-10 ${
-              saved.includes(ricetta.id)
-                ? 'text-red-500 hover:text-red-600'
-                : 'text-gray-400 hover:text-red-500'
-            }`}
-            title={saved.includes(ricetta.id) ? 'Rimuovi dalle salvate' : 'Salva ricetta'}
-          >
-            {saved.includes(ricetta.id) ? '❤️' : '🤍'}
-          </span>
-        )}
       </div>
       <div className="flex flex-col flex-1">
         <h2 className="text-xl font-bold mb-2">{highlight(ricetta.nome || '', search)}</h2>

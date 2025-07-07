@@ -14,6 +14,8 @@ const Ricetta = () => {
   const [userId, setUserId] = useState(null);
   const [saved, setSaved] = useState(false);
   const [groceryMsg, setGroceryMsg] = useState("");
+  const [showGroceryModal, setShowGroceryModal] = useState(false);
+  const [addedIngredients, setAddedIngredients] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -112,6 +114,7 @@ const Ricetta = () => {
 
   const handleAddToGroceryList = async () => {
     setGroceryMsg("");
+    setAddedIngredients([]);
     if (!isLoggedIn(userId)) {
       alert("Devi essere loggato per aggiungere alla lista della spesa.");
       return;
@@ -129,6 +132,13 @@ const Ricetta = () => {
       const data = await res.json();
       if (res.ok) {
         setGroceryMsg('Ingredienti aggiunti alla lista della spesa!');
+        // Show modal with ingredient list
+        if (ricetta && ricetta.ingredienti) {
+          const ingredients = ricetta.ingredienti.split(',').map(i => i.trim()).filter(i => i);
+          setAddedIngredients(ingredients);
+          setShowGroceryModal(true);
+          setTimeout(() => setShowGroceryModal(false), 2500);
+        }
       } else {
         setGroceryMsg(data.error || 'Errore durante l\'aggiunta alla lista della spesa.');
       }
@@ -158,22 +168,37 @@ const Ricetta = () => {
             onError={() => setImgError(true)}
           />
           {isLoggedIn(userId) && (
-            <div className="absolute top-5 left-5 flex flex-row gap-3">
-              <button
-                onClick={handleSaveRecipe}
-                title={saved ? "Rimuovi dalle salvate" : "Salva ricetta"}
-                className={`text-3xl ${saved ? "text-red-500" : "text-white"} drop-shadow-md hover:scale-110 transition-transform`}
-              >
-                {saved ? "❤️" : "🤍"}
-              </button>
+            <>
+              {/* Bottone carrello a sinistra */}
               <button
                 onClick={handleAddToGroceryList}
                 title="Aggiungi ingredienti alla lista della spesa"
-                className="bg-green-600 text-white px-3 py-1 rounded-full font-semibold hover:bg-green-700 transition flex items-center text-base"
+                className="absolute top-5 left-5 bg-refresh-blue text-white px-3 py-1 rounded-full font-semibold hover:bg-refresh-pink transition flex items-center text-base"
                 style={{ minHeight: '2.5rem' }}
               >
                 🛒
               </button>
+              {/* Bottone cuore a destra */}
+              <button
+                onClick={handleSaveRecipe}
+                title={saved ? "Rimuovi dalle salvate" : "Salva ricetta"}
+                className={`absolute top-5 right-5 text-3xl ${saved ? "text-red-500" : "text-white"} drop-shadow-md hover:scale-110 transition-transform`}
+              >
+                {saved ? "❤️" : "🤍"}
+              </button>
+            </>
+          )}
+          {/* Modal per ingredienti aggiunti */}
+          {showGroceryModal && (
+            <div className="fixed inset-0 flex items-start justify-center z-50 pointer-events-none">
+              <div className="mt-24 bg-white border border-refresh-blue shadow-lg rounded-xl px-6 py-4 animate-fade-in pointer-events-auto">
+                <h3 className="text-lg font-bold text-refresh-blue mb-2">Ingredienti aggiunti al carrello:</h3>
+                <ul className="list-disc pl-5 text-gray-800">
+                  {addedIngredients.map((ing, idx) => (
+                    <li key={idx}>{ing}</li>
+                  ))}
+                </ul>
+              </div>
             </div>
           )}
         </div>
