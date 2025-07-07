@@ -43,16 +43,11 @@ const AddRecipe = ({ user }) => {
     }
     try {
       const token = localStorage.getItem('token');
-      if (!token) {
-        setError('Devi essere loggato per aggiungere una ricetta.');
-        setLoading(false);
-        return;
-      }
       const res = await fetch('http://localhost:3000/api/aggiungiRicetta', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          'Authorization': token ? `Bearer ${token}` : '',
         },
         body: JSON.stringify({
           ...form,
