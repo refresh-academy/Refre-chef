@@ -24,7 +24,7 @@ function RecipeCard({ ricetta, handleRemove, handleRecipeClick }) {
       <div className="mb-1"><span className="font-semibold">Ingredienti:</span> {ricetta.ingredienti}</div>
       <div className="mb-1"><span className="font-semibold">Preparazione:</span> {ricetta.preparazione}</div>
       <button
-        className="mt-4 px-3 py-1 rounded bg-red-500 text-white hover:bg-red-600 transition"
+        className="mt-4 px-3 py-1 rounded bg-refresh-blue text-white font-semibold hover:bg-refresh-pink transition"
         onClick={(e) => handleRemove(ricetta.id, e)}
       >
         Rimuovi
@@ -108,7 +108,7 @@ const SavedRecipes = () => {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] p-4">
-      <h1 className="text-2xl font-bold mb-4">Ricette Salvate</h1>
+      <h1 className="text-2xl font-bold mb-4 text-refresh-blue">Ricette Salvate</h1>
       {loading && <div>Caricamento...</div>}
       {error && <div className="text-red-500 mb-4">{error}</div>}
       {!loading && !error && recipes.length === 0 && (
