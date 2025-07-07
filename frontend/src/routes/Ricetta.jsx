@@ -1,189 +1,203 @@
-import { useEffect, useState } from "react"
-import { useParams, useNavigate } from "react-router"
+import { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router";
 
-const isLoggedIn = (userId) => {
-    return userId && userId !== 'null' && userId !== '' && userId !== undefined && userId !== 'undefined';
-};
+const isLoggedIn = (userId) =>
+  userId && userId !== "null" && userId !== "" && userId !== undefined && userId !== "undefined";
 
 const Ricetta = () => {
-    const { id } = useParams();
-    const [ricetta, setRicetta] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
-    const [imgError, setImgError] = useState(false);
-    const [showCopied, setShowCopied] = useState(false);
-    const [userId, setUserId] = useState(null);
-    const [saved, setSaved] = useState(false);
-    const navigate = useNavigate();
+  const { id } = useParams();
+  const [ricetta, setRicetta] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [imgError, setImgError] = useState(false);
+  const [showCopied, setShowCopied] = useState(false);
+  const [userId, setUserId] = useState(null);
+  const [saved, setSaved] = useState(false);
+  const navigate = useNavigate();
 
-    useEffect(() => {
-        const stored = localStorage.getItem('userId');
-        if (isLoggedIn(stored)) {
-            setUserId(stored);
+  useEffect(() => {
+    const stored = localStorage.getItem("userId");
+    setUserId(isLoggedIn(stored) ? stored : null);
+  }, []);
+
+  useEffect(() => {
+    const checkSaved = async () => {
+      if (!isLoggedIn(userId)) return;
+      try {
+        const res = await fetch(`http://localhost:3000/api/ricetteSalvate/${userId}`);
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          setSaved(data.some((r) => String(r.id) === String(id)));
+        }
+      } catch {
+        // Ignore errors
+      }
+    };
+    checkSaved();
+  }, [userId, id]);
+
+  useEffect(() => {
+    const fetchRecipe = async () => {
+      setLoading(true);
+      setError("");
+      try {
+        const res = await fetch(`http://localhost:3000/api/ricette`);
+        const data = await res.json();
+        if (!res.ok) {
+          setError(data.error || "Errore nel caricamento della ricetta");
         } else {
-            setUserId(null);
+          const found = data.find((r) => String(r.id) === String(id));
+          setRicetta(found || null);
+          if (!found) setError("Ricetta non trovata");
         }
-    }, []);
-
-    useEffect(() => {
-        // Check if this recipe is saved for the user
-        const checkSaved = async () => {
-            if (!isLoggedIn(userId)) return;
-            try {
-                const res = await fetch(`http://localhost:3000/api/ricetteSalvate/${userId}`);
-                const data = await res.json();
-                if (Array.isArray(data)) {
-                    setSaved(data.some(r => String(r.id) === String(id)));
-                }
-            } catch {
-                // Silently ignore errors
-            }
-        };
-        checkSaved();
-    }, [userId, id]);
-
-    useEffect(() => {
-        const fetchRecipe = async () => {
-            setLoading(true);
-            setError('');
-            try {
-                const res = await fetch(`http://localhost:3000/api/ricette`);
-                const data = await res.json();
-                if (!res.ok) {
-                    setError(data.error || 'Errore nel caricamento della ricetta');
-                } else {
-                    const found = data.find(r => String(r.id) === String(id));
-                    if (found) setRicetta(found);
-                    else setError('Ricetta non trovata');
-                }
-            } catch {
-                setError('Errore di rete.');
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchRecipe();
-    }, [id]);
-
-    const handleSaveRecipe = async (event) => {
-        event.stopPropagation();
-        if (!isLoggedIn(userId)) {
-            alert('Devi essere loggato per salvare le ricette.');
-            return;
-        }
-        if (saved) {
-            // Unsave
-            try {
-                const res = await fetch('http://localhost:3000/api/salvaRicetta', {
-                    method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id_user: userId, id_ricetta: id }),
-                    credentials: 'include',
-                });
-                if (res.ok) {
-                    setSaved(false);
-                } else {
-                    const data = await res.json();
-                    alert(data.error || 'Errore nella rimozione della ricetta salvata');
-                }
-            } catch {
-                alert('Errore di rete nella rimozione.');
-            }
-        } else {
-            // Save
-            try {
-                const res = await fetch('http://localhost:3000/api/salvaRicetta', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id_user: userId, id_ricetta: id }),
-                    credentials: 'include',
-                });
-                if (res.ok) {
-                    setSaved(true);
-                } else {
-                    const data = await res.json();
-                    alert(data.error || 'Errore nel salvataggio della ricetta');
-                }
-            } catch {
-                alert('Errore di rete nel salvataggio.');
-            }
-        }
+      } catch {
+        setError("Errore di rete.");
+      } finally {
+        setLoading(false);
+      }
     };
+    fetchRecipe();
+  }, [id]);
 
-    const handleShare = () => {
-        const tweetText = encodeURIComponent(`Guarda questa ricetta: ${ricetta.nome}`);
-        const tweetUrl = encodeURIComponent(window.location.href);
-        const twitterUrl = `https://twitter.com/intent/tweet?text=${tweetText}&url=${tweetUrl}`;
-        window.open(twitterUrl, '_blank', 'noopener,noreferrer');
-    };
+  const handleSaveRecipe = async (e) => {
+    e.stopPropagation();
+    if (!isLoggedIn(userId)) {
+      alert("Devi essere loggato per salvare le ricette.");
+      return;
+    }
 
-    const handleCopyLink = async () => {
-        try {
-            await navigator.clipboard.writeText(window.location.href);
-            setShowCopied(true);
-            setTimeout(() => setShowCopied(false), 2000);
-        } catch {
-            alert('Errore nella copia del link');
-        }
-    };
+    try {
+      const method = saved ? "DELETE" : "POST";
+      const res = await fetch("http://localhost:3000/api/salvaRicetta", {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id_user: userId, id_ricetta: id }),
+        credentials: "include",
+      });
 
-    if (loading) return <div className="flex flex-col items-center justify-center min-h-[60vh]">Caricamento...</div>;
-    if (error) return <div className="flex flex-col items-center justify-center min-h-[60vh] text-red-500">{error}</div>;
-    if (!ricetta) return null;
+      if (res.ok) {
+        setSaved(!saved);
+      } else {
+        const data = await res.json();
+        alert(data.error || "Errore durante l'operazione.");
+      }
+    } catch {
+      alert("Errore di rete.");
+    }
+  };
 
-    const imageUrl = ricetta.immagine && ricetta.immagine.trim() !== '' && !imgError ? ricetta.immagine : '/fallback-food.jpg';
+  const handleShare = () => {
+    const tweetText = encodeURIComponent(`Guarda questa ricetta: ${ricetta.nome}`);
+    const tweetUrl = encodeURIComponent(window.location.href);
+    const twitterUrl = `https://twitter.com/intent/tweet?text=${tweetText}&url=${tweetUrl}`;
+    window.open(twitterUrl, "_blank", "noopener,noreferrer");
+  };
 
-    return (
-        <div className="flex flex-col items-center justify-center min-h-[60vh] p-4">
-            <div className="w-full max-w-2xl bg-white/90 rounded-lg shadow-lg p-6 flex flex-col items-center relative">
-                <h1 className="text-3xl font-bold mb-4">{ricetta.nome}</h1>
-                <div className="relative w-96 h-96 mb-4">
-                    <img
-                        src={imageUrl}
-                        alt={ricetta.nome}
-                        className="w-full h-full object-cover rounded"
-                        onError={() => setImgError(true)}
-                    />
-                    {isLoggedIn(userId) && (
-                        <span
-                            onClick={handleSaveRecipe}
-                            className={`absolute top-2 left-2 text-3xl cursor-pointer transition-colors z-10 ${
-                                saved
-                                    ? 'text-red-500 hover:text-red-600'
-                                    : 'text-gray-400 hover:text-red-500'
-                            }`}
-                            title={saved ? 'Rimuovi dalle salvate' : 'Salva ricetta'}
-                        >
-                            {saved ? '❤️' : '🤍'}
-                        </span>
-                    )}
-                </div>
-                <div className="w-full flex flex-col gap-3">
-                    <div className="bg-gray-50 p-3 rounded"><span className="font-semibold">Tipologia:</span> {ricetta.tipologia}</div>
-                    <div className="bg-gray-50 p-3 rounded"><span className="font-semibold">Alimentazione:</span> {ricetta.alimentazione}</div>
-                    <div className="bg-gray-50 p-3 rounded"><span className="font-semibold">Ingredienti:</span> {ricetta.ingredienti}</div>
-                    {ricetta.preparazione_dettagliata && (
-                      <div className="bg-gray-50 p-3 rounded whitespace-pre-line">
-                        <span className="font-semibold">Passaggi dettagliati:</span>
-                        <div className="mt-1">{ricetta.preparazione_dettagliata}</div>
-                      </div>
-                    )}
-                    <div className="bg-gray-50 p-3 rounded"><span className="font-semibold">Origine:</span> {ricetta.origine}</div>
-                    <div className="bg-gray-50 p-3 rounded"><span className="font-semibold">Porzioni:</span> {ricetta.porzioni}</div>
-                    <div className="bg-gray-50 p-3 rounded"><span className="font-semibold">Allergeni:</span> {ricetta.allergeni}</div>
-                    <div className="bg-gray-50 p-3 rounded"><span className="font-semibold">Tempo di preparazione:</span> {ricetta.tempo_preparazione ? `${ricetta.tempo_preparazione} min` : ''}</div>
-                    <div className="bg-gray-50 p-3 rounded"><span className="font-semibold">Kcal:</span> {ricetta.kcal}</div>
-                    <div className="bg-gray-50 p-3 rounded"><span className="font-semibold">Creatore:</span> {ricetta.author}</div>
-                </div>
-                <div className="flex gap-4 mt-6">
-                    <button onClick={handleShare} className="px-4 py-2 rounded bg-refresh-blue text-white font-bold hover:bg-refresh-pink transition">Condividi su X</button>
-                    <button onClick={handleCopyLink} className="px-4 py-2 rounded bg-refresh-blue text-white font-bold hover:bg-refresh-pink transition">Copia link</button>
-                </div>
-                {showCopied && <div className="mt-2 text-green-600 font-semibold">Link copiato!</div>}
-                <button onClick={() => navigate(-1)} className="mt-4 px-4 py-2 rounded bg-refresh-blue text-white font-bold hover:bg-refresh-pink transition">Torna indietro</button>
-            </div>
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setShowCopied(true);
+      setTimeout(() => setShowCopied(false), 2000);
+    } catch {
+      alert("Errore nella copia del link");
+    }
+  };
+
+  if (loading)
+    return <div className="flex items-center justify-center min-h-[60vh] text-lg">Caricamento...</div>;
+  if (error)
+    return <div className="flex items-center justify-center min-h-[60vh] text-red-500">{error}</div>;
+  if (!ricetta) return null;
+
+  const imageUrl =
+    ricetta.immagine && ricetta.immagine.trim() !== "" && !imgError ? ricetta.immagine : "/fallback-food.jpg";
+
+  return (
+    <div className="flex justify-center items-start p-6 bg-gray-50 min-h-screen">
+      <div className="w-full max-w-3xl bg-white shadow-xl rounded-3xl overflow-hidden">
+        {/* Header */}
+        <div className="relative group">
+          <img
+            src={imageUrl}
+            alt={ricetta.nome}
+            className="w-full h-[350px] object-cover transition-transform duration-300 group-hover:scale-105"
+            onError={() => setImgError(true)}
+          />
+          {isLoggedIn(userId) && (
+            <button
+              onClick={handleSaveRecipe}
+              title={saved ? "Rimuovi dalle salvate" : "Salva ricetta"}
+              className={`absolute top-5 left-5 text-3xl ${
+                saved ? "text-red-500" : "text-white"
+              } drop-shadow-md hover:scale-110 transition-transform`}
+            >
+              {saved ? "❤️" : "🤍"}
+            </button>
+          )}
         </div>
-    );
+
+        {/* Content */}
+        <div className="p-6 space-y-4">
+          <h1 className="text-3xl font-bold text-gray-800">{ricetta.nome}</h1>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-gray-700">
+            <Info label="Tipologia" value={ricetta.tipologia} />
+            <Info label="Alimentazione" value={ricetta.alimentazione} />
+            <Info label="Origine" value={ricetta.origine} />
+            <Info label="Porzioni" value={ricetta.porzioni} />
+            <Info label="Allergeni" value={ricetta.allergeni} />
+            <Info label="Tempo di preparazione" value={`${ricetta.tempo_preparazione} min`} />
+            <Info label="Kcal" value={ricetta.kcal} />
+            <Info label="Creatore" value={ricetta.author} />
+          </div>
+
+          <div>
+            <h2 className="text-lg font-semibold mt-4 mb-1">Ingredienti</h2>
+            <p className="bg-gray-100 p-3 rounded-lg">{ricetta.ingredienti}</p>
+          </div>
+
+          {ricetta.preparazione_dettagliata && (
+            <div>
+              <h2 className="text-lg font-semibold mt-4 mb-1">Passaggi dettagliati</h2>
+              <div className="bg-gray-100 p-3 rounded-lg whitespace-pre-line text-gray-800 leading-relaxed">
+                {ricetta.preparazione_dettagliata}
+              </div>
+            </div>
+          )}
+
+          <div className="flex flex-wrap gap-3 mt-6 justify-center">
+            <Button onClick={handleShare}>Condividi</Button>
+            <Button onClick={handleCopyLink}>Copia Link</Button>
+            <Button onClick={() => navigate(-1)} variant="gray">
+              Torna Indietro
+            </Button>
+          </div>
+
+          {showCopied && <div className="text-center text-green-600 font-medium">Link copiato!</div>}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const Info = ({ label, value }) => (
+  <div className="bg-gray-100 p-3 rounded-lg">
+    <span className="font-semibold">{label}:</span> {value}
+  </div>
+);
+
+const Button = ({ onClick, children, variant = "blue" }) => {
+  const base = "px-4 py-2 rounded-full font-semibold transition";
+  const colors =
+    variant === "blue"
+      ? "bg-blue-600 text-white hover:bg-blue-700"
+      : "bg-gray-300 text-gray-800 hover:bg-gray-400";
+
+  return (
+    <button onClick={onClick} className={`${base} ${colors}`}>
+      {children}
+    </button>
+  );
 };
 
 export default Ricetta;

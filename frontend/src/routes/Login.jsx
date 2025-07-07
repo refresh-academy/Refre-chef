@@ -28,6 +28,9 @@ const Login = ({ setUser }) => {
         setSuccess('Login successful! Benvenuto, ' + data.nickname);
         if (setUser) setUser({ userId: data.userId, nickname: data.nickname });
         localStorage.setItem('userId', data.userId);
+        if (data.token) {
+          localStorage.setItem('token', data.token);
+        }
         navigate('/ricette');
       }
     } catch (err) {

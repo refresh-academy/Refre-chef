@@ -45,7 +45,12 @@ const SavedRecipes = () => {
       setLoading(true);
       setError('');
       try {
-        const res = await fetch(`http://localhost:3000/api/ricetteSalvate/${userId}`);
+        const token = localStorage.getItem('token');
+        const res = await fetch('http://localhost:3000/api/ricetteSalvate', {
+          headers: {
+            'Authorization': token ? `Bearer ${token}` : '',
+          },
+        });
         const data = await res.json();
         if (!res.ok) {
           setError(data.error || 'Errore nel caricamento delle ricette');
@@ -59,21 +64,23 @@ const SavedRecipes = () => {
       }
     };
     fetchRecipes();
-  }, [userId]);
+  }, []);
 
   const handleRemove = async (ricettaId, event) => {
     event.stopPropagation(); // Prevent navigation when clicking remove button
-    const id_user = localStorage.getItem('userId');
-    if (!id_user) {
+    const token = localStorage.getItem('token');
+    if (!token) {
       alert('Devi essere loggato per rimuovere le ricette.');
       return;
     }
     try {
       const res = await fetch('http://localhost:3000/api/salvaRicetta', {
         method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id_user, id_ricetta: ricettaId }),
-        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ id_ricetta: ricettaId }),
       });
       if (res.ok) {
         setRecipes((prev) => prev.filter(r => r.id !== ricettaId));

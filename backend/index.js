@@ -2,9 +2,11 @@ const express = require('express');
 const cors = require('cors');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
+const jwt = require('jsonwebtoken');
 
 const app = express();
 const port = 3000;
+const JWT_SECRET = 'your_secret_key_here'; // Replace with env var in production
 
 app.use(express.json());
 
@@ -47,6 +49,18 @@ const dbRun = (query, params = []) => {
   });
 };
 
+// JWT authentication middleware
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+  if (!token) return res.status(401).json({ error: 'Token required' });
+  jwt.verify(token, JWT_SECRET, (err, user) => {
+    if (err) return res.status(403).json({ error: 'Invalid token' });
+    req.user = user;
+    next();
+  });
+}
+
 // GET /api/ricette
 app.get('/api/ricette', async (req, res) => {
   try {
@@ -61,29 +75,24 @@ app.get('/api/ricette', async (req, res) => {
   }
 });
 
-app.post('/api/salvaRicetta', async (req, res) => {
-  const { id_user, id_ricetta } = req.body;
-
-  if (!id_user || !id_ricetta) {
-    return res.status(400).json({ error: 'id_user and id_ricetta are required.' });
+app.post('/api/salvaRicetta', authenticateToken, async (req, res) => {
+  const userId = req.user.userId;
+  const { id_ricetta } = req.body;
+  if (!id_ricetta) {
+    return res.status(400).json({ error: 'id_ricetta is required.' });
   }
-
   try {
-    // Optional: Check for duplicates first
     const existing = await dbAll(
       `SELECT * FROM ricetteSalvate WHERE id_user = ? AND id_ricetta = ?`,
-      [id_user, id_ricetta]
+      [userId, id_ricetta]
     );
-
     if (existing.length > 0) {
       return res.status(200).json({ message: 'Recipe already saved by this user.' });
     }
-
     const result = await dbRun(
       `INSERT INTO ricetteSalvate (id_user, id_ricetta) VALUES (?, ?)`,
-      [id_user, id_ricetta]
+      [userId, id_ricetta]
     );
-
     res.status(201).json({ message: 'Recipe saved successfully', saveId: result.id });
   } catch (err) {
     res.status(500).json({ error: 'Failed to save recipe', details: err.message });
@@ -111,28 +120,6 @@ app.post('/api/users', async (req, res) => {
   }
 });
 
-app.get('/api/ricetteSalvate/:id_user', async (req, res) => {
-  const { id_user } = req.params;
-
-  if (!id_user) {
-    return res.status(400).json({ error: 'User ID is required.' });
-  }
-
-  try {
-    const savedRecipes = await dbAll(
-      `SELECT r.id, r.nome, r.tipologia, r.ingredienti, r.alimentazione, r.immagine, r.preparazione, r.author_id
-       FROM ricettario r
-       INNER JOIN ricetteSalvate s ON r.id = s.id_ricetta
-       WHERE s.id_user = ?`,
-      [id_user]
-    );
-
-    res.status(200).json(savedRecipes);
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to retrieve saved recipes', details: err.message });
-  }
-});
-
 // POST /api/login (login with password check)
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
@@ -156,17 +143,19 @@ app.post('/api/login', async (req, res) => {
     }
 
     const userId = user.id_user || user.id || user.rowid;
-
-    res.status(200).json({ message: 'Login successful', userId: userId, nickname: user.nickname });
+    const token = jwt.sign({ userId, nickname: user.nickname }, JWT_SECRET, { expiresIn: '2h' });
+    res.status(200).json({ message: 'Login successful', userId: userId, nickname: user.nickname, token });
   } catch (err) {
     res.status(500).json({ error: 'Login failed', details: err.message });
   }
 });
 
-app.post('/api/aggiungiRicetta', async (req, res) => {
-  const { nome, tipologia, ingredienti, alimentazione, immagine, preparazione, origine, allergeni, tempo_preparazione, kcal, author_id } = req.body;
+// POST /api/aggiungiRicetta (protected)
+app.post('/api/aggiungiRicetta', authenticateToken, async (req, res) => {
+  const { nome, tipologia, ingredienti, alimentazione, immagine, preparazione, origine, allergeni, tempo_preparazione, kcal } = req.body;
+  const author_id = req.user.userId;
 
-  if (!nome || !tipologia || !ingredienti || !alimentazione || !preparazione || !author_id) {
+  if (!nome || !tipologia || !ingredienti || !alimentazione || !preparazione) {
     return res.status(400).json({ error: 'Missing required fields.' });
   }
 
@@ -183,15 +172,34 @@ app.post('/api/aggiungiRicetta', async (req, res) => {
   }
 });
 
-app.delete('/api/salvaRicetta', async (req, res) => {
-  const { id_user, id_ricetta } = req.body;
-  if (!id_user || !id_ricetta) {
-    return res.status(400).json({ error: 'id_user and id_ricetta are required.' });
+// GET /api/ricetteSalvate (protected, uses user from token)
+app.get('/api/ricetteSalvate', authenticateToken, async (req, res) => {
+  const userId = req.user.userId;
+  try {
+    const savedRecipes = await dbAll(
+      `SELECT r.id, r.nome, r.tipologia, r.ingredienti, r.alimentazione, r.immagine, r.preparazione, r.author_id
+       FROM ricettario r
+       INNER JOIN ricetteSalvate s ON r.id = s.id_ricetta
+       WHERE s.id_user = ?`,
+      [userId]
+    );
+    res.status(200).json(savedRecipes);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to retrieve saved recipes', details: err.message });
+  }
+});
+
+// DELETE /api/salvaRicetta (protected)
+app.delete('/api/salvaRicetta', authenticateToken, async (req, res) => {
+  const userId = req.user.userId;
+  const { id_ricetta } = req.body;
+  if (!id_ricetta) {
+    return res.status(400).json({ error: 'id_ricetta is required.' });
   }
   try {
     const result = await dbRun(
       `DELETE FROM ricetteSalvate WHERE id_user = ? AND id_ricetta = ?`,
-      [id_user, id_ricetta]
+      [userId, id_ricetta]
     );
     if (result.changes > 0) {
       res.status(200).json({ message: 'Recipe removed from saved.' });

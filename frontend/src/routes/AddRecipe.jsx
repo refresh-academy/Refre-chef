@@ -42,16 +42,18 @@ const AddRecipe = ({ user }) => {
       return;
     }
     try {
+      const token = localStorage.getItem('token');
       const res = await fetch('http://localhost:3000/api/aggiungiRicetta', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : '',
+        },
         body: JSON.stringify({
           ...form,
           tempo_preparazione: form.tempo_preparazione ? parseInt(form.tempo_preparazione) : null,
           kcal: form.kcal ? parseInt(form.kcal) : null,
-          author_id: user.userId,
         }),
-        credentials: 'include',
       });
       const data = await res.json();
       if (!res.ok) {
