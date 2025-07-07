@@ -3,6 +3,7 @@ const cors = require('cors');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
 
 const app = express();
 const port = 3000;
@@ -22,6 +23,14 @@ const db = new sqlite3.Database(dbPath, (err) => {
   } else {
     console.log('Connected to the SQLite database.');
     db.run('PRAGMA foreign_keys = ON;');
+    // Create groceryList table if it doesn't exist
+    db.run(`CREATE TABLE IF NOT EXISTS groceryList (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      ingredient TEXT NOT NULL,
+      quantity INTEGER DEFAULT 1,
+      UNIQUE(user_id, ingredient)
+    )`);
   }
 });
 
@@ -108,10 +117,10 @@ app.post('/api/users', async (req, res) => {
   }
 
   try {
-    // No hashing here, store password as-is
+    const hashedPassword = await bcrypt.hash(password, 10);
     const result = await dbRun(
       `INSERT INTO utenti (nickname, email, password) VALUES (?, ?, ?)`,
-      [nickname, email, password]
+      [nickname, email, hashedPassword]
     );
 
     res.status(201).json({ message: 'User created successfully', userId: result.id });
@@ -137,8 +146,9 @@ app.post('/api/login', async (req, res) => {
 
     const user = users[0];
 
-    // Compare plain text passwords
-    if (password !== user.password) {
+    // Compare hashed password
+    const passwordMatch = await bcrypt.compare(password, user.password);
+    if (!passwordMatch) {
       return res.status(401).json({ error: 'Invalid email or password.' });
     }
 
@@ -208,6 +218,96 @@ app.delete('/api/salvaRicetta', authenticateToken, async (req, res) => {
     }
   } catch (err) {
     res.status(500).json({ error: 'Failed to remove saved recipe', details: err.message });
+  }
+});
+
+// Add ingredients of a recipe to the user's grocery list
+app.post('/api/addToGroceryList', authenticateToken, async (req, res) => {
+  const userId = req.user.userId;
+  const { recipeId } = req.body;
+  if (!recipeId) {
+    return res.status(400).json({ error: 'recipeId is required.' });
+  }
+  try {
+    // Get ingredients from the recipe
+    const recipes = await dbAll('SELECT ingredienti FROM ricettario WHERE id = ?', [recipeId]);
+    if (recipes.length === 0) {
+      return res.status(404).json({ error: 'Recipe not found.' });
+    }
+    const ingredientString = recipes[0].ingredienti;
+    // Assume ingredients are comma-separated, optionally with quantities (e.g., "2 eggs, 1 cup sugar")
+    const ingredients = ingredientString.split(',').map(i => i.trim()).filter(i => i);
+    // For each ingredient, insert or update quantity
+    for (const ingredient of ingredients) {
+      await dbRun(
+        `INSERT INTO groceryList (user_id, ingredient, quantity) VALUES (?, ?, 1)
+         ON CONFLICT(user_id, ingredient) DO UPDATE SET quantity = quantity + 1`,
+        [userId, ingredient]
+      );
+    }
+    res.status(201).json({ message: 'Ingredients added to grocery list.' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to add to grocery list', details: err.message });
+  }
+});
+
+// Get the user's grocery list
+app.get('/api/groceryList', authenticateToken, async (req, res) => {
+  const userId = req.user.userId;
+  try {
+    const items = await dbAll('SELECT ingredient, quantity FROM groceryList WHERE user_id = ?', [userId]);
+    res.status(200).json(items);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to retrieve grocery list', details: err.message });
+  }
+});
+
+// Remove a single ingredient from the user's grocery list
+app.delete('/api/groceryList/ingredient', authenticateToken, async (req, res) => {
+  const userId = req.user.userId;
+  const { ingredient } = req.body;
+  if (!ingredient) {
+    return res.status(400).json({ error: 'ingredient is required.' });
+  }
+  try {
+    const result = await dbRun('DELETE FROM groceryList WHERE user_id = ? AND ingredient = ?', [userId, ingredient]);
+    if (result.changes > 0) {
+      res.status(200).json({ message: 'Ingredient removed from grocery list.' });
+    } else {
+      res.status(404).json({ error: 'Ingredient not found in grocery list.' });
+    }
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to remove ingredient', details: err.message });
+  }
+});
+
+// Clear the user's grocery list
+app.post('/api/groceryList/clear', authenticateToken, async (req, res) => {
+  const userId = req.user.userId;
+  try {
+    await dbRun('DELETE FROM groceryList WHERE user_id = ?', [userId]);
+    res.status(200).json({ message: 'Grocery list cleared.' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to clear grocery list', details: err.message });
+  }
+});
+
+// Edit the quantity of an ingredient in the user's grocery list
+app.put('/api/groceryList/ingredient', authenticateToken, async (req, res) => {
+  const userId = req.user.userId;
+  const { ingredient, quantity } = req.body;
+  if (!ingredient || typeof quantity !== 'number' || quantity < 1) {
+    return res.status(400).json({ error: 'ingredient and valid quantity are required.' });
+  }
+  try {
+    const result = await dbRun('UPDATE groceryList SET quantity = ? WHERE user_id = ? AND ingredient = ?', [quantity, userId, ingredient]);
+    if (result.changes > 0) {
+      res.status(200).json({ message: 'Ingredient quantity updated.' });
+    } else {
+      res.status(404).json({ error: 'Ingredient not found in grocery list.' });
+    }
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update ingredient quantity', details: err.message });
   }
 });
 

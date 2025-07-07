@@ -13,6 +13,7 @@ const Ricetta = () => {
   const [showCopied, setShowCopied] = useState(false);
   const [userId, setUserId] = useState(null);
   const [saved, setSaved] = useState(false);
+  const [groceryMsg, setGroceryMsg] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -109,6 +110,33 @@ const Ricetta = () => {
     }
   };
 
+  const handleAddToGroceryList = async () => {
+    setGroceryMsg("");
+    if (!isLoggedIn(userId)) {
+      alert("Devi essere loggato per aggiungere alla lista della spesa.");
+      return;
+    }
+    const token = localStorage.getItem('token');
+    try {
+      const res = await fetch('http://localhost:3000/api/addToGroceryList', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : '',
+        },
+        body: JSON.stringify({ recipeId: id }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setGroceryMsg('Ingredienti aggiunti alla lista della spesa!');
+      } else {
+        setGroceryMsg(data.error || 'Errore durante l\'aggiunta alla lista della spesa.');
+      }
+    } catch {
+      setGroceryMsg('Errore di rete.');
+    }
+  };
+
   if (loading)
     return <div className="flex items-center justify-center min-h-[60vh] text-lg">Caricamento...</div>;
   if (error)
@@ -130,15 +158,23 @@ const Ricetta = () => {
             onError={() => setImgError(true)}
           />
           {isLoggedIn(userId) && (
-            <button
-              onClick={handleSaveRecipe}
-              title={saved ? "Rimuovi dalle salvate" : "Salva ricetta"}
-              className={`absolute top-5 left-5 text-3xl ${
-                saved ? "text-red-500" : "text-white"
-              } drop-shadow-md hover:scale-110 transition-transform`}
-            >
-              {saved ? "❤️" : "🤍"}
-            </button>
+            <div className="absolute top-5 left-5 flex flex-row gap-3">
+              <button
+                onClick={handleSaveRecipe}
+                title={saved ? "Rimuovi dalle salvate" : "Salva ricetta"}
+                className={`text-3xl ${saved ? "text-red-500" : "text-white"} drop-shadow-md hover:scale-110 transition-transform`}
+              >
+                {saved ? "❤️" : "🤍"}
+              </button>
+              <button
+                onClick={handleAddToGroceryList}
+                title="Aggiungi ingredienti alla lista della spesa"
+                className="bg-green-600 text-white px-3 py-1 rounded-full font-semibold hover:bg-green-700 transition flex items-center text-base"
+                style={{ minHeight: '2.5rem' }}
+              >
+                🛒
+              </button>
+            </div>
           )}
         </div>
 
@@ -161,6 +197,10 @@ const Ricetta = () => {
             <h2 className="text-lg font-semibold mt-4 mb-1">Ingredienti</h2>
             <p className="bg-gray-100 p-3 rounded-lg">{ricetta.ingredienti}</p>
           </div>
+
+          {groceryMsg && (
+            <div className="text-center text-blue-600 font-medium mt-1">{groceryMsg}</div>
+          )}
 
           {ricetta.preparazione_dettagliata && (
             <div>

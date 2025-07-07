@@ -9,6 +9,7 @@ import Registration from './routes/Registration.jsx'
 import SavedRecipes from './routes/SavedRecipes.jsx'
 import AddRecipe from './routes/AddRecipe.jsx'
 import Ricetta from './routes/Ricetta.jsx'
+import GroceryList from './routes/GroceryList.jsx'
 
 
 const Layout = ({ user }) => {
@@ -55,6 +56,9 @@ const Layout = ({ user }) => {
               </Link>
               <Link to={`/saved-recipes/${user.userId}`} className="flex items-center justify-center pr-10">
                 <p>Ricette Salvate</p>
+              </Link>
+              <Link to="/grocery-list" className="flex items-center justify-center pr-10">
+                <p>Lista Spesa</p>
               </Link>
               <div className="relative" ref={dropdownRef}>
                 <span
@@ -106,6 +110,7 @@ const Layout = ({ user }) => {
                 <>
                   <Link to="/add-recipe" className="px-4 py-2 hover:bg-gray-100 border-b" onClick={() => setMobileMenuOpen(false)}>Crea ricetta</Link>
                   <Link to={`/saved-recipes/${user.userId}`} className="px-4 py-2 hover:bg-gray-100 border-b" onClick={() => setMobileMenuOpen(false)}>Ricette Salvate</Link>
+                  <Link to="/grocery-list" className="px-4 py-2 hover:bg-gray-100 border-b" onClick={() => setMobileMenuOpen(false)}>Lista Spesa</Link>
                   <button
                     className="px-4 py-2 text-left hover:bg-gray-100 border-b"
                     onClick={() => {
@@ -193,6 +198,7 @@ function App() {
           <Route path="/saved-recipes" element={<SavedRecipes />} />
           <Route path="/add-recipe" element={<AddRecipe user={user} />} />
           <Route path="/ricetta/:id" element={<Ricetta user={user} />} />
+          <Route path="/grocery-list" element={<GroceryList />} />
         </Route>
       </Routes>
     </BrowserRouter>
