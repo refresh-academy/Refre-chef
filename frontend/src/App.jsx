@@ -181,6 +181,26 @@ function App() {
   const [user, setUser] = useState(null);
   // Make setUser available globally for logout in Layout
   useEffect(() => { window.setUser = setUser; }, [setUser]);
+
+  // Rehydrate user from localStorage on app load
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const userId = localStorage.getItem('userId');
+    let nickname = null;
+    try {
+      if (token) {
+        // Decode JWT payload (not secure, but fine for display)
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        nickname = payload.nickname;
+      }
+    } catch {
+      // Ignore decode errors
+    }
+    if (token && userId && nickname) {
+      setUser({ userId, nickname });
+    }
+  }, []);
+
   return (
     <BrowserRouter>
       <Routes>
