@@ -64,6 +64,25 @@ const AddRecipe = ({ user }) => {
     }
     try {
       const token = localStorage.getItem('token');
+      const sanitizedForm = {
+        ...form,
+        nome: form.nome.trim(),
+        descrizione: form.descrizione.trim(),
+        tipologia: form.tipologia.trim(),
+        alimentazione: form.alimentazione.trim(),
+        immagine: form.immagine.trim(),
+        preparazione: form.preparazione.trim(),
+        preparazione_dettagliata: form.preparazione_dettagliata.trim(),
+        origine: form.origine.trim(),
+        porzioni: Number(form.porzioni) || 1,
+        allergeni: form.allergeni.trim(),
+        tempo_preparazione: Number(form.tempo_preparazione) || 1,
+        kcal: Number(form.kcal) || 1,
+      };
+      const sanitizedIngredients = ingredients.map(ing => ({
+        nome: (ing.nome || '').trim(),
+        grammi: Number(ing.grammi) > 0 ? Number(ing.grammi) : 1
+      }));
       const res = await fetch('http://localhost:3000/api/aggiungiRicetta', {
         method: 'POST',
         headers: {
@@ -71,12 +90,9 @@ const AddRecipe = ({ user }) => {
           'Authorization': token ? `Bearer ${token}` : '',
         },
         body: JSON.stringify({
-          ...form,
-          ingredienti: ingredients.map(ing => ing.nome).join(', '),
-          ingredienti_grammi: ingredients.map(ing => ({ nome: ing.nome, grammi: parseInt(ing.grammi) })),
-          tempo_preparazione: form.tempo_preparazione ? parseInt(form.tempo_preparazione) : null,
-          kcal: form.kcal ? parseInt(form.kcal) : null,
-          porzioni: form.porzioni ? parseInt(form.porzioni) : null,
+          ...sanitizedForm,
+          ingredienti: sanitizedIngredients.map(ing => ing.nome).join(', '),
+          ingredienti_grammi: sanitizedIngredients,
         }),
       });
       const data = await res.json();

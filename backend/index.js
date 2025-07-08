@@ -159,7 +159,7 @@ app.post('/api/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid email or password.' });
     }
 
-    const userId = user.id_user || user.id || user.rowid;
+    const userId = user.id_user;
     const token = jwt.sign({ userId, nickname: user.nickname }, JWT_SECRET, { expiresIn: '2h' });
     res.status(200).json({ message: 'Login successful', userId: userId, nickname: user.nickname, token });
   } catch (err) {
@@ -198,6 +198,7 @@ app.post('/api/aggiungiRicetta', authenticateToken, async (req, res) => {
 
     res.status(201).json({ message: 'Recipe created successfully', recipeId: ricettaId });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: 'Failed to create recipe', details: err.message });
   }
 });
