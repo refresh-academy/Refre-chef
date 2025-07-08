@@ -14,6 +14,20 @@ const CATEGORIES = [
 const HomePage = () => {
   const [search, setSearch] = useState('');
   const navigate = useNavigate();
+  const [suggested, setSuggested] = useState([]);
+
+  useEffect(() => {
+    // Carica ricette per suggerimenti
+    fetch('http://localhost:3000/api/ricette')
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) {
+          // Scegli 3 ricette casuali
+          const shuffled = [...data].sort(() => 0.5 - Math.random());
+          setSuggested(shuffled.slice(0, 3));
+        }
+      });
+  }, []);
 
   return (
     <div className="relative min-h-screen z-0">
@@ -64,6 +78,34 @@ const HomePage = () => {
             ))}
           </div>
         </div>
+
+        {/* Suggested Plates */}
+        {suggested.length > 0 && (
+          <div className="max-w-5xl mx-auto py-10 px-4">
+            <h2 className="text-2xl font-bold text-refresh-pink mb-6">Piatti suggeriti</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {suggested.map(r => (
+                <Link
+                  to={`/ricetta/${r.id}`}
+                  key={r.id}
+                  className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition flex flex-col overflow-hidden group"
+                >
+                  <img
+                    src={r.immagine && r.immagine.trim() !== '' ? r.immagine : '/fallback-food.jpg'}
+                    alt={r.nome}
+                    className="h-48 w-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    onError={e => (e.target.src = '/fallback-food.jpg')}
+                  />
+                  <div className="p-4 flex-1 flex flex-col">
+                    <h3 className="text-lg font-bold text-refresh-blue mb-2">{r.nome}</h3>
+                    <p className="text-gray-600 text-sm flex-1">{r.ingredienti?.slice(0, 80)}...</p>
+                    <span className="mt-4 inline-block text-refresh-pink font-semibold">Scopri la ricetta &rarr;</span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Le ultime ricette ora non vengono mostrate qui, ma solo nella pagina Ricette */}
       </div>
