@@ -157,37 +157,56 @@ const Ricetta = () => {
     ricetta.immagine && ricetta.immagine.trim() !== "" && !imgError ? ricetta.immagine : "/fallback-food.jpg";
 
   return (
-    <div className="flex justify-center items-start p-6 bg-gray-50 min-h-screen">
-      <div className="w-full max-w-3xl bg-white shadow-xl rounded-3xl overflow-hidden">
-        {/* Header */}
-        <div className="relative group">
+    <div className="flex justify-center bg-gray-50 min-h-screen py-8 px-2">
+      <div className="w-full max-w-4xl bg-white shadow-2xl rounded-3xl overflow-hidden">
+        {/* Immagine grande e titolo */}
+        <div className="relative">
           <img
             src={imageUrl}
             alt={ricetta.nome}
-            className="w-full h-[350px] object-cover transition-transform duration-300 group-hover:scale-105"
+            className="w-full h-[340px] md:h-[420px] object-cover object-center"
             onError={() => setImgError(true)}
           />
-          {isLoggedIn(userId) && (
-            <>
-              {/* Bottone carrello a sinistra */}
-              <button
-                onClick={handleAddToGroceryList}
-                title="Aggiungi ingredienti alla lista della spesa"
-                className="absolute top-5 left-5 bg-refresh-blue text-white px-3 py-1 rounded-full font-semibold hover:bg-refresh-pink transition flex items-center text-base"
-                style={{ minHeight: '2.5rem' }}
-              >
-                🛒
-              </button>
-              {/* Bottone cuore a destra */}
+          <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/60 to-transparent p-6 pb-2">
+            <h1 className="text-3xl md:text-4xl font-extrabold text-white drop-shadow-lg">{ricetta.nome}</h1>
+          </div>
+          {/* Pulsanti azione sopra immagine */}
+          <div className="absolute top-4 right-4 flex gap-2 z-10">
+            <button
+              onClick={handleCopyLink}
+              title="Copia link ricetta"
+              className="bg-white/80 hover:bg-refresh-blue text-refresh-blue hover:text-white rounded-full p-2 shadow transition"
+            >
+              <i className="fa-solid fa-link"></i>
+            </button>
+            <button
+              onClick={handleShare}
+              title="Condividi su Twitter"
+              className="bg-white/80 hover:bg-refresh-pink text-refresh-pink hover:text-white rounded-full p-2 shadow transition"
+            >
+              <i className="fa-solid fa-share-nodes"></i>
+            </button>
+            {isLoggedIn(userId) && (
               <button
                 onClick={handleSaveRecipe}
                 title={saved ? "Rimuovi dai segnalibri" : "Aggiungi ai segnalibri"}
                 aria-label={saved ? "Rimuovi dai segnalibri" : "Aggiungi ai segnalibri"}
-                className={`absolute top-5 right-5 text-3xl drop-shadow-md hover:scale-110 transition-transform ${saved ? "text-refresh-blue hover:text-refresh-pink" : "text-gray-400 hover:text-refresh-blue"}`}
+                className={`rounded-full p-2 shadow transition text-2xl ${saved ? "bg-refresh-blue text-white hover:bg-refresh-pink" : "bg-white/80 text-gray-400 hover:text-refresh-blue"}`}
               >
                 <i className={`${saved ? 'fa-solid' : 'fa-regular'} fa-bookmark`}></i>
               </button>
-            </>
+            )}
+          </div>
+          {/* Bottone carrello */}
+          {isLoggedIn(userId) && (
+            <button
+              onClick={handleAddToGroceryList}
+              title="Aggiungi ingredienti alla lista della spesa"
+              className="absolute top-4 left-4 bg-refresh-blue text-white px-4 py-2 rounded-full font-semibold hover:bg-refresh-pink transition flex items-center text-base shadow"
+              style={{ minHeight: '2.5rem' }}
+            >
+              <span className="mr-2">🛒</span> Lista spesa
+            </button>
           )}
           {/* Modal per ingredienti aggiunti */}
           {showGroceryModal && (
@@ -204,49 +223,59 @@ const Ricetta = () => {
           )}
         </div>
 
-        {/* Content */}
-        <div className="p-6 space-y-4">
-          <h1 className="text-3xl font-bold text-gray-800">{ricetta.nome}</h1>
+        {/* Info rapide */}
+        <div className="flex flex-wrap gap-4 px-6 py-4 bg-white border-b border-gray-200">
+          <div className="flex items-center gap-2 text-gray-700 text-base font-semibold"><i className="fa-regular fa-clock mr-1" /> {ricetta.tempo_preparazione} min</div>
+          <div className="flex items-center gap-2 text-gray-700 text-base font-semibold"><i className="fa-solid fa-fire mr-1" /> {ricetta.kcal} kcal</div>
+          <div className="flex items-center gap-2 text-gray-700 text-base font-semibold"><i className="fa-solid fa-utensils mr-1" /> {ricetta.porzioni} porzioni</div>
+          {ricetta.author && <div className="flex items-center gap-2 text-gray-700 text-base font-semibold"><i className="fa-solid fa-user mr-1" /> {ricetta.author}</div>}
+        </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-gray-700">
+        {/* Ingredienti e preparazione affiancati */}
+        <div className="flex flex-col md:flex-row gap-8 px-6 py-8 bg-white">
+          {/* Ingredienti */}
+          <div className="md:w-1/3 w-full">
+            <div className="bg-gray-50 rounded-2xl shadow p-5 mb-6">
+              <h2 className="text-xl font-bold text-refresh-blue mb-3">Ingredienti</h2>
+              <ul className="list-disc pl-5 text-gray-800 text-base space-y-1">
+                {ricetta.ingredienti?.split(',').map((ing, idx) => (
+                  <li key={idx}>{ing.trim()}</li>
+                ))}
+              </ul>
+              {groceryMsg && (
+                <div className="text-center text-blue-600 font-medium mt-2">{groceryMsg}</div>
+              )}
+            </div>
+          </div>
+          {/* Preparazione */}
+          <div className="md:w-2/3 w-full">
+            <div className="bg-gray-50 rounded-2xl shadow p-5">
+              <h2 className="text-xl font-bold text-refresh-pink mb-3">Preparazione</h2>
+              <div className="text-gray-800 leading-relaxed whitespace-pre-line">
+                {ricetta.preparazione_dettagliata || ricetta.preparazione}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Info aggiuntive */}
+        <div className="px-6 pb-8 pt-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Info label="Tipologia" value={ricetta.tipologia} />
             <Info label="Alimentazione" value={ricetta.alimentazione} />
             <Info label="Origine" value={ricetta.origine} />
-            <Info label="Porzioni" value={ricetta.porzioni} />
             <Info label="Allergeni" value={ricetta.allergeni} />
-            <Info label="Tempo di preparazione" value={`${ricetta.tempo_preparazione} min`} />
-            <Info label="Kcal" value={ricetta.kcal} />
-            <Info label="Creatore" value={ricetta.author} />
           </div>
-
-          <div>
-            <h2 className="text-lg font-semibold mt-4 mb-1">Ingredienti</h2>
-            <p className="bg-gray-100 p-3 rounded-lg">{ricetta.ingredienti}</p>
-          </div>
-
-          {groceryMsg && (
-            <div className="text-center text-blue-600 font-medium mt-1">{groceryMsg}</div>
-          )}
-
-          {ricetta.preparazione_dettagliata && (
-            <div>
-              <h2 className="text-lg font-semibold mt-4 mb-1">Passaggi dettagliati</h2>
-              <div className="bg-gray-100 p-3 rounded-lg whitespace-pre-line text-gray-800 leading-relaxed">
-                {ricetta.preparazione_dettagliata}
-              </div>
-            </div>
-          )}
-
-          <div className="flex flex-wrap gap-3 mt-6 justify-center">
-            <Button onClick={handleShare}>Condividi</Button>
-            <Button onClick={handleCopyLink}>Copia Link</Button>
-            <Button onClick={() => navigate(-1)} variant="gray">
-              Torna Indietro
-            </Button>
-          </div>
-
-          {showCopied && <div className="text-center text-green-600 font-medium">Link copiato!</div>}
         </div>
+
+        {/* Pulsante torna indietro */}
+        <div className="flex justify-center pb-8">
+          <Button onClick={() => navigate(-1)} variant="gray">
+            Torna Indietro
+          </Button>
+        </div>
+
+        {showCopied && <div className="text-center text-green-600 font-medium pb-4">Link copiato!</div>}
       </div>
     </div>
   );

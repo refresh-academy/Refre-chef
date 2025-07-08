@@ -3,19 +3,7 @@ import { useOutletContext, useNavigate, useLocation } from 'react-router';
 
 const RECIPES_PER_PAGE = 10;
 
-function highlight(text, query) {
-  if (!query || typeof text !== 'string') return text;
-  // Split query into words, ignore extra spaces
-  const words = query.trim().split(/\s+/).filter(Boolean);
-  if (words.length === 0) return text;
-  // Build a regex for all words
-  const regex = new RegExp(`(${words.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'gi');
-  return text.split(regex).map((part, i) =>
-    regex.test(part) ? <mark key={i} className="bg-yellow-200 px-1 rounded">{part}</mark> : part
-  );
-}
-
-function RecipeCard({ ricetta, userId, saved, handleSaveRecipe, handleRecipeClick, search, relevant }) {
+function RecipeCard({ ricetta, userId, saved, handleSaveRecipe, handleRecipeClick, search }) {
   const [imgError, setImgError] = useState(false);
   const imageUrl = ricetta.immagine && ricetta.immagine.trim() !== '' && !imgError ? ricetta.immagine : '/fallback-food.jpg';
 
@@ -50,28 +38,32 @@ function RecipeCard({ ricetta, userId, saved, handleSaveRecipe, handleRecipeClic
       </div>
       <div className="flex flex-col flex-1">
         <h2 className="text-xl font-bold mb-2">{highlight(ricetta.nome || '', search)}</h2>
-        {relevant.length > 0 && search && (
-          <div className="mb-2 text-xs text-gray-600">Parole chiave trovate: {relevant.join(', ')}</div>
+        {ricetta.descrizione && (
+          <div className="mb-1 text-gray-700 text-sm">{highlight(ricetta.descrizione, search)}</div>
         )}
-          <div className="mb-1 flex flex-row items-center gap-4">
-          <div className="flex flex-row items-center gap-2">
-            <span className="font-semibold" title="Tempo di preparazione">⏱️</span>
-            <span className="text-sm">{ricetta.tempo_preparazione ? `${ricetta.tempo_preparazione} min` : ''}</span>
-          </div>
-          <div className="flex flex-row items-center gap-2">
-            <span className="font-semibold" title="Kcal"> 🔥 Kcal</span>
-            <span className="text-sm">{ricetta.kcal || ''}</span>
-            <span className="font-semibold" title="Porzioni">🍽️</span>
-            <span className="text-sm">{ricetta.porzioni || ''} persone</span>
-          </div>
+        {/* Info rapide con icone */}
+        <div className="flex flex-wrap gap-3 mb-2 text-gray-700 text-base font-semibold items-center">
+          <span className="flex items-center gap-1"><i className="fa-regular fa-clock" /> {ricetta.tempo_preparazione} min</span>
+          <span className="flex items-center gap-1"><i className="fa-solid fa-fire" /> {ricetta.kcal} kcal</span>
+          <span className="flex items-center gap-1"><i className="fa-solid fa-utensils" /> {ricetta.porzioni} porzioni</span>
+          {ricetta.author && <span className="flex items-center gap-1"><i className="fa-solid fa-user" /> {ricetta.author}</span>}
         </div>
         <div className="mb-1"><span className="font-semibold">Ingredienti:</span> {highlight(ricetta.ingredienti || '', search)}</div>
-        <div className="mb-1"><span className="font-semibold">Descrizione:</span> {highlight(ricetta.descrizione || '', search)}</div>
         <div className="mb-1"><span className="font-semibold">Allergeni:</span> {highlight(ricetta.allergeni || '', search)}</div>
-      
-        <div className="mb-1"><span className="font-semibold">Creatore:</span> {highlight(ricetta.author || '', search)}</div>
       </div>
     </div>
+  );
+}
+
+function highlight(text, query) {
+  if (!query || typeof text !== 'string') return text;
+  // Split query into words, ignore extra spaces
+  const words = query.trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return text;
+  // Build a regex for all words
+  const regex = new RegExp(`(${words.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'gi');
+  return text.split(regex).map((part, i) =>
+    regex.test(part) ? <mark key={i} className="bg-yellow-200 px-1 rounded">{part}</mark> : part
   );
 }
 
@@ -107,8 +99,21 @@ const Home = (props) => {
       setError('');
       try {
         let url = 'http://localhost:3000/api/ricette';
+        const params = [];
         if (tipologia && tipologia !== '') {
-          url += `?tipologia=${encodeURIComponent(tipologia)}`;
+          params.push(`tipologia=${encodeURIComponent(tipologia)}`);
+        }
+        if (maxTime && !isNaN(Number(maxTime))) {
+          params.push(`maxTime=${encodeURIComponent(maxTime)}`);
+        }
+        if (maxKcal && !isNaN(Number(maxKcal))) {
+          params.push(`maxKcal=${encodeURIComponent(maxKcal)}`);
+        }
+        if (alimentazione && alimentazione !== '') {
+          params.push(`alimentazione=${encodeURIComponent(alimentazione)}`);
+        }
+        if (params.length > 0) {
+          url += '?' + params.join('&');
         }
         const res = await fetch(url);
         const data = await res.json();
@@ -140,14 +145,12 @@ const Home = (props) => {
           }
         });
     }
-  }, []);
+  }, [tipologia, search, maxTime, maxKcal, alimentazione]);
 
-  // Filter recipes by search (all words must match in any field), maxTime, and alimentazione
+  // Filtro solo per maxTime, maxKcal, alimentazione (il resto è lato backend)
   const filteredRecipes = recipes.filter((ricetta) => {
     // Search filter
-    if (!search) {
-      // continue
-    } else {
+    if (search && search.trim() !== '') {
       const words = search.trim().toLowerCase().split(/\s+/).filter(Boolean);
       if (words.length > 0) {
         const fields = [
@@ -181,38 +184,14 @@ const Home = (props) => {
         return false;
       }
     }
-    // Tipologia filter
-    if (tipologia && tipologia !== '') {
-      if (!ricetta.tipologia || ricetta.tipologia !== tipologia) {
-        return false;
-      }
-    }
     return true;
   });
-
-  // Find relevant keywords for each recipe
-  function getRelevantKeywords(ricetta, query) {
-    if (!query) return [];
-    const words = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
-    if (words.length === 0) return [];
-    const fields = [
-      { label: 'Nome', value: ricetta.nome },
-      { label: 'Tipologia', value: ricetta.tipologia },
-      { label: 'Alimentazione', value: ricetta.alimentazione },
-      { label: 'Ingredienti', value: ricetta.ingredienti },
-      { label: 'Preparazione', value: ricetta.preparazione },
-      { label: 'Creatore', value: ricetta.author },
-    ];
-    return fields
-      .filter(f => typeof f.value === 'string' && words.some(word => f.value.toLowerCase().includes(word)))
-      .map(f => f.label);
-  }
 
   const totalPages = Math.ceil(filteredRecipes.length / RECIPES_PER_PAGE);
   const paginatedRecipes = filteredRecipes.slice((page - 1) * RECIPES_PER_PAGE, page * RECIPES_PER_PAGE);
 
-  // Reset to page 1 when search changes
-  useEffect(() => { setPage(1); }, [search]);
+  // Reset to page 1 when tipologia/maxTime/maxKcal/alimentazione cambiano
+  useEffect(() => { setPage(1); }, [tipologia, maxTime, maxKcal, alimentazione]);
 
   // Funzione per salvare la ricetta
   const handleSaveRecipe = async (ricettaId, event) => {
@@ -292,7 +271,6 @@ const Home = (props) => {
         )}
         <div className="grid grid-cols-1 gap-6 w-full">
           {paginatedRecipes.map((ricetta, idx) => {
-            const relevant = getRelevantKeywords(ricetta, search);
             return (
               <RecipeCard
                 key={ricetta.id || idx}
@@ -302,7 +280,6 @@ const Home = (props) => {
                 handleSaveRecipe={handleSaveRecipe}
                 handleRecipeClick={handleRecipeClick}
                 search={search}
-                relevant={relevant}
               />
             );
           })}

@@ -138,13 +138,6 @@ const Layout = ({ user }) => {
         <div className='flex flex-row bg-white items-center w-screen px-20 py-4'>
           <div className="flex items-center gap-4">
             <input
-              type="text"
-              placeholder="Cerca nelle ricette..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="w-72 p-2 border rounded shadow focus:outline-none focus:ring-2 focus:ring-refresh-blue"
-            />
-            <input
               type="number"
               min="0"
               value={maxTime}
