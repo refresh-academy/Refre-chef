@@ -17,6 +17,7 @@ const Ricetta = () => {
   const [groceryMsg, setGroceryMsg] = useState("");
   const [showGroceryModal, setShowGroceryModal] = useState(false);
   const [addedIngredients, setAddedIngredients] = useState([]);
+  const [numPorzioni, setNumPorzioni] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -81,6 +82,10 @@ const Ricetta = () => {
     };
     fetchIngredienti();
   }, [id]);
+
+  useEffect(() => {
+    if (ricetta && ricetta.porzioni) setNumPorzioni(Number(ricetta.porzioni));
+  }, [ricetta]);
 
   const handleSaveRecipe = async (e) => {
     e.stopPropagation();
@@ -252,10 +257,50 @@ const Ricetta = () => {
           <div className="md:w-1/3 w-full">
             <div className="bg-gray-50 rounded-2xl shadow p-5 mb-6">
               <h2 className="text-xl font-bold text-refresh-blue mb-3">Ingredienti</h2>
-              <ul className="list-disc pl-5 text-gray-800 text-base space-y-1">
+              {ricetta && (
+                <div className="mb-3 flex items-center gap-2">
+                  <label htmlFor="porzioni" className="font-semibold text-refresh-blue">Porzioni:</label>
+                  <div className="flex items-center bg-refresh-blue/10 rounded-full px-2 py-1 shadow-inner">
+                    <button
+                      type="button"
+                      className="text-refresh-blue font-bold text-lg px-2 focus:outline-none hover:text-refresh-pink transition"
+                      onClick={() => setNumPorzioni(Math.max(1, (numPorzioni || 1) - 1))}
+                      aria-label="Diminuisci porzioni"
+                    >
+                      -
+                    </button>
+                    <input
+                      id="porzioni"
+                      type="number"
+                      min={1}
+                      value={numPorzioni || ''}
+                      onChange={e => setNumPorzioni(Number(e.target.value) || 1)}
+                      className="w-14 text-center bg-transparent border-none font-bold text-refresh-blue focus:ring-0 focus:outline-none text-lg"
+                      style={{ appearance: 'textfield' }}
+                    />
+                    <button
+                      type="button"
+                      className="text-refresh-blue font-bold text-lg px-2 focus:outline-none hover:text-refresh-pink transition"
+                      onClick={() => setNumPorzioni((numPorzioni || 1) + 1)}
+                      aria-label="Aumenta porzioni"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+              )}
+              <ul className="list-none pl-0 text-gray-800 text-base space-y-2">
                 {ingredienti.length > 0 ? (
                   ingredienti.map((ing, idx) => (
-                    <li key={idx}>{ing.ingrediente} <span className="text-gray-500 font-normal">({ing.grammi}g)</span></li>
+                    <li
+                      key={idx}
+                      className="flex justify-between items-center bg-white/80 rounded-xl shadow hover:shadow-lg transition-shadow px-4 py-2 border border-gray-100 hover:border-refresh-blue/40"
+                    >
+                      <span className="font-medium text-refresh-blue">{ing.ingrediente}</span>
+                      <span className="bg-refresh-pink/10 text-refresh-pink font-bold rounded-full px-3 py-1 text-sm ml-4 shadow-inner">
+                        {Math.round((ing.grammi * (numPorzioni || ricetta?.porzioni || 1)) / (ricetta?.porzioni || 1))}g
+                      </span>
+                    </li>
                   ))
                 ) : (
                   <li className="italic text-gray-400">Nessun ingrediente trovato.</li>
