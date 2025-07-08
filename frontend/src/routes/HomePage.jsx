@@ -55,6 +55,7 @@ const HomePage = () => {
             {CATEGORIES.map(cat => (
               <Link
                 key={cat.name}
+                to={`/ricette?tipologia=${encodeURIComponent(cat.name)}`}
                 className={`flex flex-row items-center h-32 md:h-40 w-full rounded-2xl bg-white border-2 ${cat.color} shadow hover:shadow-xl hover:border-4 transition text-2xl font-bold px-6 md:px-12 group`}
               >
                 <span className="text-5xl md:text-6xl mr-6 group-hover:scale-110 transition-transform">{cat.icon}</span>

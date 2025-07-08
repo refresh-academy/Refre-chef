@@ -93,10 +93,12 @@ const Home = (props) => {
     return params.get(name) || '';
   }
   const [search, setSearch] = useState(getQueryParam('q'));
+  const [tipologia, setTipologia] = useState(getQueryParam('tipologia'));
 
   // Aggiorna la ricerca se cambia la query string
   useEffect(() => {
     setSearch(getQueryParam('q'));
+    setTipologia(getQueryParam('tipologia'));
   }, [location.search]);
 
   useEffect(() => {
@@ -104,7 +106,11 @@ const Home = (props) => {
       setLoading(true);
       setError('');
       try {
-        const res = await fetch('http://localhost:3000/api/ricette');
+        let url = 'http://localhost:3000/api/ricette';
+        if (tipologia && tipologia !== '') {
+          url += `?tipologia=${encodeURIComponent(tipologia)}`;
+        }
+        const res = await fetch(url);
         const data = await res.json();
         if (!res.ok) {
           setError(data.error || 'Errore nel caricamento delle ricette');
@@ -172,6 +178,12 @@ const Home = (props) => {
     // Alimentazione filter
     if (alimentazione && alimentazione !== '') {
       if (!ricetta.alimentazione || ricetta.alimentazione !== alimentazione) {
+        return false;
+      }
+    }
+    // Tipologia filter
+    if (tipologia && tipologia !== '') {
+      if (!ricetta.tipologia || ricetta.tipologia !== tipologia) {
         return false;
       }
     }
@@ -272,34 +284,6 @@ const Home = (props) => {
       }}
     >
       <div className="w-full max-w-5xl bg-white/80 rounded-lg shadow-lg p-6 flex flex-col items-center">
-        {/* Barra di ricerca */}
-        <form
-          className="w-full flex flex-col md:flex-row gap-3 items-center justify-center mb-6"
-          onSubmit={e => {
-            e.preventDefault();
-            const params = new URLSearchParams(location.search);
-            if (search) {
-              params.set('q', search);
-            } else {
-              params.delete('q');
-            }
-            navigate({ pathname: '/ricette', search: params.toString() ? `?${params.toString()}` : '' });
-          }}
-        >
-          <input
-            type="text"
-            placeholder="Cerca nelle ricette..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="w-full md:w-96 p-3 border rounded-full shadow focus:outline-none focus:ring-2 focus:ring-refresh-blue text-lg"
-          />
-          <button
-            type="submit"
-            className="bg-refresh-pink text-white font-bold px-6 py-3 rounded-full shadow hover:bg-refresh-blue transition text-lg"
-          >
-            Cerca
-          </button>
-        </form>
         <h1 className="text-2xl font-bold mb-4">Tutte le Ricette</h1>
         {loading && <div>Caricamento...</div>}
         {error && <div className="text-red-500 mb-4">{error}</div>}
