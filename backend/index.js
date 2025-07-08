@@ -169,18 +169,18 @@ app.post('/api/login', async (req, res) => {
 
 // POST /api/aggiungiRicetta (protected)
 app.post('/api/aggiungiRicetta', authenticateToken, async (req, res) => {
-  const { nome, tipologia, ingredienti, alimentazione, immagine, preparazione, origine, allergeni, tempo_preparazione, kcal } = req.body;
+  const { nome, descrizione, tipologia, ingredienti, alimentazione, immagine, preparazione, preparazione_dettagliata, origine, porzioni, allergeni, tempo_preparazione, kcal } = req.body;
   const author_id = req.user.userId;
 
-  if (!nome || !tipologia || !ingredienti || !alimentazione || !preparazione) {
+  if (!nome || !descrizione || !tipologia || !ingredienti || !alimentazione || !immagine || !preparazione || !preparazione_dettagliata || !origine || !porzioni || !allergeni || !tempo_preparazione || !kcal) {
     return res.status(400).json({ error: 'Missing required fields.' });
   }
 
   try {
     const result = await dbRun(
-      `INSERT INTO ricettario (nome, tipologia, ingredienti, alimentazione, immagine, preparazione, origine, allergeni, tempo_preparazione, kcal, author_id)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [nome, tipologia, ingredienti, alimentazione, immagine || null, preparazione, origine || null, allergeni || null, tempo_preparazione || null, kcal || null, author_id]
+      `INSERT INTO ricettario (nome, descrizione, tipologia, ingredienti, alimentazione, immagine, preparazione, preparazione_dettagliata, origine, porzioni, allergeni, tempo_preparazione, kcal, author_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [nome, descrizione, tipologia, ingredienti, alimentazione, immagine, preparazione, preparazione_dettagliata, origine, porzioni, allergeni, tempo_preparazione, kcal, author_id]
     );
 
     res.status(201).json({ message: 'Recipe created successfully', recipeId: result.id });

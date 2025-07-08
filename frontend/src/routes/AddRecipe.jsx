@@ -3,12 +3,15 @@ import { useNavigate } from 'react-router';
 
 const initialState = {
   nome: '',
+  descrizione: '',
   tipologia: '',
   ingredienti: '',
   alimentazione: '',
   immagine: '',
   preparazione: '',
+  preparazione_dettagliata: '',
   origine: '',
+  porzioni: '',
   allergeni: '',
   tempo_preparazione: '',
   kcal: '',
@@ -36,7 +39,7 @@ const AddRecipe = ({ user }) => {
     setSuccess('');
     setLoading(true);
     // Validazione base
-    if (!form.nome || !form.tipologia || !form.ingredienti || !form.alimentazione || !form.preparazione) {
+    if (!form.nome || !form.descrizione || !form.tipologia || !form.ingredienti || !form.alimentazione || !form.immagine || !form.preparazione || !form.preparazione_dettagliata || !form.origine || !form.porzioni || !form.allergeni || !form.tempo_preparazione || !form.kcal) {
       setError('Compila tutti i campi obbligatori.');
       setLoading(false);
       return;
@@ -53,6 +56,7 @@ const AddRecipe = ({ user }) => {
           ...form,
           tempo_preparazione: form.tempo_preparazione ? parseInt(form.tempo_preparazione) : null,
           kcal: form.kcal ? parseInt(form.kcal) : null,
+          porzioni: form.porzioni ? parseInt(form.porzioni) : null,
         }),
       });
       const data = await res.json();
@@ -74,15 +78,18 @@ const AddRecipe = ({ user }) => {
       <h1 className="text-2xl font-bold mb-4">Aggiungi una nuova ricetta</h1>
       <form onSubmit={handleSubmit} className="flex flex-col gap-3 w-full max-w-lg bg-white rounded shadow p-6">
         <input name="nome" value={form.nome} onChange={handleChange} placeholder="Nome*" className="border p-2 rounded" required />
+        <input name="descrizione" value={form.descrizione} onChange={handleChange} placeholder="Breve descrizione*" className="border p-2 rounded" required />
         <input name="tipologia" value={form.tipologia} onChange={handleChange} placeholder="Tipologia*" className="border p-2 rounded" required />
         <input name="ingredienti" value={form.ingredienti} onChange={handleChange} placeholder="Ingredienti*" className="border p-2 rounded" required />
         <input name="alimentazione" value={form.alimentazione} onChange={handleChange} placeholder="Alimentazione*" className="border p-2 rounded" required />
-        <input name="immagine" value={form.immagine} onChange={handleChange} placeholder="URL immagine" className="border p-2 rounded" />
+        <input name="immagine" value={form.immagine} onChange={handleChange} placeholder="URL immagine*" className="border p-2 rounded" required />
         <textarea name="preparazione" value={form.preparazione} onChange={handleChange} placeholder="Preparazione*" className="border p-2 rounded" required />
-        <input name="origine" value={form.origine} onChange={handleChange} placeholder="Origine" className="border p-2 rounded" />
-        <input name="allergeni" value={form.allergeni} onChange={handleChange} placeholder="Allergeni" className="border p-2 rounded" />
-        <input name="tempo_preparazione" value={form.tempo_preparazione} onChange={handleChange} placeholder="Tempo di preparazione (min)" type="number" className="border p-2 rounded" />
-        <input name="kcal" value={form.kcal} onChange={handleChange} placeholder="Kcal" type="number" className="border p-2 rounded" />
+        <textarea name="preparazione_dettagliata" value={form.preparazione_dettagliata} onChange={handleChange} placeholder="Preparazione dettagliata*" className="border p-2 rounded" required />
+        <input name="origine" value={form.origine} onChange={handleChange} placeholder="Origine*" className="border p-2 rounded" required />
+        <input name="porzioni" value={form.porzioni} onChange={handleChange} placeholder="Porzioni*" type="number" className="border p-2 rounded" required />
+        <input name="allergeni" value={form.allergeni} onChange={handleChange} placeholder="Allergeni*" className="border p-2 rounded" required />
+        <input name="tempo_preparazione" value={form.tempo_preparazione} onChange={handleChange} placeholder="Tempo di preparazione (min)*" type="number" className="border p-2 rounded" required />
+        <input name="kcal" value={form.kcal} onChange={handleChange} placeholder="Kcal*" type="number" className="border p-2 rounded" required />
         {error && <div className="text-red-500 text-sm">{error}</div>}
         {success && <div className="text-green-600 text-sm">{success}</div>}
         <button type="submit" className="bg-refresh-blue text-white font-bold py-2 rounded hover:bg-refresh-pink transition" disabled={loading}>
