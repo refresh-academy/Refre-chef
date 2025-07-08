@@ -10,6 +10,7 @@ import SavedRecipes from './routes/SavedRecipes.jsx'
 import AddRecipe from './routes/AddRecipe.jsx'
 import Ricetta from './routes/Ricetta.jsx'
 import GroceryList from './routes/GroceryList.jsx'
+import NotFound from './routes/NotFound.jsx'
 
 
 const Layout = ({ user }) => {
@@ -199,6 +200,7 @@ function App() {
           <Route path="/add-recipe" element={<AddRecipe user={user} />} />
           <Route path="/ricetta/:id" element={<Ricetta user={user} />} />
           <Route path="/grocery-list" element={<GroceryList />} />
+          <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
     </BrowserRouter>
