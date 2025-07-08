@@ -7,28 +7,31 @@ function RecipeCard({ ricetta, handleRemove, handleRecipeClick }) {
   return (
     <div
       key={ricetta.id}
-      className="bg-white rounded shadow p-4 flex flex-col cursor-pointer hover:shadow-lg transition-shadow"
+      className="bg-white rounded shadow p-0 flex flex-row items-stretch gap-0 min-h-[180px] cursor-pointer hover:shadow-lg transition-shadow relative overflow-hidden"
       onClick={() => handleRecipeClick(ricetta.id)}
     >
-      <h2 className="text-xl font-bold mb-2">{ricetta.nome}</h2>
-      <div className="relative w-full flex justify-center">
+      <div className="relative w-48 min-w-[12rem] h-48 min-h-[12rem] flex-shrink-0 overflow-hidden">
         <img
           src={imageUrl}
           alt={ricetta.nome || 'Immagine di default'}
-          className="mt-2 max-h-40 object-cover rounded"
+          className="w-full h-full object-cover object-center rounded-l"
+          style={{ minHeight: '180px', height: '100%' }}
           onError={() => setImgError(true)}
         />
       </div>
-      <div className="mb-1"><span className="font-semibold">Tipologia:</span> {ricetta.tipologia}</div>
-      <div className="mb-1"><span className="font-semibold">Alimentazione:</span> {ricetta.alimentazione}</div>
-      <div className="mb-1"><span className="font-semibold">Ingredienti:</span> {ricetta.ingredienti}</div>
-      <div className="mb-1"><span className="font-semibold">Preparazione:</span> {ricetta.preparazione}</div>
-      <button
-        className="mt-4 px-3 py-1 rounded bg-refresh-blue text-white font-semibold hover:bg-refresh-pink transition"
-        onClick={(e) => handleRemove(ricetta.id, e)}
-      >
-        Rimuovi
-      </button>
+      <div className="flex-1 flex flex-col justify-between p-4 min-h-[12rem]">
+        <h2 className="text-xl font-bold mb-2">{ricetta.nome}</h2>
+        <div className="mb-1"><span className="font-semibold">Tipologia:</span> {ricetta.tipologia}</div>
+        <div className="mb-1"><span className="font-semibold">Alimentazione:</span> {ricetta.alimentazione}</div>
+        <div className="mb-1"><span className="font-semibold">Ingredienti:</span> {ricetta.ingredienti}</div>
+        <div className="mb-1"><span className="font-semibold">Preparazione:</span> {ricetta.preparazione}</div>
+        <button
+          className="mt-4 px-3 py-1 rounded bg-refresh-blue text-white font-semibold hover:bg-refresh-pink transition"
+          onClick={(e) => handleRemove(ricetta.id, e)}
+        >
+          Rimuovi
+        </button>
+      </div>
     </div>
   );
 }

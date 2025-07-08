@@ -10,7 +10,7 @@ function RecipeCard({ ricetta, userId, saved, handleSaveRecipe, handleRecipeClic
   return (
     <div
       key={ricetta.id}
-      className="bg-white rounded shadow p-4 flex flex-row items-center gap-6 min-h-[180px] cursor-pointer hover:shadow-lg transition-shadow relative"
+      className="bg-white rounded shadow p-0 flex flex-row items-stretch gap-0 min-h-[180px] cursor-pointer hover:shadow-lg transition-shadow relative overflow-hidden"
       onClick={() => handleRecipeClick(ricetta.id)}
     >
       {/* Cuoricino in alto a destra della scheda */}
@@ -28,15 +28,15 @@ function RecipeCard({ ricetta, userId, saved, handleSaveRecipe, handleRecipeClic
           <i className={`${saved.includes(ricetta.id) ? 'fa-solid' : 'fa-regular'} fa-bookmark`}></i>
         </span>
       )}
-      <div className="relative w-40 h-40 flex-shrink-0">
+      <div className="relative w-48 min-w-[12rem] h-48 min-h-[12rem] flex-shrink-0 overflow-hidden">
         <img
           src={imageUrl}
           alt={ricetta.nome || 'Immagine di default'}
-          className="w-full h-full object-cover rounded"
+          className="w-full h-full object-cover object-center rounded-l"
           onError={() => setImgError(true)}
         />
       </div>
-      <div className="flex flex-col flex-1">
+      <div className="flex-1 flex flex-col justify-between p-4 min-h-[12rem]">
         <h2 className="text-xl font-bold mb-2">{highlight(ricetta.nome || '', search)}</h2>
         {ricetta.descrizione && (
           <div className="mb-1 text-gray-700 text-sm">{highlight(ricetta.descrizione, search)}</div>
