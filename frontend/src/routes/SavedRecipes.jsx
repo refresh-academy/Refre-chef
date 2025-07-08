@@ -3,7 +3,20 @@ import { useParams, useNavigate } from 'react-router';
 
 function RecipeCard({ ricetta, handleRemove, handleRecipeClick }) {
   const [imgError, setImgError] = useState(false);
+  const [ingredienti, setIngredienti] = useState([]);
   const imageUrl = ricetta.immagine && ricetta.immagine.trim() !== '' && !imgError ? ricetta.immagine : '/fallback-food.jpg';
+
+  useEffect(() => {
+    const fetchIngredienti = async () => {
+      try {
+        const res = await fetch(`http://localhost:3000/api/ingredienti/${ricetta.id}`);
+        const data = await res.json();
+        if (Array.isArray(data)) setIngredienti(data);
+      } catch {}
+    };
+    fetchIngredienti();
+  }, [ricetta.id]);
+
   return (
     <div
       key={ricetta.id}
@@ -23,7 +36,18 @@ function RecipeCard({ ricetta, handleRemove, handleRecipeClick }) {
         <h2 className="text-xl font-bold mb-2">{ricetta.nome}</h2>
         <div className="mb-1"><span className="font-semibold">Tipologia:</span> {ricetta.tipologia}</div>
         <div className="mb-1"><span className="font-semibold">Alimentazione:</span> {ricetta.alimentazione}</div>
-        <div className="mb-1"><span className="font-semibold">Ingredienti:</span> {ricetta.ingredienti}</div>
+        <div className="mb-1">
+          <span className="font-semibold">Ingredienti:</span>
+          {ingredienti.length > 0 ? (
+            <ul className="list-disc pl-5 text-gray-800 text-sm space-y-1">
+              {ingredienti.map((ing, idx) => (
+                <li key={idx}>{ing.ingrediente} <span className="text-gray-500 font-normal">{ing.grammi}g</span></li>
+              ))}
+            </ul>
+          ) : (
+            <span className="italic text-gray-400 ml-2">Nessun ingrediente</span>
+          )}
+        </div>
         <div className="mb-1"><span className="font-semibold">Preparazione:</span> {ricetta.preparazione}</div>
         <button
           className="mt-4 px-3 py-1 rounded bg-refresh-blue text-white font-semibold hover:bg-refresh-pink transition"

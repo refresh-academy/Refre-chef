@@ -125,6 +125,7 @@ const GroceryList = () => {
                       onChange={e => setEditValue(Number(e.target.value))}
                       className="border rounded w-16 p-1 mx-2"
                     />
+                    <span className="text-gray-500 font-normal">g</span>
                     <button
                       className="bg-green-500 text-white px-2 py-1 rounded mr-2"
                       onClick={() => handleEditSave(item.ingredient)}
@@ -136,7 +137,7 @@ const GroceryList = () => {
                   </>
                 ) : (
                   <>
-                    <span className="mx-2">x {item.quantity}</span>
+                    <span className="mx-2">{item.quantity}g</span>
                     <button
                       className="bg-blue-500 text-white px-2 py-1 rounded mr-2"
                       onClick={() => handleEdit(idx, item.quantity)}

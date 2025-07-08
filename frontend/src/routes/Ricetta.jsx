@@ -147,15 +147,14 @@ const Ricetta = () => {
           'Content-Type': 'application/json',
           'Authorization': token ? `Bearer ${token}` : '',
         },
-        body: JSON.stringify({ recipeId: id }),
+        body: JSON.stringify({ recipeId: id, porzioni: numPorzioni }),
       });
       const data = await res.json();
       if (res.ok) {
         setGroceryMsg('Ingredienti aggiunti alla lista della spesa!');
         // Show modal with ingredient list
-        if (ricetta && ricetta.ingredienti) {
-          const ingredients = ricetta.ingredienti.split(',').map(i => i.trim()).filter(i => i);
-          setAddedIngredients(ingredients);
+        if (ingredienti && ingredienti.length > 0) {
+          setAddedIngredients(ingredienti.map(i => i.ingrediente));
           setShowGroceryModal(true);
           setTimeout(() => setShowGroceryModal(false), 2500);
         }

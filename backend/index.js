@@ -244,25 +244,27 @@ app.delete('/api/salvaRicetta', authenticateToken, async (req, res) => {
 // Add ingredients of a recipe to the user's grocery list
 app.post('/api/addToGroceryList', authenticateToken, async (req, res) => {
   const userId = req.user.userId;
-  const { recipeId } = req.body;
+  const { recipeId, porzioni } = req.body;
   if (!recipeId) {
     return res.status(400).json({ error: 'recipeId is required.' });
   }
   try {
-    // Get ingredients from the recipe
-    const recipes = await dbAll('SELECT ingredienti FROM ricettario WHERE id = ?', [recipeId]);
-    if (recipes.length === 0) {
-      return res.status(404).json({ error: 'Recipe not found.' });
+    // Get ingredients and grams from the normalized table
+    const ingredients = await dbAll('SELECT ingrediente, grammi FROM ingredienti_grammi WHERE ricetta_id = ?', [recipeId]);
+    if (ingredients.length === 0) {
+      return res.status(404).json({ error: 'Recipe or ingredients not found.' });
     }
-    const ingredientString = recipes[0].ingredienti;
-    // Assume ingredients are comma-separated, optionally with quantities (e.g., "2 eggs, 1 cup sugar")
-    const ingredients = ingredientString.split(',').map(i => i.trim()).filter(i => i);
-    // For each ingredient, insert or update quantity
-    for (const ingredient of ingredients) {
+    // Get original portions
+    const ricetta = await dbAll('SELECT porzioni FROM ricettario WHERE id = ?', [recipeId]);
+    const origPorzioni = ricetta[0]?.porzioni || 1;
+    const multiplier = porzioni && porzioni > 0 ? porzioni / origPorzioni : 1;
+    // For each ingredient, insert or update quantity (grams * multiplier)
+    for (const ing of ingredients) {
+      const qty = Math.round(ing.grammi * multiplier);
       await dbRun(
-        `INSERT INTO groceryList (user_id, ingredient, quantity) VALUES (?, ?, 1)
-         ON CONFLICT(user_id, ingredient) DO UPDATE SET quantity = quantity + 1`,
-        [userId, ingredient]
+        `INSERT INTO groceryList (user_id, ingredient, quantity) VALUES (?, ?, ?)
+         ON CONFLICT(user_id, ingredient) DO UPDATE SET quantity = quantity + ?`,
+        [userId, ing.ingrediente, qty, qty]
       );
     }
     res.status(201).json({ message: 'Ingredients added to grocery list.' });
