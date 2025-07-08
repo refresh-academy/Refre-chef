@@ -34,23 +34,31 @@ function RecipeCard({ ricetta, handleRemove, handleRecipeClick }) {
       </div>
       <div className="flex-1 flex flex-col justify-between p-4 min-h-[12rem]">
         <h2 className="text-xl font-bold mb-2">{ricetta.nome}</h2>
-        <div className="mb-1"><span className="font-semibold">Tipologia:</span> {ricetta.tipologia}</div>
-        <div className="mb-1"><span className="font-semibold">Alimentazione:</span> {ricetta.alimentazione}</div>
+        {ricetta.tipologia && (
+          <div className="mb-1 text-gray-700 text-sm"><span className="font-semibold">Tipologia:</span> {ricetta.tipologia}</div>
+        )}
+        {ricetta.descrizione && (
+          <div className="mb-1 text-gray-700 text-sm">{ricetta.descrizione}</div>
+        )}
+        <div className="flex flex-wrap gap-6 mb-2 text-gray-700 text-lg font-bold items-center">
+          <span className="flex items-center gap-1"><i className="fa-regular fa-clock" /><span className="font-semibold">Minuti:</span> {ricetta.tempo_preparazione ?? '-'} min</span>
+          <span className="flex items-center gap-1"><i className="fa-solid fa-fire" /><span className="font-semibold">Kcal:</span> {ricetta.kcal ?? '-'}</span>
+          <span className="flex items-center gap-1"><i className="fa-solid fa-utensils" /><span className="font-semibold">Porzioni:</span> {ricetta.porzioni ?? '-'}</span>
+        </div>
         <div className="mb-1">
           <span className="font-semibold">Ingredienti:</span>
           {ingredienti.length > 0 ? (
             <ul className="list-disc pl-5 text-gray-800 text-sm space-y-1">
               {ingredienti.map((ing, idx) => (
-                <li key={idx}>{ing.ingrediente} <span className="text-gray-500 font-normal">{ing.grammi}g</span></li>
+                <li key={idx}>{ing.ingrediente}</li>
               ))}
             </ul>
           ) : (
             <span className="italic text-gray-400 ml-2">Nessun ingrediente</span>
           )}
         </div>
-        <div className="mb-1"><span className="font-semibold">Preparazione:</span> {ricetta.preparazione}</div>
         <button
-          className="mt-4 px-3 py-1 rounded bg-refresh-blue text-white font-semibold hover:bg-refresh-pink transition"
+          className="mt-4 px-3 py-1 rounded bg-refresh-blue text-white font-semibold hover:bg-refresh-pink transition self-start"
           onClick={(e) => handleRemove(ricetta.id, e)}
         >
           Rimuovi
@@ -141,7 +149,7 @@ const SavedRecipes = () => {
       {!loading && !error && recipes.length === 0 && (
         <div>Nessuna ricetta salvata trovata.</div>
       )}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-5xl">
+      <div className="flex flex-col gap-6 w-full max-w-5xl">
         {recipes.map((ricetta) => (
           <RecipeCard
             key={ricetta.id}

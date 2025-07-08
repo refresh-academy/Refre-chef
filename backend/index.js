@@ -207,7 +207,7 @@ app.get('/api/ricetteSalvate', authenticateToken, async (req, res) => {
   const userId = req.user.userId;
   try {
     const savedRecipes = await dbAll(
-      `SELECT r.id, r.nome, r.tipologia, r.alimentazione, r.immagine, r.preparazione, r.author_id
+      `SELECT r.id, r.nome, r.alimentazione, r.immagine, r.descrizione, r.kcal, r.tempo_preparazione, r.porzioni
        FROM ricettario r
        INNER JOIN ricetteSalvate s ON r.id = s.id_ricetta
        WHERE s.id_user = ?`,
