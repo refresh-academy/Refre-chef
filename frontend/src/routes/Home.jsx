@@ -61,7 +61,7 @@ function RecipeCard({ ricetta, userId, saved, handleSaveRecipe, handleRecipeClic
           <div className="flex flex-row items-center gap-2">
             <span className="font-semibold" title="Kcal"> 🔥 Kcal</span>
             <span className="text-sm">{ricetta.kcal || ''}</span>
-            <span classNamr="font-semibold" title="Porzioni">🍽️</span>
+            <span className="font-semibold" title="Porzioni">🍽️</span>
             <span className="text-sm">{ricetta.porzioni || ''} persone</span>
           </div>
         </div>
