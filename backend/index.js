@@ -75,7 +75,7 @@ app.get('/api/ricette', async (req, res) => {
   try {
     const { tipologia } = req.query;
     let query = `
-      SELECT r.id, r.nome, r.descrizione, r.tipologia, r.ingredienti, r.alimentazione, r.immagine, r.preparazione, r.preparazione_dettagliata, r.origine, r.porzioni, r.allergeni, r.tempo_preparazione, r.kcal, r.author_id, u.nickname as author
+      SELECT r.id, r.nome, r.descrizione, r.tipologia, r.alimentazione, r.immagine, r.preparazione, r.preparazione_dettagliata, r.origine, r.porzioni, r.allergeni, r.tempo_preparazione, r.kcal, r.author_id, u.nickname as author
       FROM ricettario r
       LEFT JOIN utenti u ON r.author_id = u.id_user
     `;
@@ -169,21 +169,34 @@ app.post('/api/login', async (req, res) => {
 
 // POST /api/aggiungiRicetta (protected)
 app.post('/api/aggiungiRicetta', authenticateToken, async (req, res) => {
-  const { nome, descrizione, tipologia, ingredienti, alimentazione, immagine, preparazione, preparazione_dettagliata, origine, porzioni, allergeni, tempo_preparazione, kcal } = req.body;
+  const { nome, descrizione, tipologia, alimentazione, immagine, preparazione, preparazione_dettagliata, origine, porzioni, allergeni, tempo_preparazione, kcal, ingredienti_grammi } = req.body;
   const author_id = req.user.userId;
 
-  if (!nome || !descrizione || !tipologia || !ingredienti || !alimentazione || !immagine || !preparazione || !preparazione_dettagliata || !origine || !porzioni || !allergeni || !tempo_preparazione || !kcal) {
+  if (!nome || !descrizione || !tipologia || !alimentazione || !immagine || !preparazione || !preparazione_dettagliata || !origine || !porzioni || !allergeni || !tempo_preparazione || !kcal) {
     return res.status(400).json({ error: 'Missing required fields.' });
+  }
+  if (!Array.isArray(ingredienti_grammi) || ingredienti_grammi.length === 0 || ingredienti_grammi.some(ing => !ing.nome || !ing.grammi)) {
+    return res.status(400).json({ error: 'Ingredienti e grammi obbligatori.' });
   }
 
   try {
+    // Insert recipe
     const result = await dbRun(
-      `INSERT INTO ricettario (nome, descrizione, tipologia, ingredienti, alimentazione, immagine, preparazione, preparazione_dettagliata, origine, porzioni, allergeni, tempo_preparazione, kcal, author_id)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [nome, descrizione, tipologia, ingredienti, alimentazione, immagine, preparazione, preparazione_dettagliata, origine, porzioni, allergeni, tempo_preparazione, kcal, author_id]
+      `INSERT INTO ricettario (nome, descrizione, tipologia, alimentazione, immagine, preparazione, preparazione_dettagliata, origine, porzioni, allergeni, kcal, tempo_preparazione, author_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [nome, descrizione, tipologia, alimentazione, immagine, preparazione, preparazione_dettagliata, origine, porzioni, allergeni, kcal, tempo_preparazione, author_id]
     );
+    const ricettaId = result.id;
 
-    res.status(201).json({ message: 'Recipe created successfully', recipeId: result.id });
+    // Insert ingredient grams
+    for (const ing of ingredienti_grammi) {
+      await dbRun(
+        `INSERT INTO ingredienti_grammi (ricetta_id, ingrediente, grammi) VALUES (?, ?, ?)`,
+        [ricettaId, ing.nome, ing.grammi]
+      );
+    }
+
+    res.status(201).json({ message: 'Recipe created successfully', recipeId: ricettaId });
   } catch (err) {
     res.status(500).json({ error: 'Failed to create recipe', details: err.message });
   }
@@ -194,7 +207,7 @@ app.get('/api/ricetteSalvate', authenticateToken, async (req, res) => {
   const userId = req.user.userId;
   try {
     const savedRecipes = await dbAll(
-      `SELECT r.id, r.nome, r.tipologia, r.ingredienti, r.alimentazione, r.immagine, r.preparazione, r.author_id
+      `SELECT r.id, r.nome, r.tipologia, r.alimentazione, r.immagine, r.preparazione, r.author_id
        FROM ricettario r
        INNER JOIN ricetteSalvate s ON r.id = s.id_ricetta
        WHERE s.id_user = ?`,
@@ -315,6 +328,17 @@ app.put('/api/groceryList/ingredient', authenticateToken, async (req, res) => {
     }
   } catch (err) {
     res.status(500).json({ error: 'Failed to update ingredient quantity', details: err.message });
+  }
+});
+
+// Endpoint to get ingredients with grams for a recipe
+app.get('/api/ingredienti/:ricettaId', async (req, res) => {
+  const ricettaId = req.params.ricettaId;
+  try {
+    const rows = await dbAll('SELECT ingrediente, grammi FROM ingredienti_grammi WHERE ricetta_id = ?', [ricettaId]);
+    res.status(200).json(rows);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch ingredients', details: err.message });
   }
 });
 

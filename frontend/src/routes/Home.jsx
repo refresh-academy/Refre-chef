@@ -5,7 +5,21 @@ const RECIPES_PER_PAGE = 10;
 
 function RecipeCard({ ricetta, userId, saved, handleSaveRecipe, handleRecipeClick, search }) {
   const [imgError, setImgError] = useState(false);
+  const [ingredienti, setIngredienti] = useState([]);
   const imageUrl = ricetta.immagine && ricetta.immagine.trim() !== '' && !imgError ? ricetta.immagine : '/fallback-food.jpg';
+
+  useEffect(() => {
+    const fetchIngredienti = async () => {
+      try {
+        const res = await fetch(`http://localhost:3000/api/ingredienti/${ricetta.id}`);
+        const data = await res.json();
+        if (Array.isArray(data)) setIngredienti(data);
+      } catch {
+        // Optionally log or ignore
+      }
+    };
+    fetchIngredienti();
+  }, [ricetta.id]);
 
   return (
     <div
@@ -48,7 +62,18 @@ function RecipeCard({ ricetta, userId, saved, handleSaveRecipe, handleRecipeClic
           <span className="flex items-center gap-1"><i className="fa-solid fa-utensils" /> {ricetta.porzioni} porzioni</span>
           {ricetta.author && <span className="flex items-center gap-1"><i className="fa-solid fa-user" /> {ricetta.author}</span>}
         </div>
-        <div className="mb-1"><span className="font-semibold">Ingredienti:</span> {highlight(ricetta.ingredienti || '', search)}</div>
+        <div className="mb-1">
+          <span className="font-semibold">Ingredienti:</span>
+          {ingredienti.length > 0 ? (
+            <ul className="list-disc pl-5 text-gray-800 text-sm space-y-1">
+              {ingredienti.map((ing, idx) => (
+                <li key={idx}>{ing.ingrediente}</li>
+              ))}
+            </ul>
+          ) : (
+            <span className="italic text-gray-400 ml-2">Nessun ingrediente</span>
+          )}
+        </div>
         <div className="mb-1"><span className="font-semibold">Allergeni:</span> {highlight(ricetta.allergeni || '', search)}</div>
       </div>
     </div>
@@ -69,6 +94,7 @@ function highlight(text, query) {
 
 const Home = (props) => {
   const [recipes, setRecipes] = useState([]);
+  const [allIngredients, setAllIngredients] = useState({}); // { ricettaId: [ingredienti] }
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [page, setPage] = useState(1);
@@ -121,6 +147,19 @@ const Home = (props) => {
           setError(data.error || 'Errore nel caricamento delle ricette');
         } else {
           setRecipes(data);
+          // Fetch all ingredients for all recipes
+          const ids = data.map(r => r.id);
+          const allIngs = {};
+          await Promise.all(ids.map(async (id) => {
+            try {
+              const resIng = await fetch(`http://localhost:3000/api/ingredienti/${id}`);
+              const dataIng = await resIng.json();
+              allIngs[id] = Array.isArray(dataIng) ? dataIng.map(i => i.ingrediente) : [];
+            } catch {
+              allIngs[id] = [];
+            }
+          }));
+          setAllIngredients(allIngs);
         }
       } catch {
         setError('Errore di rete.');
@@ -155,11 +194,13 @@ const Home = (props) => {
       if (words.length > 0) {
         const fields = [
           ricetta.nome,
-          ricetta.ingredienti,
+          ricetta.descrizione,
           ricetta.tipologia,
           ricetta.preparazione,
+          ricetta.preparazione_dettagliata,
           ricetta.alimentazione,
           ricetta.author,
+          ...(allIngredients[ricetta.id] || [])
         ].map(f => (typeof f === 'string' ? f.toLowerCase() : String(f || '')));
         if (!words.every(word => fields.some(field => field.includes(word)))) {
           return false;

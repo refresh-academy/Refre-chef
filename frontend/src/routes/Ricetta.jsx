@@ -7,6 +7,7 @@ const isLoggedIn = (userId) =>
 const Ricetta = () => {
   const { id } = useParams();
   const [ricetta, setRicetta] = useState(null);
+  const [ingredienti, setIngredienti] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [imgError, setImgError] = useState(false);
@@ -65,6 +66,20 @@ const Ricetta = () => {
       }
     };
     fetchRecipe();
+  }, [id]);
+
+  useEffect(() => {
+    if (!id) return;
+    const fetchIngredienti = async () => {
+      try {
+        const res = await fetch(`http://localhost:3000/api/ingredienti/${id}`);
+        const data = await res.json();
+        if (Array.isArray(data)) setIngredienti(data);
+      } catch {
+        // Optionally log or ignore
+      }
+    };
+    fetchIngredienti();
   }, [id]);
 
   const handleSaveRecipe = async (e) => {
@@ -238,9 +253,13 @@ const Ricetta = () => {
             <div className="bg-gray-50 rounded-2xl shadow p-5 mb-6">
               <h2 className="text-xl font-bold text-refresh-blue mb-3">Ingredienti</h2>
               <ul className="list-disc pl-5 text-gray-800 text-base space-y-1">
-                {ricetta.ingredienti?.split(',').map((ing, idx) => (
-                  <li key={idx}>{ing.trim()}</li>
-                ))}
+                {ingredienti.length > 0 ? (
+                  ingredienti.map((ing, idx) => (
+                    <li key={idx}>{ing.ingrediente} <span className="text-gray-500 font-normal">({ing.grammi}g)</span></li>
+                  ))
+                ) : (
+                  <li className="italic text-gray-400">Nessun ingrediente trovato.</li>
+                )}
               </ul>
               {groceryMsg && (
                 <div className="text-center text-blue-600 font-medium mt-2">{groceryMsg}</div>

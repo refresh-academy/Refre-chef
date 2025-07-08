@@ -5,7 +5,6 @@ const initialState = {
   nome: '',
   descrizione: '',
   tipologia: '',
-  ingredienti: '',
   alimentazione: '',
   immagine: '',
   preparazione: '',
@@ -19,6 +18,7 @@ const initialState = {
 
 const AddRecipe = ({ user }) => {
   const [form, setForm] = useState(initialState);
+  const [ingredients, setIngredients] = useState([{ nome: '', grammi: '' }]);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
@@ -33,14 +33,32 @@ const AddRecipe = ({ user }) => {
     setForm(f => ({ ...f, [name]: value }));
   };
 
+  const handleIngredientChange = (idx, e) => {
+    const { name, value } = e.target;
+    setIngredients(ings => ings.map((ing, i) => i === idx ? { ...ing, [name]: value } : ing));
+  };
+
+  const handleAddIngredient = () => {
+    setIngredients(ings => [...ings, { nome: '', grammi: '' }]);
+  };
+
+  const handleRemoveIngredient = (idx) => {
+    setIngredients(ings => ings.length > 1 ? ings.filter((_, i) => i !== idx) : ings);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setSuccess('');
     setLoading(true);
     // Validazione base
-    if (!form.nome || !form.descrizione || !form.tipologia || !form.ingredienti || !form.alimentazione || !form.immagine || !form.preparazione || !form.preparazione_dettagliata || !form.origine || !form.porzioni || !form.allergeni || !form.tempo_preparazione || !form.kcal) {
+    if (!form.nome || !form.descrizione || !form.tipologia || !form.alimentazione || !form.immagine || !form.preparazione || !form.preparazione_dettagliata || !form.origine || !form.porzioni || !form.allergeni || !form.tempo_preparazione || !form.kcal) {
       setError('Compila tutti i campi obbligatori.');
+      setLoading(false);
+      return;
+    }
+    if (ingredients.some(ing => !ing.nome || !ing.grammi)) {
+      setError('Compila tutti gli ingredienti e i grammi.');
       setLoading(false);
       return;
     }
@@ -54,6 +72,8 @@ const AddRecipe = ({ user }) => {
         },
         body: JSON.stringify({
           ...form,
+          ingredienti: ingredients.map(ing => ing.nome).join(', '),
+          ingredienti_grammi: ingredients.map(ing => ({ nome: ing.nome, grammi: parseInt(ing.grammi) })),
           tempo_preparazione: form.tempo_preparazione ? parseInt(form.tempo_preparazione) : null,
           kcal: form.kcal ? parseInt(form.kcal) : null,
           porzioni: form.porzioni ? parseInt(form.porzioni) : null,
@@ -80,7 +100,6 @@ const AddRecipe = ({ user }) => {
         <input name="nome" value={form.nome} onChange={handleChange} placeholder="Nome*" className="border p-2 rounded" required />
         <input name="descrizione" value={form.descrizione} onChange={handleChange} placeholder="Breve descrizione*" className="border p-2 rounded" required />
         <input name="tipologia" value={form.tipologia} onChange={handleChange} placeholder="Tipologia*" className="border p-2 rounded" required />
-        <input name="ingredienti" value={form.ingredienti} onChange={handleChange} placeholder="Ingredienti*" className="border p-2 rounded" required />
         <input name="alimentazione" value={form.alimentazione} onChange={handleChange} placeholder="Alimentazione*" className="border p-2 rounded" required />
         <input name="immagine" value={form.immagine} onChange={handleChange} placeholder="URL immagine*" className="border p-2 rounded" required />
         <textarea name="preparazione" value={form.preparazione} onChange={handleChange} placeholder="Preparazione*" className="border p-2 rounded" required />
@@ -90,6 +109,34 @@ const AddRecipe = ({ user }) => {
         <input name="allergeni" value={form.allergeni} onChange={handleChange} placeholder="Allergeni*" className="border p-2 rounded" required />
         <input name="tempo_preparazione" value={form.tempo_preparazione} onChange={handleChange} placeholder="Tempo di preparazione (min)*" type="number" className="border p-2 rounded" required />
         <input name="kcal" value={form.kcal} onChange={handleChange} placeholder="Kcal*" type="number" className="border p-2 rounded" required />
+        {/* Ingredienti dinamici */}
+        <div className="flex flex-col gap-2">
+          <label className="font-semibold">Ingredienti* (nome e grammi)</label>
+          {ingredients.map((ing, idx) => (
+            <div key={idx} className="flex gap-2 items-center">
+              <input
+                name="nome"
+                value={ing.nome}
+                onChange={e => handleIngredientChange(idx, e)}
+                placeholder="Nome ingrediente"
+                className="border p-2 rounded flex-1"
+                required
+              />
+              <input
+                name="grammi"
+                type="number"
+                min="1"
+                value={ing.grammi}
+                onChange={e => handleIngredientChange(idx, e)}
+                placeholder="Grammi"
+                className="border p-2 rounded w-28"
+                required
+              />
+              <button type="button" onClick={() => handleRemoveIngredient(idx)} className="text-red-500 hover:text-red-700 text-xl font-bold px-2">&times;</button>
+            </div>
+          ))}
+          <button type="button" onClick={handleAddIngredient} className="bg-refresh-blue text-white px-3 py-1 rounded mt-1 w-fit hover:bg-refresh-pink transition">+ Aggiungi ingrediente</button>
+        </div>
         {error && <div className="text-red-500 text-sm">{error}</div>}
         {success && <div className="text-green-600 text-sm">{success}</div>}
         <button type="submit" className="bg-refresh-blue text-white font-bold py-2 rounded hover:bg-refresh-pink transition" disabled={loading}>
