@@ -73,11 +73,18 @@ function authenticateToken(req, res, next) {
 // GET /api/ricette
 app.get('/api/ricette', async (req, res) => {
   try {
-    const ricette = await dbAll(`
+    const { tipologia } = req.query;
+    let query = `
       SELECT r.id, r.nome, r.descrizione, r.tipologia, r.ingredienti, r.alimentazione, r.immagine, r.preparazione, r.preparazione_dettagliata, r.origine, r.porzioni, r.allergeni, r.tempo_preparazione, r.kcal, r.author_id, u.nickname as author
       FROM ricettario r
       LEFT JOIN utenti u ON r.author_id = u.id_user
-    `);
+    `;
+    let params = [];
+    if (tipologia) {
+      query += ' WHERE r.tipologia = ?';
+      params.push(tipologia);
+    }
+    const ricette = await dbAll(query, params);
     res.json(ricette);
   } catch (err) {
     res.status(500).json({ error: err.message });

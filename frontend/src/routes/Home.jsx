@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useOutletContext, useNavigate } from 'react-router';
+import { useOutletContext, useNavigate, useLocation } from 'react-router';
 
 const RECIPES_PER_PAGE = 10;
 
@@ -81,10 +81,23 @@ const Home = (props) => {
   const [error, setError] = useState('');
   const [page, setPage] = useState(1);
   const [saved, setSaved] = useState([]);
-  const { search, maxTime, maxKcal,  alimentazione } = useOutletContext();
+  const { maxTime, maxKcal, alimentazione } = useOutletContext();
+  const location = useLocation();
   const navigate = useNavigate();
   // Prendo userId solo da props.user, così la visibilità è reattiva e sicura
   const userId = props.user ? props.user.userId : null;
+
+  // Leggi il parametro di ricerca dalla query string
+  function getQueryParam(name) {
+    const params = new URLSearchParams(location.search);
+    return params.get(name) || '';
+  }
+  const [search, setSearch] = useState(getQueryParam('q'));
+
+  // Aggiorna la ricerca se cambia la query string
+  useEffect(() => {
+    setSearch(getQueryParam('q'));
+  }, [location.search]);
 
   useEffect(() => {
     const fetchRecipes = async () => {
@@ -259,6 +272,34 @@ const Home = (props) => {
       }}
     >
       <div className="w-full max-w-5xl bg-white/80 rounded-lg shadow-lg p-6 flex flex-col items-center">
+        {/* Barra di ricerca */}
+        <form
+          className="w-full flex flex-col md:flex-row gap-3 items-center justify-center mb-6"
+          onSubmit={e => {
+            e.preventDefault();
+            const params = new URLSearchParams(location.search);
+            if (search) {
+              params.set('q', search);
+            } else {
+              params.delete('q');
+            }
+            navigate({ pathname: '/ricette', search: params.toString() ? `?${params.toString()}` : '' });
+          }}
+        >
+          <input
+            type="text"
+            placeholder="Cerca nelle ricette..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="w-full md:w-96 p-3 border rounded-full shadow focus:outline-none focus:ring-2 focus:ring-refresh-blue text-lg"
+          />
+          <button
+            type="submit"
+            className="bg-refresh-pink text-white font-bold px-6 py-3 rounded-full shadow hover:bg-refresh-blue transition text-lg"
+          >
+            Cerca
+          </button>
+        </form>
         <h1 className="text-2xl font-bold mb-4">Tutte le Ricette</h1>
         {loading && <div>Caricamento...</div>}
         {error && <div className="text-red-500 mb-4">{error}</div>}

@@ -11,6 +11,7 @@ import AddRecipe from './routes/AddRecipe.jsx'
 import Ricetta from './routes/Ricetta.jsx'
 import GroceryList from './routes/GroceryList.jsx'
 import NotFound from './routes/NotFound.jsx'
+import HomePage from './routes/HomePage.jsx'
 
 
 const Layout = ({ user }) => {
@@ -189,9 +190,11 @@ function App() {
   useEffect(() => { window.setUser = setUser; }, [setUser]);
   return (
     <BrowserRouter>
+      {/* Global background image below everything */}
+      <div className="fixed inset-0 -z-10 w-full h-full bg-cover bg-center bg-no-repeat bg-fixed bg-white" style={{ backgroundImage: "url('/background.webp')" }} />
       <Routes>
         <Route element={<Layout user={user} />}>
-          <Route path="/" element={<Benvenuti />} />
+          <Route path="/" element={<HomePage />} />
           <Route path="/ricette" element={<Home user={user} />} />
           <Route path="/login" element={<Login setUser={setUser} />} />
           <Route path="/register" element={<Registration />} />
