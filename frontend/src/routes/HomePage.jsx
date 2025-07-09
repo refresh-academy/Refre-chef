@@ -45,6 +45,11 @@ const HomePage = () => {
               placeholder="Cerca una ricetta o un ingrediente..."
               value={search}
               onChange={e => setSearch(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter') {
+                  navigate('/ricette' + (search ? `?q=${encodeURIComponent(search)}` : ''));
+                }
+              }}
               className="w-full md:w-96 p-3 border rounded-full shadow focus:outline-none focus:ring-2 focus:ring-refresh-blue text-lg"
             />
             <button

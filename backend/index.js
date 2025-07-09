@@ -29,7 +29,8 @@ const db = new sqlite3.Database(dbPath, (err) => {
       user_id INTEGER NOT NULL,
       ingredient TEXT NOT NULL,
       quantity INTEGER DEFAULT 1,
-      UNIQUE(user_id, ingredient)
+      recipe_id INTEGER NOT NULL,
+      UNIQUE(user_id, ingredient, recipe_id)
     )`);
   }
 });
@@ -259,13 +260,13 @@ app.post('/api/addToGroceryList', authenticateToken, async (req, res) => {
     const ricetta = await dbAll('SELECT porzioni FROM ricettario WHERE id = ?', [recipeId]);
     const origPorzioni = ricetta[0]?.porzioni || 1;
     const multiplier = porzioni && porzioni > 0 ? porzioni / origPorzioni : 1;
-    // For each ingredient, insert or update quantity (grams * multiplier)
+    // For each ingredient, insert or update quantity (grams * multiplier) for that recipe
     for (const ing of ingredients) {
       const qty = Math.round(ing.grammi * multiplier);
       await dbRun(
-        `INSERT INTO groceryList (user_id, ingredient, quantity) VALUES (?, ?, ?)
-         ON CONFLICT(user_id, ingredient) DO UPDATE SET quantity = quantity + ?`,
-        [userId, ing.ingrediente, qty, qty]
+        `INSERT INTO groceryList (user_id, ingredient, quantity, recipe_id) VALUES (?, ?, ?, ?)
+         ON CONFLICT(user_id, ingredient, recipe_id) DO UPDATE SET quantity = quantity + ?`,
+        [userId, ing.ingrediente, qty, recipeId, qty]
       );
     }
     res.status(201).json({ message: 'Ingredients added to grocery list.' });
@@ -274,15 +275,18 @@ app.post('/api/addToGroceryList', authenticateToken, async (req, res) => {
   }
 });
 
-// Get the user's grocery list
+// Get the user's grocery list, grouped by recipe
 app.get('/api/groceryList', authenticateToken, async (req, res) => {
   const userId = req.user.userId;
   try {
+    // Get all grocery list items for the user, with recipe info
     const items = await dbAll(
-      `SELECT g.ingredient, g.quantity, ig.unita
+      `SELECT g.ingredient, g.quantity, g.recipe_id, ig.unita, r.nome as recipe_name, r.immagine as recipe_image
        FROM groceryList g
-       LEFT JOIN ingredienti_grammi ig ON g.ingredient = ig.ingrediente
-       WHERE g.user_id = ?`,
+       LEFT JOIN ingredienti_grammi ig ON g.ingredient = ig.ingrediente AND g.recipe_id = ig.ricetta_id
+       LEFT JOIN ricettario r ON g.recipe_id = r.id
+       WHERE g.user_id = ?
+       ORDER BY g.recipe_id, g.ingredient`,
       [userId]
     );
     res.status(200).json(items);
@@ -294,12 +298,13 @@ app.get('/api/groceryList', authenticateToken, async (req, res) => {
 // Remove a single ingredient from the user's grocery list
 app.delete('/api/groceryList/ingredient', authenticateToken, async (req, res) => {
   const userId = req.user.userId;
-  const { ingredient } = req.body;
+  let { ingredient, recipe_id } = req.body;
   if (!ingredient) {
     return res.status(400).json({ error: 'ingredient is required.' });
   }
+  if (recipe_id === undefined || recipe_id === null) recipe_id = -1;
   try {
-    const result = await dbRun('DELETE FROM groceryList WHERE user_id = ? AND ingredient = ?', [userId, ingredient]);
+    const result = await dbRun('DELETE FROM groceryList WHERE user_id = ? AND ingredient = ? AND recipe_id = ?', [userId, ingredient, recipe_id]);
     if (result.changes > 0) {
       res.status(200).json({ message: 'Ingredient removed from grocery list.' });
     } else {
@@ -324,12 +329,13 @@ app.post('/api/groceryList/clear', authenticateToken, async (req, res) => {
 // Edit the quantity of an ingredient in the user's grocery list
 app.put('/api/groceryList/ingredient', authenticateToken, async (req, res) => {
   const userId = req.user.userId;
-  const { ingredient, quantity } = req.body;
+  let { ingredient, quantity, recipe_id } = req.body;
   if (!ingredient || typeof quantity !== 'number' || quantity < 1) {
     return res.status(400).json({ error: 'ingredient and valid quantity are required.' });
   }
+  if (recipe_id === undefined || recipe_id === null) recipe_id = -1;
   try {
-    const result = await dbRun('UPDATE groceryList SET quantity = ? WHERE user_id = ? AND ingredient = ?', [quantity, userId, ingredient]);
+    const result = await dbRun('UPDATE groceryList SET quantity = ? WHERE user_id = ? AND ingredient = ? AND recipe_id = ?', [quantity, userId, ingredient, recipe_id]);
     if (result.changes > 0) {
       res.status(200).json({ message: 'Ingredient quantity updated.' });
     } else {
