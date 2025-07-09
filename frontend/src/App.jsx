@@ -12,6 +12,7 @@ import GroceryList from './routes/GroceryList.jsx'
 import NotFound from './routes/NotFound.jsx'
 import HomePage from './routes/HomePage.jsx'
 import MyRecipes from './routes/MyRecipes.jsx'
+import { jwtDecode } from 'jwt-decode';
 
 
 const Layout = ({ user }) => {
@@ -230,6 +231,20 @@ function App() {
   const [user, setUser] = useState(null);
   // Make setUser available globally for logout in Layout
   useEffect(() => { window.setUser = setUser; }, [setUser]);
+  // Persist user session after refresh
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const decoded = jwtDecode(token);
+        if (decoded && decoded.userId && decoded.nickname) {
+          setUser({ userId: decoded.userId, nickname: decoded.nickname });
+        }
+      } catch {
+        // Ignore invalid token
+      }
+    }
+  }, []);
   return (
     <BrowserRouter>
       {/* Global background image below everything */}

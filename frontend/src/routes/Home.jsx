@@ -3,7 +3,7 @@ import { useOutletContext, useNavigate, useLocation } from 'react-router';
 
 const RECIPES_PER_PAGE = 10;
 
-function RecipeCard({ ricetta, userId, saved, handleSaveRecipe, handleRecipeClick, search }) {
+function RecipeCard({ ricetta, userId, saved, handleSaveRecipe, handleRecipeClick, search, saving }) {
   const [imgError, setImgError] = useState(false);
   const imageUrl = ricetta.immagine && ricetta.immagine.trim() !== '' && !imgError ? ricetta.immagine : '/fallback-food.jpg';
 
@@ -16,12 +16,12 @@ function RecipeCard({ ricetta, userId, saved, handleSaveRecipe, handleRecipeClic
       {/* Cuoricino in alto a destra della scheda */}
       {userId && (
         <span
-          onClick={(e) => handleSaveRecipe(ricetta.id, e)}
+          onClick={saving ? undefined : (e) => handleSaveRecipe(ricetta.id, e)}
           className={`absolute top-2 right-2 text-2xl cursor-pointer transition-colors z-20 ${
             saved.includes(ricetta.id)
               ? 'text-refresh-blue hover:text-refresh-pink'
               : 'text-gray-400 hover:text-refresh-blue'
-          }`}
+          } ${saving ? 'opacity-50 pointer-events-none' : ''}`}
           title={saved.includes(ricetta.id) ? 'Rimuovi dai segnalibri' : 'Aggiungi ai segnalibri'}
           aria-label={saved.includes(ricetta.id) ? 'Rimuovi dai segnalibri' : 'Aggiungi ai segnalibri'}
         >
@@ -87,6 +87,7 @@ const Home = (props) => {
   const [page, setPage] = useState(1);
   const [saved, setSaved] = useState([]);
   const [popolari, setPopolari] = useState([]);
+  const [savingMap, setSavingMap] = useState({}); // { [ricettaId]: true/false }
   const { maxTime, maxKcal, alimentazione } = useOutletContext();
   const location = useLocation();
   const navigate = useNavigate();
@@ -112,20 +113,20 @@ const Home = (props) => {
       setLoading(true);
       setError('');
       try {
-        // Prendo anche i dati popolari per saved_count
-        const [resRicette, resPopolari] = await Promise.all([
-          fetch('http://localhost:3000/api/ricette'),
-          fetch('http://localhost:3000/api/ricette-popolari')
-        ]);
+        const resRicette = await fetch('http://localhost:3000/api/ricette');
         const data = await resRicette.json();
-        const popolariData = await resPopolari.json();
-        // Crea una mappa id -> saved_count
-        const savedCountMap = {};
-        for (const r of popolariData) {
-          savedCountMap[r.id] = r.saved_count || 0;
-        }
-        // Aggiungi saved_count a tutte le ricette (0 se non presente)
-        const recipesWithSaves = data.map(r => ({ ...r, saved_count: savedCountMap[r.id] || 0 }));
+        // After loading recipes, fetch saved_count for each
+        const recipesWithSaves = await Promise.all(
+          data.map(async (r) => {
+            try {
+              const res = await fetch(`http://localhost:3000/api/ricetta-saves/${r.id}`);
+              const d = await res.json();
+              return { ...r, saved_count: d.saved_count || 0 };
+            } catch {
+              return { ...r, saved_count: 0 };
+            }
+          })
+        );
         setRecipes(recipesWithSaves);
         // Fetch all ingredients for all recipes
         const ids = recipesWithSaves.map(r => r.id);
@@ -269,9 +270,18 @@ const Home = (props) => {
       alert('Devi essere loggato per salvare le ricette.');
       return;
     }
+    setSavingMap(prev => ({ ...prev, [ricettaId]: true }));
     const token = localStorage.getItem('token');
+    const updateRecipeCount = async (id) => {
+      try {
+        const res = await fetch(`http://localhost:3000/api/ricetta-saves/${id}`);
+        const data = await res.json();
+        setRecipes(prev => prev.map(r => r.id === id ? { ...r, saved_count: data.saved_count || 0 } : r));
+      } catch {
+        // Ignore errors updating saved_count
+      }
+    };
     if (saved.includes(ricettaId)) {
-      // Se già salvata, rimuovi
       try {
         const res = await fetch('http://localhost:3000/api/salvaRicetta', {
           method: 'DELETE',
@@ -283,15 +293,17 @@ const Home = (props) => {
         });
         if (res.ok) {
           setSaved((prev) => prev.filter(id => id !== ricettaId));
+          await updateRecipeCount(ricettaId);
         } else {
           const data = await res.json();
           alert(data.error || 'Errore nella rimozione della ricetta salvata');
         }
       } catch {
         alert('Errore di rete nella rimozione.');
+      } finally {
+        setSavingMap(prev => ({ ...prev, [ricettaId]: false }));
       }
     } else {
-      // Se non salvata, salva
       try {
         const res = await fetch('http://localhost:3000/api/salvaRicetta', {
           method: 'POST',
@@ -303,12 +315,15 @@ const Home = (props) => {
         });
         if (res.ok) {
           setSaved((prev) => [...prev, ricettaId]);
+          await updateRecipeCount(ricettaId);
         } else {
           const data = await res.json();
           alert(data.error || 'Errore nel salvataggio della ricetta');
         }
       } catch {
         alert('Errore di rete nel salvataggio.');
+      } finally {
+        setSavingMap(prev => ({ ...prev, [ricettaId]: false }));
       }
     }
   };
@@ -349,6 +364,7 @@ const Home = (props) => {
                 handleSaveRecipe={handleSaveRecipe}
                 handleRecipeClick={handleRecipeClick}
                 search={search}
+                saving={!!savingMap[ricetta.id]}
               />
             );
           })}
