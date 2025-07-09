@@ -364,7 +364,16 @@ const Ricetta = () => {
           </Button>
         </div>
 
-        {showCopied && <div className="text-center text-green-600 font-medium pb-4">Link copiato!</div>}
+        {/* Modal per link copiato */}
+        {showCopied && (
+          <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
+            <div className="bg-white border border-refresh-blue shadow-lg rounded-xl px-8 py-6 animate-fade-in pointer-events-auto flex flex-col items-center">
+              <i className="fa-solid fa-link text-refresh-blue text-3xl mb-2" />
+              <span className="text-lg font-bold text-refresh-blue mb-1">Link copiato!</span>
+              <span className="text-gray-600 text-base">Il link della ricetta è stato copiato negli appunti.</span>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
