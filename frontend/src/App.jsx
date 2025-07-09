@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import './App.css'
-import { BrowserRouter, Routes, Route, Link, Outlet, useLocation } from "react-router";
+import { BrowserRouter, Routes, Route, Link, Outlet, useLocation, useNavigate } from "react-router";
 import  logorefreChef from '/logorefreChef.png'
 import Home from './routes/Home.jsx'
 import Login from './routes/Login.jsx'
@@ -22,6 +22,7 @@ const Layout = ({ user }) => {
   const [alimentazione, setAlimentazione] = useState('');
   const dropdownRef = useRef(null);
   const location = useLocation();
+  const navigate = useNavigate();
   // Close dropdown on outside click
   useEffect(() => {
     function handleClickOutside(event) {
@@ -38,7 +39,8 @@ const Layout = ({ user }) => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [dropdownOpen]);
-  return(<div className='min-h-screen flex flex-col'>
+  return (
+    <div className='min-h-screen flex flex-col'>
     <div className='flex flex-row bg-white shadow-md items-center w-screen'>
         <div className='flex flex-row items-center font-bold gap-5 p-2'>
           <Link to={'/'} className='flex flex-row items-center font-bold gap-5'>
@@ -50,50 +52,53 @@ const Layout = ({ user }) => {
         <div className="flex-1" />
         {/* Desktop nav links */}
         <div className="hidden md:flex flex-row items-center gap-2 pr-4">
-          {user ? (
-            <>
-              <Link to="/add-recipe" className="flex items-center justify-center pr-4 text-refresh-blue font-semibold hover:bg-white hover:text-refresh-pink rounded px-3 py-1 transition">
-                <p>Crea ricetta</p>
-              </Link>
-              <Link to={`/saved-recipes/${user.userId}`} className="flex items-center justify-center pr-10 text-refresh-blue font-semibold hover:bg-white hover:text-refresh-pink rounded px-3 py-1 transition">
-                <p>Ricette Salvate</p>
-              </Link>
-              <Link to="/grocery-list" className="flex items-center justify-center pr-10 text-refresh-blue font-semibold hover:bg-white hover:text-refresh-pink rounded px-3 py-1 transition">
-                <p>Lista Spesa</p>
-              </Link>
-              <div className="relative" ref={dropdownRef}>
-                <span
-                  className="pr-8 cursor-pointer select-none text-refresh-blue font-semibold hover:bg-white hover:text-refresh-pink rounded px-3 py-1 transition"
-                  onClick={() => setDropdownOpen((open) => !open)}
-                >
-                  Welcome, {user.nickname}!
-                </span>
-                {dropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-32 bg-white border rounded shadow z-10">
-                    <button
-                      className="w-full text-left px-4 py-2 text-refresh-blue font-semibold hover:bg-white hover:text-refresh-pink rounded transition"
-                      onClick={() => {
-                        if (typeof window.setUser === 'function') window.setUser(null);
-                        localStorage.removeItem('userId');
-                        setDropdownOpen(false);
-                      }}
-                    >
-                      Logout
-                    </button>
-                  </div>
-                )}
-              </div>
-            </>
-          ) : (
-            <>
-              <Link to={'/login'} className="flex items-center justify-center pr-8 text-refresh-blue font-semibold hover:bg-white hover:text-refresh-pink rounded px-3 py-1 transition">
-                <p>Login</p>
-              </Link>
-              <Link to={'/register'} className="flex items-center justify-center pr-10 text-refresh-blue font-semibold hover:bg-white hover:text-refresh-pink rounded px-3 py-1 transition">
-                <p>Register</p>
-              </Link>
-            </>
-          )}
+          {
+            user ? (
+              <>
+                <Link to="/add-recipe" className="flex items-center justify-center pr-4 text-refresh-blue font-semibold hover:bg-white hover:text-refresh-pink rounded px-3 py-1 transition">
+                  <p>Crea ricetta</p>
+                </Link>
+                <Link to={`/saved-recipes/${user.userId}`} className="flex items-center justify-center pr-10 text-refresh-blue font-semibold hover:bg-white hover:text-refresh-pink rounded px-3 py-1 transition">
+                  <p>Ricette Salvate</p>
+                </Link>
+                <Link to="/grocery-list" className="flex items-center justify-center pr-10 text-refresh-blue font-semibold hover:bg-white hover:text-refresh-pink rounded px-3 py-1 transition">
+                  <p>Lista Spesa</p>
+                </Link>
+                <div className="relative" ref={dropdownRef}>
+                  <span
+                    className="pr-8 cursor-pointer select-none text-refresh-blue font-semibold hover:bg-white hover:text-refresh-pink rounded px-3 py-1 transition"
+                    onClick={() => setDropdownOpen((open) => !open)}
+                  >
+                    Welcome, {user.nickname}!
+                  </span>
+                  {dropdownOpen && (
+                    <div className="absolute right-0 mt-2 w-32 bg-white border rounded shadow z-10">
+                      <button
+                        className="w-full text-left px-4 py-2 text-refresh-blue font-semibold hover:bg-white hover:text-refresh-pink rounded transition"
+                        onClick={() => {
+                          if (typeof window.setUser === 'function') window.setUser(null);
+                          localStorage.removeItem('userId');
+                          setDropdownOpen(false);
+                          navigate('/');
+                        }}
+                      >
+                        Logout
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              <>
+                <Link to={'/login'} className="flex items-center justify-center pr-8 text-refresh-blue font-semibold hover:bg-white hover:text-refresh-pink rounded px-3 py-1 transition">
+                  <p>Login</p>
+                </Link>
+                <Link to={'/register'} className="flex items-center justify-center pr-10 text-refresh-blue font-semibold hover:bg-white hover:text-refresh-pink rounded px-3 py-1 transition">
+                  <p>Register</p>
+                </Link>
+              </>
+            )
+          }
         </div>
         {/* Hamburger menu for mobile */}
         <div className="md:hidden flex items-center pr-4">
@@ -118,6 +123,7 @@ const Layout = ({ user }) => {
                       if (typeof window.setUser === 'function') window.setUser(null);
                       localStorage.removeItem('userId');
                       setMobileMenuOpen(false);
+                      navigate('/');
                     }}
                   >
                     Logout
@@ -173,7 +179,17 @@ const Layout = ({ user }) => {
           ? { search, setSearch, maxTime, setMaxTime, maxKcal, setMaxKcal, alimentazione, setAlimentazione }
           : { search: '', setSearch: () => {}, maxTime: '', setMaxTime: () => {}, maxKcal: '', setMaxKcal: () => {}, alimentazione: '', setAlimentazione: () => {} }
       } />
-  </div>)
+    </div>
+  );
+}
+
+function ProtectedGroceryList({ user }) {
+  const navigate = useNavigate();
+  if (!user) {
+    navigate('/');
+    return null;
+  }
+  return <GroceryList />;
 }
 
 function App() {
@@ -185,7 +201,7 @@ function App() {
       {/* Global background image below everything */}
       <div className="fixed inset-0 -z-10 w-full h-full bg-cover bg-center bg-no-repeat bg-fixed bg-white" style={{ backgroundImage: "url('/background.webp')" }} />
       <Routes>
-        <Route element={<Layout user={user} />}>
+        <Route element={<Layout user={user} />}> 
           <Route path="/" element={<HomePage />} />
           <Route path="/ricette" element={<Home user={user} />} />
           <Route path="/login" element={<Login setUser={setUser} />} />
@@ -194,7 +210,7 @@ function App() {
           <Route path="/saved-recipes" element={<SavedRecipes />} />
           <Route path="/add-recipe" element={<AddRecipe user={user} />} />
           <Route path="/ricetta/:id" element={<Ricetta user={user} />} />
-          <Route path="/grocery-list" element={<GroceryList />} />
+          <Route path="/grocery-list" element={<ProtectedGroceryList user={user} />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>

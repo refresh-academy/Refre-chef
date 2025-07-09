@@ -278,7 +278,7 @@ const Home = (props) => {
       }}
     >
       <div className="w-full max-w-5xl bg-white/80 rounded-lg shadow-lg p-6 flex flex-col items-center">
-        <h1 className="text-2xl font-bold mb-4">Tutte le Ricette</h1>
+        <h1 className="text-2xl font-bold mb-4 text-refresh-blue">Tutte le Ricette</h1>
         {loading && <div>Caricamento...</div>}
         {error && <div className="text-red-500 mb-4">{error}</div>}
         {!loading && !error && filteredRecipes.length === 0 && (

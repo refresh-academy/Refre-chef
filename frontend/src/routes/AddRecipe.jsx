@@ -112,7 +112,7 @@ const AddRecipe = ({ user }) => {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] p-4">
-      <h1 className="text-2xl font-bold mb-4">Aggiungi una nuova ricetta</h1>
+      <h1 className="text-2xl font-bold mb-4 text-refresh-blue">Aggiungi una nuova ricetta</h1>
       <form onSubmit={handleSubmit} className="flex flex-col gap-3 w-full max-w-lg bg-white rounded shadow p-6">
         <input name="nome" value={form.nome} onChange={handleChange} placeholder="Nome*" className="border p-2 rounded" required />
         <input name="descrizione" value={form.descrizione} onChange={handleChange} placeholder="Breve descrizione*" className="border p-2 rounded" required />

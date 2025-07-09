@@ -3,19 +3,7 @@ import { useParams, useNavigate } from 'react-router';
 
 function RecipeCard({ ricetta, handleRemove, handleRecipeClick }) {
   const [imgError, setImgError] = useState(false);
-  const [ingredienti, setIngredienti] = useState([]);
   const imageUrl = ricetta.immagine && ricetta.immagine.trim() !== '' && !imgError ? ricetta.immagine : '/fallback-food.jpg';
-
-  useEffect(() => {
-    const fetchIngredienti = async () => {
-      try {
-        const res = await fetch(`http://localhost:3000/api/ingredienti/${ricetta.id}`);
-        const data = await res.json();
-        if (Array.isArray(data)) setIngredienti(data);
-      } catch {}
-    };
-    fetchIngredienti();
-  }, [ricetta.id]);
 
   return (
     <div
@@ -44,18 +32,6 @@ function RecipeCard({ ricetta, handleRemove, handleRecipeClick }) {
           <span className="flex items-center gap-1"><i className="fa-regular fa-clock" /><span className="font-semibold">Minuti:</span> {ricetta.tempo_preparazione ?? '-'} min</span>
           <span className="flex items-center gap-1"><i className="fa-solid fa-fire" /><span className="font-semibold">Kcal:</span> {ricetta.kcal ?? '-'}</span>
           <span className="flex items-center gap-1"><i className="fa-solid fa-utensils" /><span className="font-semibold">Porzioni:</span> {ricetta.porzioni ?? '-'}</span>
-        </div>
-        <div className="mb-1">
-          <span className="font-semibold">Ingredienti:</span>
-          {ingredienti.length > 0 ? (
-            <ul className="list-disc pl-5 text-gray-800 text-sm space-y-1">
-              {ingredienti.map((ing, idx) => (
-                <li key={idx}>{ing.ingrediente}</li>
-              ))}
-            </ul>
-          ) : (
-            <span className="italic text-gray-400 ml-2">Nessun ingrediente</span>
-          )}
         </div>
         <button
           className="mt-4 px-3 py-1 rounded bg-refresh-blue text-white font-semibold hover:bg-refresh-pink transition self-start"

@@ -103,67 +103,71 @@ const GroceryList = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] p-4">
-      <h1 className="text-2xl font-bold mb-4">La tua lista della spesa</h1>
-      {loading && <div>Caricamento...</div>}
-      {error && <div className="text-red-500 mb-4">{error}</div>}
-      {!loading && !error && items.length === 0 && (
-        <div>La lista della spesa è vuota.</div>
-      )}
-      {!loading && !error && items.length > 0 && (
-        <div className="w-full max-w-lg bg-white rounded shadow p-6">
-          <ul className="divide-y">
-            {items.map((item, idx) => (
-              <li key={item.ingredient} className="flex items-center gap-4 py-2 border-b last:border-b-0">
-                <span className="font-medium w-1/3 min-w-[120px]">{item.ingredient}</span>
-                {editIndex === idx ? (
-                  <div className="flex items-center gap-2 w-1/3 min-w-[120px]">
-                    <input
-                      type="number"
-                      min={1}
-                      value={editValue}
-                      onChange={e => setEditValue(Number(e.target.value))}
-                      className="border rounded w-16 p-1"
-                    />
-                    <span className="text-gray-500 font-normal">{item.unita ? item.unita : 'g'}</span>
-                  </div>
-                ) : (
-                  <span className="w-1/3 min-w-[120px] text-center">{item.quantity} <span className="text-gray-500 font-normal">{item.unita ? item.unita : 'g'}</span></span>
-                )}
-                <div className="flex items-center gap-2 w-1/3 min-w-[120px] justify-end">
+    <div className="relative w-full flex flex-col items-center justify-center" style={{ minHeight: 'calc(100vh - 64px)' }}>
+      {/* Overlay bianco trasparente sotto la navbar (navbar height 64px) */}
+      <div className="absolute left-0 right-0" style={{ top: 0, height: 'calc(100vh - 64px)', background: 'rgba(255,255,255,0.7)', zIndex: 0, pointerEvents: 'none' }} />
+      <div className="relative z-10 w-full flex flex-col items-center justify-center" style={{ minHeight: 'calc(100vh - 64px)' }}>
+        <h1 className="text-2xl font-bold mb-4 text-refresh-blue">La tua lista della spesa</h1>
+        {loading && <div>Caricamento...</div>}
+        {error && <div className="text-red-500 mb-4">{error}</div>}
+        {!loading && !error && items.length === 0 && (
+          <div>La lista della spesa è vuota.</div>
+        )}
+        {!loading && !error && items.length > 0 && (
+          <div className="w-full max-w-lg bg-white rounded shadow p-6">
+            <ul className="divide-y">
+              {items.map((item, idx) => (
+                <li key={item.ingredient} className="flex items-center gap-4 py-2 border-b last:border-b-0">
+                  <span className="font-medium w-1/3 min-w-[120px]">{item.ingredient}</span>
                   {editIndex === idx ? (
-                    <>
-                      <button
-                        className="bg-green-500 text-white px-2 py-1 rounded"
-                        onClick={() => handleEditSave(item.ingredient)}
-                      >Salva</button>
-                      <button
-                        className="bg-gray-300 text-gray-700 px-2 py-1 rounded"
-                        onClick={() => setEditIndex(null)}
-                      >Annulla</button>
-                    </>
+                    <div className="flex items-center gap-2 w-1/3 min-w-[120px]">
+                      <input
+                        type="number"
+                        min={1}
+                        value={editValue}
+                        onChange={e => setEditValue(Number(e.target.value))}
+                        className="border rounded w-16 p-1"
+                      />
+                      <span className="text-gray-500 font-normal">{item.unita ? item.unita : 'g'}</span>
+                    </div>
                   ) : (
-                    <>
-                      <button
-                        className="bg-blue-500 text-white px-2 py-1 rounded"
-                        onClick={() => handleEdit(idx, item.quantity)}
-                      >Modifica</button>
-                      <button
-                        className="bg-red-500 text-white px-2 py-1 rounded"
-                        onClick={() => handleRemove(item.ingredient)}
-                      >Rimuovi</button>
-                    </>
+                    <span className="w-1/3 min-w-[120px] text-center">{item.quantity} <span className="text-gray-500 font-normal">{item.unita ? item.unita : 'g'}</span></span>
                   )}
-                </div>
-              </li>
-            ))}
-          </ul>
-          <button
-            className="mt-6 w-full bg-red-600 text-white font-bold py-2 rounded hover:bg-red-700 transition"
-            onClick={handleClear}
-          >Svuota lista</button>
-        </div>
-      )}
+                  <div className="flex items-center gap-2 w-1/3 min-w-[120px] justify-end">
+                    {editIndex === idx ? (
+                      <>
+                        <button
+                          className="bg-green-500 text-white px-2 py-1 rounded"
+                          onClick={() => handleEditSave(item.ingredient)}
+                        >Salva</button>
+                        <button
+                          className="bg-gray-300 text-gray-700 px-2 py-1 rounded"
+                          onClick={() => setEditIndex(null)}
+                        >Annulla</button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          className="bg-refresh-pink text-white px-2 py-1 rounded hover:bg-refresh-blue transition"
+                          onClick={() => handleEdit(idx, item.quantity)}
+                        >Modifica</button>
+                        <button
+                          className="bg-refresh-blue text-white px-2 py-1 rounded hover:bg-refresh-pink transition"
+                          onClick={() => handleRemove(item.ingredient)}
+                        >Rimuovi</button>
+                      </>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+            <button
+              className="mt-6 w-full bg-refresh-blue text-white font-bold py-2 rounded hover:bg-refresh-pink transition"
+              onClick={handleClear}
+            >Svuota lista</button>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
