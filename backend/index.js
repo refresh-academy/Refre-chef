@@ -278,7 +278,13 @@ app.post('/api/addToGroceryList', authenticateToken, async (req, res) => {
 app.get('/api/groceryList', authenticateToken, async (req, res) => {
   const userId = req.user.userId;
   try {
-    const items = await dbAll('SELECT ingredient, quantity FROM groceryList WHERE user_id = ?', [userId]);
+    const items = await dbAll(
+      `SELECT g.ingredient, g.quantity, ig.unita
+       FROM groceryList g
+       LEFT JOIN ingredienti_grammi ig ON g.ingredient = ig.ingrediente
+       WHERE g.user_id = ?`,
+      [userId]
+    );
     res.status(200).json(items);
   } catch (err) {
     res.status(500).json({ error: 'Failed to retrieve grocery list', details: err.message });

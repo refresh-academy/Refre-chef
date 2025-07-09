@@ -125,10 +125,10 @@ const GroceryList = () => {
                       onChange={e => setEditValue(Number(e.target.value))}
                       className="border rounded w-16 p-1"
                     />
-                    <span className="text-gray-500 font-normal">g</span>
+                    <span className="text-gray-500 font-normal">{item.unita ? item.unita : 'g'}</span>
                   </div>
                 ) : (
-                  <span className="w-1/3 min-w-[120px] text-center">{item.quantity} <span className="text-gray-500 font-normal">g</span></span>
+                  <span className="w-1/3 min-w-[120px] text-center">{item.quantity} <span className="text-gray-500 font-normal">{item.unita ? item.unita : 'g'}</span></span>
                 )}
                 <div className="flex items-center gap-2 w-1/3 min-w-[120px] justify-end">
                   {editIndex === idx ? (
