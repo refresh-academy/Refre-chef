@@ -64,13 +64,18 @@ const AddRecipe = ({ user }) => {
     setSuccess('');
     setLoading(true);
     // Validazione base
-    if (!form.nome || !form.descrizione || !form.tipologia || !form.alimentazione || !form.immagine || !form.preparazione || !form.preparazione_dettagliata || !form.origine || !form.porzioni || !form.allergeni || !form.tempo_preparazione || !form.kcal) {
+    if (!form.nome || !form.descrizione || !form.tipologia || !form.alimentazione || !form.immagine || !form.origine || !form.porzioni || !form.allergeni || !form.tempo_preparazione || !form.kcal) {
       setError('Compila tutti i campi obbligatori.');
       setLoading(false);
       return;
     }
-    if (ingredients.some(ing => !ing.nome || !ing.grammi)) {
-      setError('Compila tutti gli ingredienti e i grammi.');
+    if (Number(form.porzioni) < 1 || Number(form.tempo_preparazione) < 1 || Number(form.kcal) < 1) {
+      setError('Porzioni, tempo di preparazione e kcal devono essere maggiori di zero.');
+      setLoading(false);
+      return;
+    }
+    if (ingredients.some(ing => !ing.nome || !ing.grammi || Number(ing.grammi) < 1)) {
+      setError('Compila tutti gli ingredienti e i grammi (solo valori positivi).');
       setLoading(false);
       return;
     }
@@ -88,17 +93,15 @@ const AddRecipe = ({ user }) => {
         tipologia: form.tipologia.trim(),
         alimentazione: form.alimentazione.trim(),
         immagine: form.immagine.trim(),
-        preparazione: form.preparazione.trim(),
-        preparazione_dettagliata: form.preparazione_dettagliata.trim(),
         origine: form.origine.trim(),
-        porzioni: Number(form.porzioni) || 1,
+        porzioni: Math.max(1, Number(form.porzioni) || 1),
         allergeni: form.allergeni.trim(),
-        tempo_preparazione: Number(form.tempo_preparazione) || 1,
-        kcal: Number(form.kcal) || 1,
+        tempo_preparazione: Math.max(1, Number(form.tempo_preparazione) || 1),
+        kcal: Math.max(1, Number(form.kcal) || 1),
       };
       const sanitizedIngredients = ingredients.map(ing => ({
         nome: (ing.nome || '').trim(),
-        grammi: Number(ing.grammi) > 0 ? Number(ing.grammi) : 1,
+        grammi: Math.max(1, Number(ing.grammi) || 1),
         unita: ing.unita === 'ml' ? 'ml' : 'g'
       }));
       const sanitizedSteps = steps.map(s => s.trim());
@@ -138,13 +141,13 @@ const AddRecipe = ({ user }) => {
         <input name="tipologia" value={form.tipologia} onChange={handleChange} placeholder="Tipologia*" className="border p-2 rounded" required />
         <input name="alimentazione" value={form.alimentazione} onChange={handleChange} placeholder="Alimentazione*" className="border p-2 rounded" required />
         <input name="immagine" value={form.immagine} onChange={handleChange} placeholder="URL immagine*" className="border p-2 rounded" required />
-        <textarea name="preparazione" value={form.preparazione} onChange={handleChange} placeholder="Preparazione*" className="border p-2 rounded" required />
-        <textarea name="preparazione_dettagliata" value={form.preparazione_dettagliata} onChange={handleChange} placeholder="Preparazione dettagliata*" className="border p-2 rounded" required />
+        {/* <textarea name="preparazione" value={form.preparazione} onChange={handleChange} placeholder="Preparazione*" className="border p-2 rounded" required /> */}
+        {/* <textarea name="preparazione_dettagliata" value={form.preparazione_dettagliata} onChange={handleChange} placeholder="Preparazione dettagliata*" className="border p-2 rounded" required /> */}
         <input name="origine" value={form.origine} onChange={handleChange} placeholder="Origine*" className="border p-2 rounded" required />
-        <input name="porzioni" value={form.porzioni} onChange={handleChange} placeholder="Porzioni*" type="number" className="border p-2 rounded" required />
+        <input name="porzioni" value={form.porzioni} onChange={handleChange} placeholder="Porzioni*" type="number" className="border p-2 rounded" required min={1} />
         <input name="allergeni" value={form.allergeni} onChange={handleChange} placeholder="Allergeni*" className="border p-2 rounded" required />
-        <input name="tempo_preparazione" value={form.tempo_preparazione} onChange={handleChange} placeholder="Tempo di preparazione (min)*" type="number" className="border p-2 rounded" required />
-        <input name="kcal" value={form.kcal} onChange={handleChange} placeholder="Kcal*" type="number" className="border p-2 rounded" required />
+        <input name="tempo_preparazione" value={form.tempo_preparazione} onChange={handleChange} placeholder="Tempo di preparazione (min)*" type="number" className="border p-2 rounded" required min={1} />
+        <input name="kcal" value={form.kcal} onChange={handleChange} placeholder="Kcal*" type="number" className="border p-2 rounded" required min={1} />
         {/* Ingredienti dinamici */}
         <div className="flex flex-col gap-2">
           <label className="font-semibold">Ingredienti* (nome e grammi)</label>

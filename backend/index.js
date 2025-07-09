@@ -76,7 +76,7 @@ app.get('/api/ricette', async (req, res) => {
   try {
     const { tipologia } = req.query;
     let query = `
-      SELECT r.id, r.nome, r.descrizione, r.tipologia, r.alimentazione, r.immagine, r.preparazione, r.preparazione_dettagliata, r.origine, r.porzioni, r.allergeni, r.tempo_preparazione, r.kcal, r.author_id, u.nickname as author
+      SELECT r.id, r.nome, r.descrizione, r.tipologia, r.alimentazione, r.immagine, r.origine, r.porzioni, r.allergeni, r.tempo_preparazione, r.kcal, r.author_id, u.nickname as author
       FROM ricettario r
       LEFT JOIN utenti u ON r.author_id = u.id_user
     `;
@@ -175,10 +175,10 @@ app.post('/api/login', async (req, res) => {
 
 // POST /api/aggiungiRicetta (protected)
 app.post('/api/aggiungiRicetta', authenticateToken, async (req, res) => {
-  const { nome, descrizione, tipologia, alimentazione, immagine, preparazione, preparazione_dettagliata, origine, porzioni, allergeni, tempo_preparazione, kcal, ingredienti_grammi, steps } = req.body;
+  const { nome, descrizione, tipologia, alimentazione, immagine, origine, porzioni, allergeni, tempo_preparazione, kcal, ingredienti_grammi, steps } = req.body;
   const author_id = req.user.userId;
 
-  if (!nome || !descrizione || !tipologia || !alimentazione || !immagine || !preparazione || !preparazione_dettagliata || !origine || !porzioni || !allergeni || !tempo_preparazione || !kcal) {
+  if (!nome || !descrizione || !tipologia || !alimentazione || !immagine || !origine || !porzioni || !allergeni || !tempo_preparazione || !kcal) {
     return res.status(400).json({ error: 'Missing required fields.' });
   }
   if (!Array.isArray(ingredienti_grammi) || ingredienti_grammi.length === 0 || ingredienti_grammi.some(ing => !ing.nome || !ing.grammi)) {
@@ -188,9 +188,9 @@ app.post('/api/aggiungiRicetta', authenticateToken, async (req, res) => {
   try {
     // Insert recipe
     const result = await dbRun(
-      `INSERT INTO ricettario (nome, descrizione, tipologia, alimentazione, immagine, preparazione, preparazione_dettagliata, origine, porzioni, allergeni, kcal, tempo_preparazione, author_id)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [nome, descrizione, tipologia, alimentazione, immagine, preparazione, preparazione_dettagliata, origine, porzioni, allergeni, kcal, tempo_preparazione, author_id]
+      `INSERT INTO ricettario (nome, descrizione, tipologia, alimentazione, immagine, origine, porzioni, allergeni, kcal, tempo_preparazione, author_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [nome, descrizione, tipologia, alimentazione, immagine, origine, porzioni, allergeni, kcal, tempo_preparazione, author_id]
     );
     const ricettaId = result.id;
 
