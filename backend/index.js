@@ -381,6 +381,31 @@ app.get('/api/ingredienti/:ricettaId', async (req, res) => {
   }
 });
 
+// DELETE /api/ricette/:id (protected, only author)
+app.delete('/api/ricette/:id', authenticateToken, async (req, res) => {
+  const userId = req.user.userId;
+  const ricettaId = req.params.id;
+  try {
+    // Verifica che l'utente sia l'autore
+    const rows = await dbAll('SELECT author_id FROM ricettario WHERE id = ?', [ricettaId]);
+    if (!rows.length) {
+      return res.status(404).json({ error: 'Ricetta non trovata.' });
+    }
+    if (String(rows[0].author_id) !== String(userId)) {
+      return res.status(403).json({ error: 'Non sei autorizzato a eliminare questa ricetta.' });
+    }
+    // Elimina ingredienti, steps, ricetta salvata, groceryList, ecc. (integrità referenziale)
+    await dbRun('DELETE FROM ingredienti_grammi WHERE ricetta_id = ?', [ricettaId]);
+    await dbRun('DELETE FROM steps WHERE ricetta_id = ?', [ricettaId]);
+    await dbRun('DELETE FROM ricetteSalvate WHERE id_ricetta = ?', [ricettaId]);
+    await dbRun('DELETE FROM groceryList WHERE recipe_id = ?', [ricettaId]);
+    await dbRun('DELETE FROM ricettario WHERE id = ?', [ricettaId]);
+    res.status(200).json({ message: 'Ricetta eliminata con successo.' });
+  } catch (err) {
+    res.status(500).json({ error: 'Errore durante l\'eliminazione della ricetta', details: err.message });
+  }
+});
+
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
 });

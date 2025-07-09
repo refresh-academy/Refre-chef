@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router';
 
 const initialState = {
   nome: '',
@@ -7,8 +7,6 @@ const initialState = {
   tipologia: '',
   alimentazione: '',
   immagine: '',
-  preparazione: '',
-  preparazione_dettagliata: '',
   origine: '',
   porzioni: '',
   allergeni: '',
@@ -16,17 +14,71 @@ const initialState = {
   kcal: '',
 };
 
-const AddRecipe = ({ user }) => {
+const AddRecipe = ({ user, editMode }) => {
+  const navigate = useNavigate();
+  const { id } = useParams();
   const [form, setForm] = useState(initialState);
   const [ingredients, setIngredients] = useState([{ nome: '', grammi: '', unita: 'g' }]);
   const [steps, setSteps] = useState(['']);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (editMode && id && user) {
+      // Carica la ricetta esistente
+      const fetchRecipe = async () => {
+        setLoading(true);
+        try {
+          const token = localStorage.getItem('token');
+          const res = await fetch('http://localhost:3000/api/ricette', {
+            headers: { 'Authorization': token ? `Bearer ${token}` : '' },
+          });
+          const data = await res.json();
+          if (res.ok) {
+            const ricetta = data.find(r => String(r.id) === String(id));
+            if (ricetta) {
+              setForm({
+                nome: ricetta.nome || '',
+                descrizione: ricetta.descrizione || '',
+                tipologia: ricetta.tipologia || '',
+                alimentazione: ricetta.alimentazione || '',
+                immagine: ricetta.immagine || '',
+                origine: ricetta.origine || '',
+                porzioni: ricetta.porzioni || '',
+                allergeni: ricetta.allergeni || '',
+                tempo_preparazione: ricetta.tempo_preparazione || '',
+                kcal: ricetta.kcal || '',
+              });
+              // Ingredienti
+              const resIng = await fetch(`http://localhost:3000/api/ingredienti/${id}`);
+              const dataIng = await resIng.json();
+              if (Array.isArray(dataIng) && dataIng.length > 0) {
+                setIngredients(dataIng.map(i => ({ nome: i.ingrediente, grammi: i.grammi, unita: i.unita || 'g' })));
+              }
+              // Steps
+              if (Array.isArray(ricetta.steps) && ricetta.steps.length > 0) {
+                setSteps(ricetta.steps);
+              }
+            } else {
+              setError('Ricetta non trovata.');
+            }
+          } else {
+            setError(data.error || 'Errore nel caricamento della ricetta');
+          }
+        } catch {
+          setError('Errore di rete.');
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchRecipe();
+    }
+    // eslint-disable-next-line
+  }, [editMode, id, user]);
 
   if (!user) {
-    return <div className="flex flex-col items-center justify-center min-h-[60vh]"><h2 className="text-xl font-bold">Devi essere loggato per aggiungere una ricetta.</h2></div>;
+    return <div className="flex flex-col items-center justify-center min-h-[60vh]"><h2 className="text-xl font-bold">Devi essere loggato per {editMode ? 'modificare' : 'aggiungere'} una ricetta.</h2></div>;
   }
 
   const handleChange = (e) => {
@@ -105,25 +157,44 @@ const AddRecipe = ({ user }) => {
         unita: ing.unita === 'ml' ? 'ml' : 'g'
       }));
       const sanitizedSteps = steps.map(s => s.trim());
-      const res = await fetch('http://localhost:3000/api/aggiungiRicetta', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': token ? `Bearer ${token}` : '',
-        },
-        body: JSON.stringify({
-          ...sanitizedForm,
-          ingredienti: sanitizedIngredients.map(ing => ing.nome).join(', '),
-          ingredienti_grammi: sanitizedIngredients,
-          steps: sanitizedSteps,
-        }),
-      });
-      const data = await res.json();
+      let res, data;
+      if (editMode && id) {
+        // UPDATE
+        res = await fetch(`http://localhost:3000/api/ricette/${id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': token ? `Bearer ${token}` : '',
+          },
+          body: JSON.stringify({
+            ...sanitizedForm,
+            ingredienti_grammi: sanitizedIngredients,
+            steps: sanitizedSteps,
+          }),
+        });
+        data = await res.json();
+      } else {
+        // CREATE
+        res = await fetch('http://localhost:3000/api/aggiungiRicetta', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': token ? `Bearer ${token}` : '',
+          },
+          body: JSON.stringify({
+            ...sanitizedForm,
+            ingredienti: sanitizedIngredients.map(ing => ing.nome).join(', '),
+            ingredienti_grammi: sanitizedIngredients,
+            steps: sanitizedSteps,
+          }),
+        });
+        data = await res.json();
+      }
       if (!res.ok) {
         setError(data.error || 'Errore nel salvataggio della ricetta');
       } else {
-        setSuccess('Ricetta aggiunta con successo!');
-        setTimeout(() => navigate('/ricette'), 1200);
+        setSuccess(editMode ? 'Ricetta aggiornata con successo!' : 'Ricetta aggiunta con successo!');
+        setTimeout(() => navigate('/my-recipes'), 1200);
       }
     } catch {
       setError('Errore di rete.');
@@ -137,15 +208,13 @@ const AddRecipe = ({ user }) => {
       {/* Overlay bianco trasparente sotto la navbar (navbar height 64px) */}
       <div className="absolute left-0 right-0 top-0" style={{ height: '100%', background: 'rgba(255,255,255,0.7)', zIndex: 0, pointerEvents: 'none' }} />
       <div className="relative z-10 w-full flex flex-col items-center justify-center">
-        <h1 className="text-2xl font-bold mb-4 text-refresh-blue">Aggiungi una nuova ricetta</h1>
+        <h1 className="text-2xl font-bold mb-4 text-refresh-blue">{editMode ? 'Modifica ricetta' : 'Aggiungi una nuova ricetta'}</h1>
         <form onSubmit={handleSubmit} className="flex flex-col gap-3 w-full max-w-lg bg-white rounded shadow p-6">
           <input name="nome" value={form.nome} onChange={handleChange} placeholder="Nome*" className="border p-2 rounded" required />
           <input name="descrizione" value={form.descrizione} onChange={handleChange} placeholder="Breve descrizione*" className="border p-2 rounded" required />
           <input name="tipologia" value={form.tipologia} onChange={handleChange} placeholder="Tipologia*" className="border p-2 rounded" required />
           <input name="alimentazione" value={form.alimentazione} onChange={handleChange} placeholder="Alimentazione*" className="border p-2 rounded" required />
           <input name="immagine" value={form.immagine} onChange={handleChange} placeholder="URL immagine*" className="border p-2 rounded" required />
-          {/* <textarea name="preparazione" value={form.preparazione} onChange={handleChange} placeholder="Preparazione*" className="border p-2 rounded" required /> */}
-          {/* <textarea name="preparazione_dettagliata" value={form.preparazione_dettagliata} onChange={handleChange} placeholder="Preparazione dettagliata*" className="border p-2 rounded" required /> */}
           <input name="origine" value={form.origine} onChange={handleChange} placeholder="Origine*" className="border p-2 rounded" required />
           <input name="porzioni" value={form.porzioni} onChange={handleChange} placeholder="Porzioni*" type="number" className="border p-2 rounded" required min={1} />
           <input name="allergeni" value={form.allergeni} onChange={handleChange} placeholder="Allergeni*" className="border p-2 rounded" required />
@@ -208,7 +277,7 @@ const AddRecipe = ({ user }) => {
           {error && <div className="text-red-500 text-sm">{error}</div>}
           {success && <div className="text-green-600 text-sm">{success}</div>}
           <button type="submit" className="bg-refresh-blue text-white font-bold py-2 rounded hover:bg-refresh-pink transition" disabled={loading}>
-            {loading ? 'Salvataggio...' : 'Aggiungi ricetta'}
+            {loading ? (editMode ? 'Salvataggio...' : 'Aggiunta...') : (editMode ? 'Salva modifiche' : 'Aggiungi ricetta')}
           </button>
         </form>
       </div>

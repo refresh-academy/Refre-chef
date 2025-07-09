@@ -11,6 +11,7 @@ import Ricetta from './routes/Ricetta.jsx'
 import GroceryList from './routes/GroceryList.jsx'
 import NotFound from './routes/NotFound.jsx'
 import HomePage from './routes/HomePage.jsx'
+import MyRecipes from './routes/MyRecipes.jsx'
 
 
 const Layout = ({ user }) => {
@@ -60,6 +61,9 @@ const Layout = ({ user }) => {
                 </Link>
                 <Link to={`/saved-recipes/${user.userId}`} className="flex items-center justify-center pr-10 text-refresh-blue font-semibold hover:bg-white hover:text-refresh-pink rounded px-3 py-1 transition">
                   <p>Ricette Salvate</p>
+                </Link>
+                <Link to="/my-recipes" className="flex items-center justify-center pr-10 text-refresh-blue font-semibold hover:bg-white hover:text-refresh-pink rounded px-3 py-1 transition">
+                  <p>Le mie ricette</p>
                 </Link>
                 <Link to="/grocery-list" className="flex items-center justify-center pr-10 text-refresh-blue font-semibold hover:bg-white hover:text-refresh-pink rounded px-3 py-1 transition">
                   <p>Lista Spesa</p>
@@ -116,6 +120,7 @@ const Layout = ({ user }) => {
                 <>
                   <Link to="/add-recipe" className="px-4 py-2 text-refresh-blue font-semibold hover:bg-white hover:text-refresh-pink border-b rounded transition" onClick={() => setMobileMenuOpen(false)}>Crea ricetta</Link>
                   <Link to={`/saved-recipes/${user.userId}`} className="px-4 py-2 text-refresh-blue font-semibold hover:bg-white hover:text-refresh-pink border-b rounded transition" onClick={() => setMobileMenuOpen(false)}>Ricette Salvate</Link>
+                  <Link to="/my-recipes" className="px-4 py-2 text-refresh-blue font-semibold hover:bg-white hover:text-refresh-pink border-b rounded transition" onClick={() => setMobileMenuOpen(false)}>Le mie ricette</Link>
                   <Link to="/grocery-list" className="px-4 py-2 text-refresh-blue font-semibold hover:bg-white hover:text-refresh-pink border-b rounded transition" onClick={() => setMobileMenuOpen(false)}>Lista Spesa</Link>
                   <button
                     className="px-4 py-2 text-left text-refresh-blue font-semibold hover:bg-white hover:text-refresh-pink border-b rounded transition"
@@ -166,18 +171,22 @@ const Layout = ({ user }) => {
             <div className="flex flex-col items-center">
               <label htmlFor="maxKcal" className="flex items-center gap-2 text-xs font-semibold px-2 py-1 rounded bg-pink-50 text-refresh-pink border border-refresh-pink shadow mb-2">
                 <i className="fa-solid fa-fire text-refresh-pink" />
-                Kcal massime
+                Kcal per porzione
               </label>
-              <input
+              <select
                 id="maxKcal"
-                type="number"
-                min="0"
                 value={maxKcal}
                 onChange={e => setMaxKcal(e.target.value)}
-                placeholder="Kcal massime"
                 className="w-32 p-2 border-2 border-refresh-pink rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-refresh-pink transition-all duration-200 hover:border-refresh-blue"
                 style={{maxWidth: '120px'}}
-              />
+              >
+                <option value="">Qualsiasi</option>
+                <option value="200">0-200 kcal</option>
+                <option value="400">200-400 kcal</option>
+                <option value="600">400-600 kcal</option>
+                <option value="800">600-800 kcal</option>
+                <option value="oltre800">800 o oltre</option>
+              </select>
             </div>
             <div className="flex flex-col items-center justify-end">
               <label htmlFor="alimentazione" className="flex items-center gap-2 text-xs font-semibold px-2 py-1 rounded bg-gray-50 text-gray-700 border border-gray-300 shadow mb-2">
@@ -234,8 +243,10 @@ function App() {
           <Route path="/saved-recipes/:userId" element={<SavedRecipes />} />
           <Route path="/saved-recipes" element={<SavedRecipes />} />
           <Route path="/add-recipe" element={<AddRecipe user={user} />} />
+          <Route path="/edit-recipe/:id" element={<AddRecipe user={user} editMode={true} />} />
           <Route path="/ricetta/:id" element={<Ricetta user={user} />} />
           <Route path="/grocery-list" element={<ProtectedGroceryList user={user} />} />
+          <Route path="/my-recipes" element={<MyRecipes user={user} />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>

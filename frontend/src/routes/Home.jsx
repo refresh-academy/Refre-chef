@@ -206,9 +206,27 @@ const Home = (props) => {
       }
     }
     //Max Kcal filter
-    if (maxKcal && !isNaN(Number(maxKcal))) {
-      if (!ricetta.kcal || Number(ricetta.kcal) > Number(maxKcal)) {
-        return false;
+    if (maxKcal) {
+      if (maxKcal === '200') {
+        if (!ricetta.kcal || Number(ricetta.kcal) < 0 || Number(ricetta.kcal) > 200) {
+          return false;
+        }
+      } else if (maxKcal === '400') {
+        if (!ricetta.kcal || Number(ricetta.kcal) <= 200 || Number(ricetta.kcal) > 400) {
+          return false;
+        }
+      } else if (maxKcal === '600') {
+        if (!ricetta.kcal || Number(ricetta.kcal) <= 400 || Number(ricetta.kcal) > 600) {
+          return false;
+        }
+      } else if (maxKcal === '800') {
+        if (!ricetta.kcal || Number(ricetta.kcal) <= 600 || Number(ricetta.kcal) > 800) {
+          return false;
+        }
+      } else if (maxKcal === 'oltre800') {
+        if (!ricetta.kcal || Number(ricetta.kcal) <= 800) {
+          return false;
+        }
       }
     }
     // Alimentazione filter
