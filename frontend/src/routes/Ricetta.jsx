@@ -18,6 +18,7 @@ const Ricetta = () => {
   const [showGroceryModal, setShowGroceryModal] = useState(false);
   const [addedIngredients, setAddedIngredients] = useState([]);
   const [numPorzioni, setNumPorzioni] = useState(null);
+  const [savedCount, setSavedCount] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -59,6 +60,10 @@ const Ricetta = () => {
           const found = data.find((r) => String(r.id) === String(id));
           setRicetta(found || null);
           if (!found) setError("Ricetta non trovata");
+          // Fetch numero salvataggi dal nuovo endpoint
+          const resSaves = await fetch(`http://localhost:3000/api/ricetta-saves/${id}`);
+          const savesData = await resSaves.json();
+          setSavedCount(savesData.saved_count || 0);
         }
       } catch {
         setError("Errore di rete.");
@@ -106,6 +111,14 @@ const Ricetta = () => {
       });
       if (res.ok) {
         setSaved(!saved);
+        // Aggiorna subito il counter dopo il like/unlike dal nuovo endpoint
+        try {
+          const resSaves = await fetch(`http://localhost:3000/api/ricetta-saves/${id}`);
+          const savesData = await resSaves.json();
+          setSavedCount(savesData.saved_count || 0);
+        } catch {
+          // Silently ignore errors updating the counter
+        }
       } else {
         const data = await res.json();
         alert(data.error || "Errore durante l'operazione.");
@@ -248,6 +261,11 @@ const Ricetta = () => {
           <div className="flex items-center gap-2 text-gray-700 text-base font-semibold"><i className="fa-solid fa-fire mr-1" /> {ricetta.kcal} kcal</div>
           <div className="flex items-center gap-2 text-gray-700 text-base font-semibold"><i className="fa-solid fa-utensils mr-1" /> {ricetta.porzioni} porzioni</div>
           {ricetta.author && <div className="flex items-center gap-2 text-gray-700 text-base font-semibold"><i className="fa-solid fa-user mr-1" /> {ricetta.author}</div>}
+          {/* Numero di salvataggi */}
+          <div className="flex items-center gap-2 text-refresh-pink font-bold text-base" title="Numero di salvataggi">
+            <i className="fa-solid fa-bookmark" />
+            {savedCount}
+          </div>
         </div>
 
         {/* Ingredienti e preparazione affiancati */}

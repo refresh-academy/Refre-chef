@@ -406,6 +406,43 @@ app.delete('/api/ricette/:id', authenticateToken, async (req, res) => {
   }
 });
 
+// GET /api/ricette-popolari
+app.get('/api/ricette-popolari', async (req, res) => {
+  try {
+    const popolari = await dbAll(`
+      SELECT r.id, r.nome, r.descrizione, r.tipologia, r.alimentazione, r.immagine, r.origine, r.porzioni, r.allergeni, r.tempo_preparazione, r.kcal, r.author_id, u.nickname as author, COUNT(s.id_user) as saved_count
+      FROM ricettario r
+      LEFT JOIN utenti u ON r.author_id = u.id_user
+      LEFT JOIN ricetteSalvate s ON r.id = s.id_ricetta
+      GROUP BY r.id
+      ORDER BY saved_count DESC
+      LIMIT 3
+    `);
+    // For each recipe, fetch steps
+    for (const r of popolari) {
+      const steps = await dbAll('SELECT step_number, testo FROM steps WHERE ricetta_id = ? ORDER BY step_number ASC', [r.id]);
+      r.steps = steps.map(s => s.testo);
+    }
+    res.json(popolari);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Endpoint per il numero di salvataggi di una singola ricetta
+app.get('/api/ricetta-saves/:id', async (req, res) => {
+  const ricettaId = req.params.id;
+  try {
+    const row = await dbAll(
+      `SELECT COUNT(*) as saved_count FROM ricetteSalvate WHERE id_ricetta = ?`,
+      [ricettaId]
+    );
+    res.json({ saved_count: row[0]?.saved_count || 0 });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
 });

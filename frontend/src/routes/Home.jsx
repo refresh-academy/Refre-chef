@@ -47,6 +47,11 @@ function RecipeCard({ ricetta, userId, saved, handleSaveRecipe, handleRecipeClic
           <span className="flex items-center gap-1"><i className="fa-solid fa-fire" /> {ricetta.kcal} kcal</span>
           <span className="flex items-center gap-1"><i className="fa-solid fa-utensils" /> {ricetta.porzioni} porzioni</span>
           {ricetta.author && <span className="flex items-center gap-1"><i className="fa-solid fa-user" /> {ricetta.author}</span>}
+          {/* Numero di salvataggi */}
+          <span className="flex items-center gap-1 text-refresh-pink font-bold" title="Numero di salvataggi">
+            <i className="fa-solid fa-bookmark" />
+            {ricetta.saved_count || 0}
+          </span>
         </div>
         <div className="mb-1"><span className="font-semibold">Allergeni:</span> {highlight(ricetta.allergeni || '', search)}</div>
       </div>
@@ -56,14 +61,22 @@ function RecipeCard({ ricetta, userId, saved, handleSaveRecipe, handleRecipeClic
 
 function highlight(text, query) {
   if (!query || typeof text !== 'string') return text;
-  // Split query into words, ignore extra spaces
-  const words = query.trim().split(/\s+/).filter(Boolean);
+  // Rimuovi spazi da query per il match
+  const normalizedQuery = query.replace(/\s+/g, '');
+  // Split query in parole, ignora spazi multipli
+  const words = normalizedQuery.trim().split(/\s+/).filter(Boolean);
   if (words.length === 0) return text;
   // Build a regex for all words
   const regex = new RegExp(`(${words.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'gi');
-  return text.split(regex).map((part, i) =>
-    regex.test(part) ? <mark key={i} className="bg-yellow-200 px-1 rounded">{part}</mark> : part
-  );
+  // Evidenzia solo se la parola (senza spazi) è presente nel testo (senza spazi)
+  let i = 0;
+  return text.split(/(\s+)/).map((part) => {
+    const partNoSpace = part.replace(/\s+/g, '');
+    if (regex.test(partNoSpace)) {
+      return <mark key={i++} className="bg-yellow-200 px-1 rounded">{part}</mark>;
+    }
+    return part;
+  });
 }
 
 const Home = (props) => {
@@ -73,6 +86,7 @@ const Home = (props) => {
   const [error, setError] = useState('');
   const [page, setPage] = useState(1);
   const [saved, setSaved] = useState([]);
+  const [popolari, setPopolari] = useState([]);
   const { maxTime, maxKcal, alimentazione } = useOutletContext();
   const location = useLocation();
   const navigate = useNavigate();
@@ -98,43 +112,34 @@ const Home = (props) => {
       setLoading(true);
       setError('');
       try {
-        let url = 'http://localhost:3000/api/ricette';
-        const params = [];
-        if (tipologia && tipologia !== '') {
-          params.push(`tipologia=${encodeURIComponent(tipologia)}`);
+        // Prendo anche i dati popolari per saved_count
+        const [resRicette, resPopolari] = await Promise.all([
+          fetch('http://localhost:3000/api/ricette'),
+          fetch('http://localhost:3000/api/ricette-popolari')
+        ]);
+        const data = await resRicette.json();
+        const popolariData = await resPopolari.json();
+        // Crea una mappa id -> saved_count
+        const savedCountMap = {};
+        for (const r of popolariData) {
+          savedCountMap[r.id] = r.saved_count || 0;
         }
-        if (maxTime && !isNaN(Number(maxTime))) {
-          params.push(`maxTime=${encodeURIComponent(maxTime)}`);
-        }
-        if (maxKcal && !isNaN(Number(maxKcal))) {
-          params.push(`maxKcal=${encodeURIComponent(maxKcal)}`);
-        }
-        if (alimentazione && alimentazione !== '') {
-          params.push(`alimentazione=${encodeURIComponent(alimentazione)}`);
-        }
-        if (params.length > 0) {
-          url += '?' + params.join('&');
-        }
-        const res = await fetch(url);
-        const data = await res.json();
-        if (!res.ok) {
-          setError(data.error || 'Errore nel caricamento delle ricette');
-        } else {
-          setRecipes(data);
-          // Fetch all ingredients for all recipes
-          const ids = data.map(r => r.id);
-          const allIngs = {};
-          await Promise.all(ids.map(async (id) => {
-            try {
-              const resIng = await fetch(`http://localhost:3000/api/ingredienti/${id}`);
-              const dataIng = await resIng.json();
-              allIngs[id] = Array.isArray(dataIng) ? dataIng.map(i => i.ingrediente) : [];
-            } catch {
-              allIngs[id] = [];
-            }
-          }));
-          setAllIngredients(allIngs);
-        }
+        // Aggiungi saved_count a tutte le ricette (0 se non presente)
+        const recipesWithSaves = data.map(r => ({ ...r, saved_count: savedCountMap[r.id] || 0 }));
+        setRecipes(recipesWithSaves);
+        // Fetch all ingredients for all recipes
+        const ids = recipesWithSaves.map(r => r.id);
+        const allIngs = {};
+        await Promise.all(ids.map(async (id) => {
+          try {
+            const resIng = await fetch(`http://localhost:3000/api/ingredienti/${id}`);
+            const dataIng = await resIng.json();
+            allIngs[id] = Array.isArray(dataIng) ? dataIng.map(i => i.ingrediente) : [];
+          } catch {
+            allIngs[id] = [];
+          }
+        }));
+        setAllIngredients(allIngs);
       } catch {
         setError('Errore di rete.');
       } finally {
@@ -160,83 +165,96 @@ const Home = (props) => {
     }
   }, [tipologia, search, maxTime, maxKcal, alimentazione]);
 
+  useEffect(() => {
+    // Carica ricette popolari (più salvate)
+    fetch('http://localhost:3000/api/ricette-popolari')
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) {
+          setPopolari(data);
+        }
+      });
+  }, []);
+
   // Filtro solo per maxTime, maxKcal, alimentazione (il resto è lato backend)
-  const filteredRecipes = recipes.filter((ricetta) => {
-    // Search filter
-    if (search && search.trim() !== '') {
-      const words = search.trim().toLowerCase().split(/\s+/).filter(Boolean);
-      if (words.length > 0) {
-        const fields = [
-          ricetta.nome,
-          ricetta.descrizione,
-          ricetta.tipologia,
-          ricetta.preparazione,
-          ricetta.preparazione_dettagliata,
-          ricetta.alimentazione,
-          ricetta.author,
-          ...(allIngredients[ricetta.id] || [])
-        ].map(f => (typeof f === 'string' ? f.toLowerCase() : String(f || '')));
-        if (!words.every(word => fields.some(field => field.includes(word)))) {
+  const filteredRecipes = recipes
+    .filter((ricetta) => {
+      // Search filter
+      if (search && search.trim() !== '') {
+        const words = search.trim().toLowerCase().split(/\s+/).filter(Boolean);
+        if (words.length > 0) {
+          const fields = [
+            ricetta.nome,
+            ricetta.descrizione,
+            ricetta.tipologia,
+            ricetta.preparazione,
+            ricetta.preparazione_dettagliata,
+            ricetta.alimentazione,
+            ricetta.author,
+            ...(allIngredients[ricetta.id] || [])
+          ].map(f => (typeof f === 'string' ? f.toLowerCase() : String(f || '')));
+          if (!words.every(word => fields.some(field => field.includes(word)))) {
+            return false;
+          }
+        }
+      }
+      // Max time filter
+      if (maxTime) {
+        if (maxTime === '10') {
+          if (!ricetta.tempo_preparazione || Number(ricetta.tempo_preparazione) < 5 || Number(ricetta.tempo_preparazione) > 10) {
+            return false;
+          }
+        } else if (maxTime === '20') {
+          if (!ricetta.tempo_preparazione || Number(ricetta.tempo_preparazione) < 10 || Number(ricetta.tempo_preparazione) > 20) {
+            return false;
+          }
+        } else if (maxTime === '30') {
+          if (!ricetta.tempo_preparazione || Number(ricetta.tempo_preparazione) < 20 || Number(ricetta.tempo_preparazione) > 30) {
+            return false;
+          }
+        } else if (maxTime === '60') {
+          if (!ricetta.tempo_preparazione || Number(ricetta.tempo_preparazione) < 30 || Number(ricetta.tempo_preparazione) > 60) {
+            return false;
+          }
+        } else if (maxTime === 'oltre60') {
+          if (!ricetta.tempo_preparazione || Number(ricetta.tempo_preparazione) <= 60) {
+            return false;
+          }
+        }
+      }
+      //Max Kcal filter
+      if (maxKcal) {
+        if (maxKcal === '200') {
+          if (!ricetta.kcal || Number(ricetta.kcal) < 0 || Number(ricetta.kcal) > 200) {
+            return false;
+          }
+        } else if (maxKcal === '400') {
+          if (!ricetta.kcal || Number(ricetta.kcal) <= 200 || Number(ricetta.kcal) > 400) {
+            return false;
+          }
+        } else if (maxKcal === '600') {
+          if (!ricetta.kcal || Number(ricetta.kcal) <= 400 || Number(ricetta.kcal) > 600) {
+            return false;
+          }
+        } else if (maxKcal === '800') {
+          if (!ricetta.kcal || Number(ricetta.kcal) <= 600 || Number(ricetta.kcal) > 800) {
+            return false;
+          }
+        } else if (maxKcal === 'oltre800') {
+          if (!ricetta.kcal || Number(ricetta.kcal) <= 800) {
+            return false;
+          }
+        }
+      }
+      // Alimentazione filter
+      if (alimentazione && alimentazione !== '') {
+        if (!ricetta.alimentazione || ricetta.alimentazione !== alimentazione) {
           return false;
         }
       }
-    }
-    // Max time filter
-    if (maxTime) {
-      if (maxTime === '10') {
-        if (!ricetta.tempo_preparazione || Number(ricetta.tempo_preparazione) < 5 || Number(ricetta.tempo_preparazione) > 10) {
-          return false;
-        }
-      } else if (maxTime === '20') {
-        if (!ricetta.tempo_preparazione || Number(ricetta.tempo_preparazione) < 10 || Number(ricetta.tempo_preparazione) > 20) {
-          return false;
-        }
-      } else if (maxTime === '30') {
-        if (!ricetta.tempo_preparazione || Number(ricetta.tempo_preparazione) < 20 || Number(ricetta.tempo_preparazione) > 30) {
-          return false;
-        }
-      } else if (maxTime === '60') {
-        if (!ricetta.tempo_preparazione || Number(ricetta.tempo_preparazione) < 30 || Number(ricetta.tempo_preparazione) > 60) {
-          return false;
-        }
-      } else if (maxTime === 'oltre60') {
-        if (!ricetta.tempo_preparazione || Number(ricetta.tempo_preparazione) <= 60) {
-          return false;
-        }
-      }
-    }
-    //Max Kcal filter
-    if (maxKcal) {
-      if (maxKcal === '200') {
-        if (!ricetta.kcal || Number(ricetta.kcal) < 0 || Number(ricetta.kcal) > 200) {
-          return false;
-        }
-      } else if (maxKcal === '400') {
-        if (!ricetta.kcal || Number(ricetta.kcal) <= 200 || Number(ricetta.kcal) > 400) {
-          return false;
-        }
-      } else if (maxKcal === '600') {
-        if (!ricetta.kcal || Number(ricetta.kcal) <= 400 || Number(ricetta.kcal) > 600) {
-          return false;
-        }
-      } else if (maxKcal === '800') {
-        if (!ricetta.kcal || Number(ricetta.kcal) <= 600 || Number(ricetta.kcal) > 800) {
-          return false;
-        }
-      } else if (maxKcal === 'oltre800') {
-        if (!ricetta.kcal || Number(ricetta.kcal) <= 800) {
-          return false;
-        }
-      }
-    }
-    // Alimentazione filter
-    if (alimentazione && alimentazione !== '') {
-      if (!ricetta.alimentazione || ricetta.alimentazione !== alimentazione) {
-        return false;
-      }
-    }
-    return true;
-  });
+      return true;
+    })
+    .sort((a, b) => (b.saved_count || 0) - (a.saved_count || 0));
 
   const totalPages = Math.ceil(filteredRecipes.length / RECIPES_PER_PAGE);
   const paginatedRecipes = filteredRecipes.slice((page - 1) * RECIPES_PER_PAGE, page * RECIPES_PER_PAGE);
@@ -355,6 +373,30 @@ const Home = (props) => {
           </div>
         )}
       </div>
+      {/* Piatti consigliati (popolari) */}
+      {popolari.length > 0 && (
+        <div className="w-full max-w-5xl bg-white/80 rounded-lg shadow-lg p-6 mt-8">
+          <h2 className="text-2xl font-bold text-refresh-pink mb-4 text-left w-full">Piatti consigliati</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
+            {popolari.map(r => (
+              <div key={r.id} className="bg-white rounded-2xl shadow flex flex-row overflow-hidden group min-h-[180px] h-full cursor-pointer hover:shadow-xl transition" onClick={() => navigate(`/ricetta/${r.id}`)}>
+                <div className="relative w-48 min-w-[12rem] h-48 min-h-[12rem] flex-shrink-0 overflow-hidden">
+                  <img
+                    src={r.immagine && r.immagine.trim() !== '' ? r.immagine : '/fallback-food.jpg'}
+                    alt={r.nome}
+                    className="w-full h-full object-cover object-center rounded-l group-hover:scale-105 transition-transform duration-300"
+                    onError={e => (e.target.src = '/fallback-food.jpg')}
+                  />
+                </div>
+                <div className="p-4 flex-1 flex flex-col min-h-[12rem] h-full justify-between">
+                  <h3 className="text-lg font-bold text-refresh-blue mb-2">{r.nome}</h3>
+                  <span className="mt-4 inline-block text-refresh-pink font-semibold">Scopri la ricetta &rarr;</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

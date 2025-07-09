@@ -17,14 +17,12 @@ const HomePage = () => {
   const [suggested, setSuggested] = useState([]);
 
   useEffect(() => {
-    // Carica ricette per suggerimenti
-    fetch('http://localhost:3000/api/ricette')
+    // Carica ricette popolari (più salvate)
+    fetch('http://localhost:3000/api/ricette-popolari')
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data) && data.length > 0) {
-          // Scegli 3 ricette casuali
-          const shuffled = [...data].sort(() => 0.5 - Math.random());
-          setSuggested(shuffled.slice(0, 3));
+          setSuggested(data);
         }
       });
   }, []);
@@ -68,28 +66,11 @@ const HomePage = () => {
           </Link> 
         </div>
 
-        {/* Categories */}
-        <div className="max-w-5xl mx-auto py-10 px-4">
-          <h2 className="text-2xl font-bold text-refresh-blue mb-6">Categorie</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {CATEGORIES.map(cat => (
-              <Link
-                key={cat.name}
-                to={`/ricette?tipologia=${encodeURIComponent(cat.name)}`}
-                className={`flex flex-row items-center h-32 md:h-40 w-full rounded-2xl bg-white border-2 ${cat.color} shadow hover:shadow-xl hover:border-4 transition text-2xl font-bold px-6 md:px-12 group`}
-              >
-                <span className="text-5xl md:text-6xl mr-6 group-hover:scale-110 transition-transform">{cat.icon}</span>
-                <span className="flex-1 text-left md:text-3xl">{cat.name}</span>
-              </Link>
-            ))}
-          </div>
-        </div>
-
         {/* Suggested Plates */}
         {suggested.length > 0 && (
-          <div className="max-w-5xl mx-auto py-10 px-4">
-            <h2 className="text-2xl font-bold text-refresh-pink mb-6">Piatti suggeriti</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="max-w-5xl mx-auto py-4 px-4 flex flex-col items-start justify-start">
+            <h2 className="text-2xl font-bold text-refresh-pink mb-4 text-left w-full">Piatti consigliati</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
               {suggested.map(r => (
                 <Link
                   to={`/ricetta/${r.id}`}
@@ -114,6 +95,23 @@ const HomePage = () => {
             </div>
           </div>
         )}
+
+        {/* Categories */}
+        <div className="max-w-5xl mx-auto py-10 px-4">
+          <h2 className="text-2xl font-bold text-refresh-blue mb-6">Categorie</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {CATEGORIES.map(cat => (
+              <Link
+                key={cat.name}
+                to={`/ricette?tipologia=${encodeURIComponent(cat.name)}`}
+                className={`flex flex-row items-center h-32 md:h-40 w-full rounded-2xl bg-white border-2 ${cat.color} shadow hover:shadow-xl hover:border-4 transition text-2xl font-bold px-6 md:px-12 group`}
+              >
+                <span className="text-5xl md:text-6xl mr-6 group-hover:scale-110 transition-transform">{cat.icon}</span>
+                <span className="flex-1 text-left md:text-3xl">{cat.name}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
 
         {/* Le ultime ricette ora non vengono mostrate qui, ma solo nella pagina Ricette */}
       </div>
