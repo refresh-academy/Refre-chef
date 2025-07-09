@@ -19,6 +19,7 @@ const initialState = {
 const AddRecipe = ({ user }) => {
   const [form, setForm] = useState(initialState);
   const [ingredients, setIngredients] = useState([{ nome: '', grammi: '', unita: 'g' }]);
+  const [steps, setSteps] = useState(['']);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
@@ -46,6 +47,17 @@ const AddRecipe = ({ user }) => {
     setIngredients(ings => ings.length > 1 ? ings.filter((_, i) => i !== idx) : ings);
   };
 
+  const handleStepChange = (idx, e) => {
+    const { value } = e.target;
+    setSteps(steps => steps.map((s, i) => i === idx ? value : s));
+  };
+  const handleAddStep = () => {
+    setSteps(steps => [...steps, '']);
+  };
+  const handleRemoveStep = (idx) => {
+    setSteps(steps => steps.length > 1 ? steps.filter((_, i) => i !== idx) : steps);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -59,6 +71,11 @@ const AddRecipe = ({ user }) => {
     }
     if (ingredients.some(ing => !ing.nome || !ing.grammi)) {
       setError('Compila tutti gli ingredienti e i grammi.');
+      setLoading(false);
+      return;
+    }
+    if (steps.some(s => !s.trim())) {
+      setError('Compila tutti i passi della preparazione.');
       setLoading(false);
       return;
     }
@@ -84,6 +101,7 @@ const AddRecipe = ({ user }) => {
         grammi: Number(ing.grammi) > 0 ? Number(ing.grammi) : 1,
         unita: ing.unita === 'ml' ? 'ml' : 'g'
       }));
+      const sanitizedSteps = steps.map(s => s.trim());
       const res = await fetch('http://localhost:3000/api/aggiungiRicetta', {
         method: 'POST',
         headers: {
@@ -94,6 +112,7 @@ const AddRecipe = ({ user }) => {
           ...sanitizedForm,
           ingredienti: sanitizedIngredients.map(ing => ing.nome).join(', '),
           ingredienti_grammi: sanitizedIngredients,
+          steps: sanitizedSteps,
         }),
       });
       const data = await res.json();
@@ -162,6 +181,23 @@ const AddRecipe = ({ user }) => {
             </div>
           ))}
           <button type="button" onClick={handleAddIngredient} className="bg-refresh-blue text-white px-3 py-1 rounded mt-1 w-fit hover:bg-refresh-pink transition">+ Aggiungi ingrediente</button>
+        </div>
+        {/* Steps dinamici */}
+        <div className="flex flex-col gap-2 mt-4">
+          <label className="font-semibold">Passi della preparazione*</label>
+          {steps.map((step, idx) => (
+            <div key={idx} className="flex gap-2 items-center">
+              <textarea
+                value={step}
+                onChange={e => handleStepChange(idx, e)}
+                placeholder={`Step ${idx + 1}`}
+                className="border p-2 rounded flex-1"
+                required
+              />
+              <button type="button" onClick={() => handleRemoveStep(idx)} className="text-red-500 hover:text-red-700 text-xl font-bold px-2">&times;</button>
+            </div>
+          ))}
+          <button type="button" onClick={handleAddStep} className="bg-refresh-blue text-white px-3 py-1 rounded mt-1 w-fit hover:bg-refresh-pink transition">+ Aggiungi passo</button>
         </div>
         {error && <div className="text-red-500 text-sm">{error}</div>}
         {success && <div className="text-green-600 text-sm">{success}</div>}

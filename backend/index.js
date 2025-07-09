@@ -86,6 +86,11 @@ app.get('/api/ricette', async (req, res) => {
       params.push(tipologia);
     }
     const ricette = await dbAll(query, params);
+    // For each recipe, fetch steps
+    for (const r of ricette) {
+      const steps = await dbAll('SELECT step_number, testo FROM steps WHERE ricetta_id = ? ORDER BY step_number ASC', [r.id]);
+      r.steps = steps.map(s => s.testo);
+    }
     res.json(ricette);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -170,7 +175,7 @@ app.post('/api/login', async (req, res) => {
 
 // POST /api/aggiungiRicetta (protected)
 app.post('/api/aggiungiRicetta', authenticateToken, async (req, res) => {
-  const { nome, descrizione, tipologia, alimentazione, immagine, preparazione, preparazione_dettagliata, origine, porzioni, allergeni, tempo_preparazione, kcal, ingredienti_grammi } = req.body;
+  const { nome, descrizione, tipologia, alimentazione, immagine, preparazione, preparazione_dettagliata, origine, porzioni, allergeni, tempo_preparazione, kcal, ingredienti_grammi, steps } = req.body;
   const author_id = req.user.userId;
 
   if (!nome || !descrizione || !tipologia || !alimentazione || !immagine || !preparazione || !preparazione_dettagliata || !origine || !porzioni || !allergeni || !tempo_preparazione || !kcal) {
@@ -195,6 +200,17 @@ app.post('/api/aggiungiRicetta', authenticateToken, async (req, res) => {
         `INSERT INTO ingredienti_grammi (ricetta_id, ingrediente, grammi, unita) VALUES (?, ?, ?, ?)`,
         [ricettaId, ing.nome, ing.grammi, ing.unita ? ing.unita : 'g']
       );
+    }
+
+    // Insert steps if present
+    if (Array.isArray(steps) && steps.length > 0) {
+      for (let i = 0; i < steps.length; i++) {
+        const testo = steps[i];
+        await dbRun(
+          `INSERT INTO steps (ricetta_id, step_number, testo) VALUES (?, ?, ?)`,
+          [ricettaId, i + 1, testo]
+        );
+      }
     }
 
     res.status(201).json({ message: 'Recipe created successfully', recipeId: ricettaId });

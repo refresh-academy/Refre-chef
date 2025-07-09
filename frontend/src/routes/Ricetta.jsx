@@ -314,9 +314,17 @@ const Ricetta = () => {
           <div className="md:w-2/3 w-full">
             <div className="bg-gray-50 rounded-2xl shadow p-5">
               <h2 className="text-xl font-bold text-refresh-pink mb-3">Preparazione</h2>
-              <div className="text-gray-800 leading-relaxed whitespace-pre-line">
-                {ricetta.preparazione_dettagliata || ricetta.preparazione}
-              </div>
+              {ricetta.steps && ricetta.steps.length > 0 ? (
+                <ol className="list-decimal pl-6 space-y-2 text-gray-800">
+                  {ricetta.steps.map((step, idx) => (
+                    <li key={idx} className="leading-relaxed">{step}</li>
+                  ))}
+                </ol>
+              ) : (
+                <div className="text-gray-800 leading-relaxed whitespace-pre-line">
+                  {ricetta.preparazione_dettagliata || ricetta.preparazione}
+                </div>
+              )}
             </div>
           </div>
         </div>
