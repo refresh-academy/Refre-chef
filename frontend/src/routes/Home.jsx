@@ -183,12 +183,24 @@ const Home = (props) => {
     }
     // Max time filter
     if (maxTime) {
-      if (maxTime === 'oltre60') {
-        if (!ricetta.tempo_preparazione || Number(ricetta.tempo_preparazione) < 60) {
+      if (maxTime === '10') {
+        if (!ricetta.tempo_preparazione || Number(ricetta.tempo_preparazione) < 5 || Number(ricetta.tempo_preparazione) > 10) {
           return false;
         }
-      } else if (!isNaN(Number(maxTime))) {
-        if (!ricetta.tempo_preparazione || Number(ricetta.tempo_preparazione) > Number(maxTime)) {
+      } else if (maxTime === '20') {
+        if (!ricetta.tempo_preparazione || Number(ricetta.tempo_preparazione) < 10 || Number(ricetta.tempo_preparazione) > 20) {
+          return false;
+        }
+      } else if (maxTime === '30') {
+        if (!ricetta.tempo_preparazione || Number(ricetta.tempo_preparazione) < 20 || Number(ricetta.tempo_preparazione) > 30) {
+          return false;
+        }
+      } else if (maxTime === '60') {
+        if (!ricetta.tempo_preparazione || Number(ricetta.tempo_preparazione) < 30 || Number(ricetta.tempo_preparazione) > 60) {
+          return false;
+        }
+      } else if (maxTime === 'oltre60') {
+        if (!ricetta.tempo_preparazione || Number(ricetta.tempo_preparazione) <= 60) {
           return false;
         }
       }
