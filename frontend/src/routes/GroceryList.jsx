@@ -114,40 +114,47 @@ const GroceryList = () => {
         <div className="w-full max-w-lg bg-white rounded shadow p-6">
           <ul className="divide-y">
             {items.map((item, idx) => (
-              <li key={item.ingredient} className="flex items-center justify-between py-2">
-                <span className="font-medium">{item.ingredient}</span>
+              <li key={item.ingredient} className="flex items-center gap-4 py-2 border-b last:border-b-0">
+                <span className="font-medium w-1/3 min-w-[120px]">{item.ingredient}</span>
                 {editIndex === idx ? (
-                  <>
+                  <div className="flex items-center gap-2 w-1/3 min-w-[120px]">
                     <input
                       type="number"
                       min={1}
                       value={editValue}
                       onChange={e => setEditValue(Number(e.target.value))}
-                      className="border rounded w-16 p-1 mx-2"
+                      className="border rounded w-16 p-1"
                     />
                     <span className="text-gray-500 font-normal">g</span>
-                    <button
-                      className="bg-green-500 text-white px-2 py-1 rounded mr-2"
-                      onClick={() => handleEditSave(item.ingredient)}
-                    >Salva</button>
-                    <button
-                      className="bg-gray-300 text-gray-700 px-2 py-1 rounded"
-                      onClick={() => setEditIndex(null)}
-                    >Annulla</button>
-                  </>
+                  </div>
                 ) : (
-                  <>
-                    <span className="mx-2">{item.quantity}g</span>
-                    <button
-                      className="bg-blue-500 text-white px-2 py-1 rounded mr-2"
-                      onClick={() => handleEdit(idx, item.quantity)}
-                    >Modifica</button>
-                    <button
-                      className="bg-red-500 text-white px-2 py-1 rounded"
-                      onClick={() => handleRemove(item.ingredient)}
-                    >Rimuovi</button>
-                  </>
+                  <span className="w-1/3 min-w-[120px] text-center">{item.quantity} <span className="text-gray-500 font-normal">g</span></span>
                 )}
+                <div className="flex items-center gap-2 w-1/3 min-w-[120px] justify-end">
+                  {editIndex === idx ? (
+                    <>
+                      <button
+                        className="bg-green-500 text-white px-2 py-1 rounded"
+                        onClick={() => handleEditSave(item.ingredient)}
+                      >Salva</button>
+                      <button
+                        className="bg-gray-300 text-gray-700 px-2 py-1 rounded"
+                        onClick={() => setEditIndex(null)}
+                      >Annulla</button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        className="bg-blue-500 text-white px-2 py-1 rounded"
+                        onClick={() => handleEdit(idx, item.quantity)}
+                      >Modifica</button>
+                      <button
+                        className="bg-red-500 text-white px-2 py-1 rounded"
+                        onClick={() => handleRemove(item.ingredient)}
+                      >Rimuovi</button>
+                    </>
+                  )}
+                </div>
               </li>
             ))}
           </ul>
