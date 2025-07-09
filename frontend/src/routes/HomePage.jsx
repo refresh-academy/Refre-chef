@@ -88,7 +88,7 @@ const HomePage = () => {
                 <Link
                   to={`/ricetta/${r.id}`}
                   key={r.id}
-                  className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition flex flex-row overflow-hidden group min-h-[180px]"
+                  className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition flex flex-row overflow-hidden group min-h-[180px] h-full"
                 >
                   <div className="relative w-48 min-w-[12rem] h-48 min-h-[12rem] flex-shrink-0 overflow-hidden">
                     <img
@@ -98,9 +98,9 @@ const HomePage = () => {
                       onError={e => (e.target.src = '/fallback-food.jpg')}
                     />
                   </div>
-                  <div className="p-4 flex-1 flex flex-col min-h-[12rem]">
+                  <div className="p-4 flex-1 flex flex-col min-h-[12rem] h-full justify-between">
                     <h3 className="text-lg font-bold text-refresh-blue mb-2">{r.nome}</h3>
-                    <p className="text-gray-600 text-sm flex-1">{r.ingredienti?.slice(0, 80)}...</p>
+                    {/* Description removed: only show name and CTA */}
                     <span className="mt-4 inline-block text-refresh-pink font-semibold">Scopri la ricetta &rarr;</span>
                   </div>
                 </Link>

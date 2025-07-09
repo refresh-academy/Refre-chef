@@ -5,21 +5,7 @@ const RECIPES_PER_PAGE = 10;
 
 function RecipeCard({ ricetta, userId, saved, handleSaveRecipe, handleRecipeClick, search }) {
   const [imgError, setImgError] = useState(false);
-  const [ingredienti, setIngredienti] = useState([]);
   const imageUrl = ricetta.immagine && ricetta.immagine.trim() !== '' && !imgError ? ricetta.immagine : '/fallback-food.jpg';
-
-  useEffect(() => {
-    const fetchIngredienti = async () => {
-      try {
-        const res = await fetch(`http://localhost:3000/api/ingredienti/${ricetta.id}`);
-        const data = await res.json();
-        if (Array.isArray(data)) setIngredienti(data);
-      } catch {
-        // Optionally log or ignore
-      }
-    };
-    fetchIngredienti();
-  }, [ricetta.id]);
 
   return (
     <div
@@ -61,18 +47,6 @@ function RecipeCard({ ricetta, userId, saved, handleSaveRecipe, handleRecipeClic
           <span className="flex items-center gap-1"><i className="fa-solid fa-fire" /> {ricetta.kcal} kcal</span>
           <span className="flex items-center gap-1"><i className="fa-solid fa-utensils" /> {ricetta.porzioni} porzioni</span>
           {ricetta.author && <span className="flex items-center gap-1"><i className="fa-solid fa-user" /> {ricetta.author}</span>}
-        </div>
-        <div className="mb-1">
-          <span className="font-semibold">Ingredienti:</span>
-          {ingredienti.length > 0 ? (
-            <ul className="list-disc pl-5 text-gray-800 text-sm space-y-1">
-              {ingredienti.map((ing, idx) => (
-                <li key={idx}>{ing.ingrediente}</li>
-              ))}
-            </ul>
-          ) : (
-            <span className="italic text-gray-400 ml-2">Nessun ingrediente</span>
-          )}
         </div>
         <div className="mb-1"><span className="font-semibold">Allergeni:</span> {highlight(ricetta.allergeni || '', search)}</div>
       </div>
