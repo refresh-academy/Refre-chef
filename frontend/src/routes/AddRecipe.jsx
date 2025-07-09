@@ -133,81 +133,85 @@ const AddRecipe = ({ user }) => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] p-4">
-      <h1 className="text-2xl font-bold mb-4 text-refresh-blue">Aggiungi una nuova ricetta</h1>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-3 w-full max-w-lg bg-white rounded shadow p-6">
-        <input name="nome" value={form.nome} onChange={handleChange} placeholder="Nome*" className="border p-2 rounded" required />
-        <input name="descrizione" value={form.descrizione} onChange={handleChange} placeholder="Breve descrizione*" className="border p-2 rounded" required />
-        <input name="tipologia" value={form.tipologia} onChange={handleChange} placeholder="Tipologia*" className="border p-2 rounded" required />
-        <input name="alimentazione" value={form.alimentazione} onChange={handleChange} placeholder="Alimentazione*" className="border p-2 rounded" required />
-        <input name="immagine" value={form.immagine} onChange={handleChange} placeholder="URL immagine*" className="border p-2 rounded" required />
-        {/* <textarea name="preparazione" value={form.preparazione} onChange={handleChange} placeholder="Preparazione*" className="border p-2 rounded" required /> */}
-        {/* <textarea name="preparazione_dettagliata" value={form.preparazione_dettagliata} onChange={handleChange} placeholder="Preparazione dettagliata*" className="border p-2 rounded" required /> */}
-        <input name="origine" value={form.origine} onChange={handleChange} placeholder="Origine*" className="border p-2 rounded" required />
-        <input name="porzioni" value={form.porzioni} onChange={handleChange} placeholder="Porzioni*" type="number" className="border p-2 rounded" required min={1} />
-        <input name="allergeni" value={form.allergeni} onChange={handleChange} placeholder="Allergeni*" className="border p-2 rounded" required />
-        <input name="tempo_preparazione" value={form.tempo_preparazione} onChange={handleChange} placeholder="Tempo di preparazione (min)*" type="number" className="border p-2 rounded" required min={1} />
-        <input name="kcal" value={form.kcal} onChange={handleChange} placeholder="Kcal*" type="number" className="border p-2 rounded" required min={1} />
-        {/* Ingredienti dinamici */}
-        <div className="flex flex-col gap-2">
-          <label className="font-semibold">Ingredienti* (nome e grammi)</label>
-          {ingredients.map((ing, idx) => (
-            <div key={idx} className="flex gap-2 items-center">
-              <input
-                name="nome"
-                value={ing.nome}
-                onChange={e => handleIngredientChange(idx, e)}
-                placeholder="Nome ingrediente"
-                className="border p-2 rounded flex-1"
-                required
-              />
-              <input
-                name="grammi"
-                type="number"
-                min="1"
-                value={ing.grammi}
-                onChange={e => handleIngredientChange(idx, e)}
-                placeholder="Quantità"
-                className="border p-2 rounded w-28"
-                required
-              />
-              <select
-                name="unita"
-                value={ing.unita}
-                onChange={e => handleIngredientChange(idx, e)}
-                className="border p-2 rounded w-20"
-              >
-                <option value="g">g</option>
-                <option value="ml">ml</option>
-              </select>
-              <button type="button" onClick={() => handleRemoveIngredient(idx)} className="text-red-500 hover:text-red-700 text-xl font-bold px-2">&times;</button>
-            </div>
-          ))}
-          <button type="button" onClick={handleAddIngredient} className="bg-refresh-blue text-white px-3 py-1 rounded mt-1 w-fit hover:bg-refresh-pink transition">+ Aggiungi ingrediente</button>
-        </div>
-        {/* Steps dinamici */}
-        <div className="flex flex-col gap-2 mt-4">
-          <label className="font-semibold">Passi della preparazione*</label>
-          {steps.map((step, idx) => (
-            <div key={idx} className="flex gap-2 items-center">
-              <textarea
-                value={step}
-                onChange={e => handleStepChange(idx, e)}
-                placeholder={`Step ${idx + 1}`}
-                className="border p-2 rounded flex-1"
-                required
-              />
-              <button type="button" onClick={() => handleRemoveStep(idx)} className="text-red-500 hover:text-red-700 text-xl font-bold px-2">&times;</button>
-            </div>
-          ))}
-          <button type="button" onClick={handleAddStep} className="bg-refresh-blue text-white px-3 py-1 rounded mt-1 w-fit hover:bg-refresh-pink transition">+ Aggiungi passo</button>
-        </div>
-        {error && <div className="text-red-500 text-sm">{error}</div>}
-        {success && <div className="text-green-600 text-sm">{success}</div>}
-        <button type="submit" className="bg-refresh-blue text-white font-bold py-2 rounded hover:bg-refresh-pink transition" disabled={loading}>
-          {loading ? 'Salvataggio...' : 'Aggiungi ricetta'}
-        </button>
-      </form>
+    <div className="relative flex flex-col items-center justify-center min-h-[60vh] p-4 w-full">
+      {/* Overlay bianco trasparente sotto la navbar (navbar height 64px) */}
+      <div className="absolute left-0 right-0 top-0" style={{ height: '100%', background: 'rgba(255,255,255,0.7)', zIndex: 0, pointerEvents: 'none' }} />
+      <div className="relative z-10 w-full flex flex-col items-center justify-center">
+        <h1 className="text-2xl font-bold mb-4 text-refresh-blue">Aggiungi una nuova ricetta</h1>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-3 w-full max-w-lg bg-white rounded shadow p-6">
+          <input name="nome" value={form.nome} onChange={handleChange} placeholder="Nome*" className="border p-2 rounded" required />
+          <input name="descrizione" value={form.descrizione} onChange={handleChange} placeholder="Breve descrizione*" className="border p-2 rounded" required />
+          <input name="tipologia" value={form.tipologia} onChange={handleChange} placeholder="Tipologia*" className="border p-2 rounded" required />
+          <input name="alimentazione" value={form.alimentazione} onChange={handleChange} placeholder="Alimentazione*" className="border p-2 rounded" required />
+          <input name="immagine" value={form.immagine} onChange={handleChange} placeholder="URL immagine*" className="border p-2 rounded" required />
+          {/* <textarea name="preparazione" value={form.preparazione} onChange={handleChange} placeholder="Preparazione*" className="border p-2 rounded" required /> */}
+          {/* <textarea name="preparazione_dettagliata" value={form.preparazione_dettagliata} onChange={handleChange} placeholder="Preparazione dettagliata*" className="border p-2 rounded" required /> */}
+          <input name="origine" value={form.origine} onChange={handleChange} placeholder="Origine*" className="border p-2 rounded" required />
+          <input name="porzioni" value={form.porzioni} onChange={handleChange} placeholder="Porzioni*" type="number" className="border p-2 rounded" required min={1} />
+          <input name="allergeni" value={form.allergeni} onChange={handleChange} placeholder="Allergeni*" className="border p-2 rounded" required />
+          <input name="tempo_preparazione" value={form.tempo_preparazione} onChange={handleChange} placeholder="Tempo di preparazione (min)*" type="number" className="border p-2 rounded" required min={1} />
+          <input name="kcal" value={form.kcal} onChange={handleChange} placeholder="Kcal*" type="number" className="border p-2 rounded" required min={1} />
+          {/* Ingredienti dinamici */}
+          <div className="flex flex-col gap-2">
+            <label className="font-semibold">Ingredienti* (nome e grammi)</label>
+            {ingredients.map((ing, idx) => (
+              <div key={idx} className="flex gap-2 items-center">
+                <input
+                  name="nome"
+                  value={ing.nome}
+                  onChange={e => handleIngredientChange(idx, e)}
+                  placeholder="Nome ingrediente"
+                  className="border p-2 rounded flex-1"
+                  required
+                />
+                <input
+                  name="grammi"
+                  type="number"
+                  min="1"
+                  value={ing.grammi}
+                  onChange={e => handleIngredientChange(idx, e)}
+                  placeholder="Quantità"
+                  className="border p-2 rounded w-28"
+                  required
+                />
+                <select
+                  name="unita"
+                  value={ing.unita}
+                  onChange={e => handleIngredientChange(idx, e)}
+                  className="border p-2 rounded w-20"
+                >
+                  <option value="g">g</option>
+                  <option value="ml">ml</option>
+                </select>
+                <button type="button" onClick={() => handleRemoveIngredient(idx)} className="text-red-500 hover:text-red-700 text-xl font-bold px-2">&times;</button>
+              </div>
+            ))}
+            <button type="button" onClick={handleAddIngredient} className="bg-refresh-blue text-white px-3 py-1 rounded mt-1 w-fit hover:bg-refresh-pink transition">+ Aggiungi ingrediente</button>
+          </div>
+          {/* Steps dinamici */}
+          <div className="flex flex-col gap-2 mt-4">
+            <label className="font-semibold">Passi della preparazione*</label>
+            {steps.map((step, idx) => (
+              <div key={idx} className="flex gap-2 items-center">
+                <textarea
+                  value={step}
+                  onChange={e => handleStepChange(idx, e)}
+                  placeholder={`Step ${idx + 1}`}
+                  className="border p-2 rounded flex-1"
+                  required
+                />
+                <button type="button" onClick={() => handleRemoveStep(idx)} className="text-red-500 hover:text-red-700 text-xl font-bold px-2">&times;</button>
+              </div>
+            ))}
+            <button type="button" onClick={handleAddStep} className="bg-refresh-blue text-white px-3 py-1 rounded mt-1 w-fit hover:bg-refresh-pink transition">+ Aggiungi passo</button>
+          </div>
+          {error && <div className="text-red-500 text-sm">{error}</div>}
+          {success && <div className="text-green-600 text-sm">{success}</div>}
+          <button type="submit" className="bg-refresh-blue text-white font-bold py-2 rounded hover:bg-refresh-pink transition" disabled={loading}>
+            {loading ? 'Salvataggio...' : 'Aggiungi ricetta'}
+          </button>
+        </form>
+      </div>
     </div>
   );
 };

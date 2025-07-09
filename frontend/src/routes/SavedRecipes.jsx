@@ -118,22 +118,26 @@ const SavedRecipes = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] p-4">
-      <h1 className="text-2xl font-bold mb-4 text-refresh-blue">Ricette Salvate</h1>
-      {loading && <div>Caricamento...</div>}
-      {error && <div className="text-red-500 mb-4">{error}</div>}
-      {!loading && !error && recipes.length === 0 && (
-        <div>Nessuna ricetta salvata trovata.</div>
-      )}
-      <div className="flex flex-col gap-6 w-full max-w-5xl">
-        {recipes.map((ricetta) => (
-          <RecipeCard
-            key={ricetta.id}
-            ricetta={ricetta}
-            handleRemove={handleRemove}
-            handleRecipeClick={handleRecipeClick}
-          />
-        ))}
+    <div className="relative flex flex-col items-center justify-center min-h-[60vh] p-4 w-full">
+      {/* Overlay bianco trasparente sotto la navbar (navbar height 64px) */}
+      <div className="absolute left-0 right-0 top-0" style={{ height: '100%', background: 'rgba(255,255,255,0.7)', zIndex: 0, pointerEvents: 'none' }} />
+      <div className="relative z-10 w-full flex flex-col items-center justify-center">
+        <h1 className="text-2xl font-bold mb-4 text-refresh-blue">Ricette Salvate</h1>
+        {loading && <div>Caricamento...</div>}
+        {error && <div className="text-red-500 mb-4">{error}</div>}
+        {!loading && !error && recipes.length === 0 && (
+          <div>Nessuna ricetta salvata trovata.</div>
+        )}
+        <div className="flex flex-col gap-6 w-full max-w-5xl">
+          {recipes.map((ricetta) => (
+            <RecipeCard
+              key={ricetta.id}
+              ricetta={ricetta}
+              handleRemove={handleRemove}
+              handleRecipeClick={handleRecipeClick}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );
