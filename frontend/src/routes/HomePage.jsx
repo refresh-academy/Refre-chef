@@ -63,8 +63,9 @@ const HomePage = () => {
             to="/add-recipe"
             className="mt-6 bg-refresh-blue hover:bg-refresh-pink text-white font-semibold px-8 py-3 rounded-full transition text-lg shadow"
           >
-            + Aggiungi la tua ricetta
-          </Link>
+            <div className='flex flex-col items-center'>
+            Vai alla ricetta <p className='text-2xl'> ➤ </p></div>
+          </Link> 
         </div>
 
         {/* Categories */}
