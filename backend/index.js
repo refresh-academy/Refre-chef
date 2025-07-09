@@ -191,8 +191,8 @@ app.post('/api/aggiungiRicetta', authenticateToken, async (req, res) => {
     // Insert ingredient grams
     for (const ing of ingredienti_grammi) {
       await dbRun(
-        `INSERT INTO ingredienti_grammi (ricetta_id, ingrediente, grammi) VALUES (?, ?, ?)`,
-        [ricettaId, ing.nome, ing.grammi]
+        `INSERT INTO ingredienti_grammi (ricetta_id, ingrediente, grammi, unita) VALUES (?, ?, ?, ?)`,
+        [ricettaId, ing.nome, ing.grammi, ing.unita ? ing.unita : 'g']
       );
     }
 
@@ -338,7 +338,7 @@ app.put('/api/groceryList/ingredient', authenticateToken, async (req, res) => {
 app.get('/api/ingredienti/:ricettaId', async (req, res) => {
   const ricettaId = req.params.ricettaId;
   try {
-    const rows = await dbAll('SELECT ingrediente, grammi FROM ingredienti_grammi WHERE ricetta_id = ?', [ricettaId]);
+    const rows = await dbAll('SELECT ingrediente, grammi, unita FROM ingredienti_grammi WHERE ricetta_id = ?', [ricettaId]);
     res.status(200).json(rows);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch ingredients', details: err.message });

@@ -18,7 +18,7 @@ const initialState = {
 
 const AddRecipe = ({ user }) => {
   const [form, setForm] = useState(initialState);
-  const [ingredients, setIngredients] = useState([{ nome: '', grammi: '' }]);
+  const [ingredients, setIngredients] = useState([{ nome: '', grammi: '', unita: 'g' }]);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
@@ -39,7 +39,7 @@ const AddRecipe = ({ user }) => {
   };
 
   const handleAddIngredient = () => {
-    setIngredients(ings => [...ings, { nome: '', grammi: '' }]);
+    setIngredients(ings => [...ings, { nome: '', grammi: '', unita: 'g' }]);
   };
 
   const handleRemoveIngredient = (idx) => {
@@ -81,7 +81,8 @@ const AddRecipe = ({ user }) => {
       };
       const sanitizedIngredients = ingredients.map(ing => ({
         nome: (ing.nome || '').trim(),
-        grammi: Number(ing.grammi) > 0 ? Number(ing.grammi) : 1
+        grammi: Number(ing.grammi) > 0 ? Number(ing.grammi) : 1,
+        unita: ing.unita === 'ml' ? 'ml' : 'g'
       }));
       const res = await fetch('http://localhost:3000/api/aggiungiRicetta', {
         method: 'POST',
@@ -144,10 +145,19 @@ const AddRecipe = ({ user }) => {
                 min="1"
                 value={ing.grammi}
                 onChange={e => handleIngredientChange(idx, e)}
-                placeholder="Grammi"
+                placeholder="Quantità"
                 className="border p-2 rounded w-28"
                 required
               />
+              <select
+                name="unita"
+                value={ing.unita}
+                onChange={e => handleIngredientChange(idx, e)}
+                className="border p-2 rounded w-20"
+              >
+                <option value="g">g</option>
+                <option value="ml">ml</option>
+              </select>
               <button type="button" onClick={() => handleRemoveIngredient(idx)} className="text-red-500 hover:text-red-700 text-xl font-bold px-2">&times;</button>
             </div>
           ))}

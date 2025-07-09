@@ -297,7 +297,7 @@ const Ricetta = () => {
                     >
                       <span className="font-medium text-refresh-blue">{ing.ingrediente}</span>
                       <span className="bg-refresh-pink/10 text-refresh-pink font-bold rounded-full px-3 py-1 text-sm ml-4 shadow-inner">
-                        {Math.round((ing.grammi * (numPorzioni || ricetta?.porzioni || 1)) / (ricetta?.porzioni || 1))}g
+                        {Math.round((ing.grammi * (numPorzioni || ricetta?.porzioni || 1)) / (ricetta?.porzioni || 1))}{ing.unita ? ing.unita : 'g'}
                       </span>
                     </li>
                   ))
