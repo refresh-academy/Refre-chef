@@ -138,6 +138,14 @@ app.post('/api/users', async (req, res) => {
 
     res.status(201).json({ message: 'User created successfully', userId: result.id });
   } catch (err) {
+    if (err && err.message && err.message.includes('UNIQUE')) {
+      if (err.message.includes('nickname')) {
+        return res.status(409).json({ error: 'Nickname già in uso. Scegli un altro nickname.' });
+      }
+      if (err.message.includes('email')) {
+        return res.status(409).json({ error: 'Email già in uso.' });
+      }
+    }
     res.status(500).json({ error: 'Failed to create user', details: err.message });
   }
 });
