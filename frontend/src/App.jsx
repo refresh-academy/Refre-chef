@@ -141,36 +141,61 @@ const Layout = ({ user }) => {
       </div>
       {/* Only show the second navbar on /ricette */}
       {location.pathname === '/ricette' && (
-        <div className='flex flex-row bg-white items-center w-screen px-20 py-4'>
-          <div className="flex items-center gap-4">
-            <input
-              type="number"
-              min="0"
-              value={maxTime}
-              onChange={e => setMaxTime(e.target.value)}
-              placeholder="Tempo massimo (min)"
-              className="w-40 p-2 border rounded shadow focus:outline-none focus:ring-2 focus:ring-refresh-blue"
-              style={{maxWidth: '160px'}}
-            />
-            <input
-              type="number"
-              min="0"
-              value={maxKcal}
-              onChange={e => setMaxKcal(e.target.value)}
-              placeholder="Chilocalorie massime"
-              className="w-40 p-2 border rounded shadow focus:outline-none focus:ring-2 focus:ring-refresh-blue"
-              style={{maxWidth: '160px'}}
-            />
-            <select
-              value={alimentazione}
-              onChange={e => setAlimentazione(e.target.value)}
-              className="w-48 p-2 border rounded shadow focus:outline-none focus:ring-2 focus:ring-refresh-blue"
-            >
-              <option value="">🍽️ Tutte le alimentazioni</option>
-              <option value="Onnivora">🥩 Onnivoro</option>
-              <option value="Vegetariana">🥬 Vegetariano</option>
-              <option value="Vegan">🌱 Vegano</option>
-            </select>
+        <div className="flex flex-row bg-transparent items-center w-screen px-20 py-4 justify-center">
+          <div className="backdrop-blur-md bg-white/80 border-2 border-refresh-blue shadow-xl rounded-2xl px-8 py-6 flex flex-row gap-8 items-end transition-all duration-300" style={{minWidth: 'fit-content'}}>
+            <div className="flex flex-col items-center">
+              <label htmlFor="maxTime" className="flex items-center gap-2 text-xs font-semibold px-2 py-1 rounded bg-blue-50 text-refresh-blue border border-refresh-blue shadow mb-2">
+                <i className="fa-regular fa-clock text-refresh-blue" />
+                Tempo massimo (min)
+              </label>
+              <select
+                id="maxTime"
+                value={maxTime}
+                onChange={e => setMaxTime(e.target.value)}
+                className="w-32 p-2 border-2 border-refresh-blue rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-refresh-blue transition-all duration-200 hover:border-refresh-pink"
+                style={{maxWidth: '120px'}}
+              >
+                <option value="">Qualsiasi</option>
+                <option value="10">5-10 minuti</option>
+                <option value="20">10-20 minuti</option>
+                <option value="30">20-30 minuti</option>
+                <option value="60">30-60 minuti</option>
+                <option value="oltre60">60 o oltre</option>
+              </select>
+            </div>
+            <div className="flex flex-col items-center">
+              <label htmlFor="maxKcal" className="flex items-center gap-2 text-xs font-semibold px-2 py-1 rounded bg-pink-50 text-refresh-pink border border-refresh-pink shadow mb-2">
+                <i className="fa-solid fa-fire text-refresh-pink" />
+                Kcal massime
+              </label>
+              <input
+                id="maxKcal"
+                type="number"
+                min="0"
+                value={maxKcal}
+                onChange={e => setMaxKcal(e.target.value)}
+                placeholder="Kcal massime"
+                className="w-32 p-2 border-2 border-refresh-pink rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-refresh-pink transition-all duration-200 hover:border-refresh-blue"
+                style={{maxWidth: '120px'}}
+              />
+            </div>
+            <div className="flex flex-col items-center justify-end">
+              <label htmlFor="alimentazione" className="flex items-center gap-2 text-xs font-semibold px-2 py-1 rounded bg-gray-50 text-gray-700 border border-gray-300 shadow mb-2">
+                <i className="fa-solid fa-leaf text-green-600" />
+                Alimentazione
+              </label>
+              <select
+                id="alimentazione"
+                value={alimentazione}
+                onChange={e => setAlimentazione(e.target.value)}
+                className="w-48 p-2 border-2 border-gray-300 rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-refresh-blue transition-all duration-200 hover:border-refresh-pink"
+              >
+                <option value="">🍽️ Tutte le alimentazioni</option>
+                <option value="Onnivora">🥩 Onnivoro</option>
+                <option value="Vegetariana">🥬 Vegetariano</option>
+                <option value="Vegan">🌱 Vegano</option>
+              </select>
+            </div>
           </div>
         </div>
       )}

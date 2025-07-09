@@ -182,9 +182,15 @@ const Home = (props) => {
       }
     }
     // Max time filter
-    if (maxTime && !isNaN(Number(maxTime))) {
-      if (!ricetta.tempo_preparazione || Number(ricetta.tempo_preparazione) > Number(maxTime)) {
-        return false;
+    if (maxTime) {
+      if (maxTime === 'oltre60') {
+        if (!ricetta.tempo_preparazione || Number(ricetta.tempo_preparazione) < 60) {
+          return false;
+        }
+      } else if (!isNaN(Number(maxTime))) {
+        if (!ricetta.tempo_preparazione || Number(ricetta.tempo_preparazione) > Number(maxTime)) {
+          return false;
+        }
       }
     }
     //Max Kcal filter
