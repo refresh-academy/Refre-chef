@@ -31,9 +31,11 @@ const HomePage = () => {
 
   return (
     <div className="relative min-h-screen z-0">
-      {/* White tint overlay sotto la navbar ma sopra il background */}
-      <div className="absolute inset-0 z-0 w-full h-full bg-white/70 pointer-events-none" />
       <div className="relative z-10 flex flex-col min-h-screen">
+        {/* White tint overlay sotto la navbar ma sopra il background */}
+        <div
+          className="absolute inset-0 -z-1 w-full h-full bg-white/70 pointer-events-none"
+        />
         {/* Hero Section */}
         <div className="relative flex flex-col items-center justify-center py-12 px-4 bg-gradient-to-b from-refresh-blue/10 to-white">
           <img src={logorefreChef} alt="RefreChef Logo" className="w-32 md:w-44 mb-4 drop-shadow-xl" />
