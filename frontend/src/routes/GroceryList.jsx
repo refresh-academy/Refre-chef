@@ -128,6 +128,51 @@ const GroceryList = () => {
     }
   };
 
+  // Utility: calcola porzioni attuali per una ricetta nella lista
+  const getPorzioniInfo = (groupItems) => {
+    if (!groupItems.length) return { attuali: 1, originali: 1 };
+    const porzioniOriginali = groupItems[0].porzioni_originali ? Number(groupItems[0].porzioni_originali) : 1;
+    // Calcola la media delle porzioni attuali su tutti gli ingredienti (più robusto)
+    const porzioniAttuali = Math.max(1, Math.round(
+      groupItems.reduce((sum, item) => {
+        const qtyAttuale = Number(item.quantity);
+        const qtyOriginale = item.grammi_originali ? Number(item.grammi_originali) : qtyAttuale;
+        return sum + (qtyAttuale / qtyOriginale * porzioniOriginali);
+      }, 0) / groupItems.length
+    ));
+    return { attuali: porzioniAttuali, originali: porzioniOriginali };
+  };
+
+  // Funzione per cambiare le porzioni di una ricetta nella lista
+  const handleChangePorzioni = async (recipeId, delta) => {
+    const groupItems = items.filter(i => String(i.recipe_id) === String(recipeId));
+    if (!groupItems.length) return;
+    const { attuali: porzioniAttuali, originali: porzioniOriginali } = getPorzioniInfo(groupItems);
+    const nuovePorzioni = Math.max(1, porzioniAttuali + delta);
+    const moltiplicatore = nuovePorzioni / porzioniAttuali;
+    const newItems = await Promise.all(groupItems.map(async (item) => {
+      const newQty = Math.max(1, Math.round(item.quantity * moltiplicatore));
+      try {
+        const res = await fetch('http://localhost:3000/api/groceryList/ingredient', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': token ? `Bearer ${token}` : '',
+          },
+          body: JSON.stringify({ ingredient: item.ingredient, quantity: newQty, recipe_id: item.recipe_id }),
+        });
+        if (res.ok) {
+          return { ...item, quantity: newQty };
+        } else {
+          return item;
+        }
+      } catch {
+        return item;
+      }
+    }));
+    setItems(prev => prev.map(i => String(i.recipe_id) === String(recipeId) ? (newItems.find(ni => ni.ingredient === i.ingredient) || i) : i));
+  };
+
   return (
     <div className="relative w-full flex flex-col items-center justify-center" style={{ minHeight: 'calc(100vh - 64px)' }}>
       {/* Overlay bianco trasparente sotto la navbar (navbar height 64px) */}
@@ -155,12 +200,34 @@ const GroceryList = () => {
                   {group.recipe_image && <img src={group.recipe_image} alt={group.recipe_name} className="w-10 h-10 object-cover rounded" />}
                   <h2 className="text-lg font-semibold text-refresh-pink">{group.recipe_name || 'Aggiunti manualmente'}</h2>
                   {group.recipe_name && (
+                    <div className="flex items-center gap-1 ml-auto justify-end sticky top-0 right-0 bg-white z-10" style={{ minWidth: '120px' }}>
+                      <button
+                        className="px-2 py-1 rounded bg-refresh-blue text-white text-xs font-bold hover:bg-refresh-pink transition"
+                        onClick={() => handleChangePorzioni(recipeId, -1)}
+                        type="button"
+                        aria-label="Diminuisci porzioni"
+                      >-</button>
+                      <span className="px-2 font-bold text-refresh-blue text-base select-none w-16 text-right">
+                        {(() => {
+                          const info = getPorzioniInfo(group.items);
+                          return `${info.attuali} porz.`;
+                        })()}
+                      </span>
+                      <button
+                        className="px-2 py-1 rounded bg-refresh-blue text-white text-xs font-bold hover:bg-refresh-pink transition"
+                        onClick={() => handleChangePorzioni(recipeId, 1)}
+                        type="button"
+                        aria-label="Aumenta porzioni"
+                      >+</button>
+                    </div>
+                  )}
+                  {group.recipe_name && (
                     <button
                       className={`ml-2 px-2 py-1 rounded bg-refresh-pink text-white text-xs font-bold hover:bg-refresh-blue transition ${removingRecipeId === recipeId ? 'opacity-60 pointer-events-none' : ''}`}
                       onClick={() => handleRemoveRecipe(recipeId, group.recipe_name)}
                       disabled={removingRecipeId === recipeId}
                     >
-                      {removingRecipeId === recipeId ? 'Rimozione...' : 'Rimuovi tutta la ricetta'}
+                      {removingRecipeId === recipeId ? 'Rimozione...' : 'Rimuovi'}
                     </button>
                   )}
                 </div>
@@ -215,7 +282,7 @@ const GroceryList = () => {
             <button
               className="mt-6 w-full bg-refresh-blue text-white font-bold py-2 rounded hover:bg-refresh-pink transition"
               onClick={handleClear}
-            >Svuota lista</button>
+            >Svuota elementi</button>
           </div>
         )}
       </div>

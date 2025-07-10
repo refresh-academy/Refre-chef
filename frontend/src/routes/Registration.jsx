@@ -38,6 +38,14 @@ const Registration = () => {
 
   return (
     <div className="relative w-full flex flex-col items-center justify-center" style={{ minHeight: 'calc(100vh - 64px)' }}>
+      <button
+        className="absolute top-4 right-4 z-20 text-3xl text-refresh-pink hover:text-refresh-blue font-bold transition"
+        onClick={() => navigate('/')}
+        aria-label="Chiudi"
+        type="button"
+      >
+        ×
+      </button>
       {/* Overlay bianco trasparente sotto la navbar (navbar height 64px) */}
       <div className="absolute left-0 right-0" style={{ top: 0, height: 'calc(100vh - 64px)', background: 'rgba(255,255,255,0.7)', zIndex: 0, pointerEvents: 'none' }} />
       <div className="relative z-10 w-full flex flex-col items-center justify-center" style={{ minHeight: 'calc(100vh - 64px)' }}>

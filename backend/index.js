@@ -305,7 +305,7 @@ app.get('/api/groceryList', authenticateToken, async (req, res) => {
   try {
     // Get all grocery list items for the user, with recipe info
     const items = await dbAll(
-      `SELECT g.ingredient, g.quantity, g.recipe_id, ig.unita, r.nome as recipe_name, r.immagine as recipe_image
+      `SELECT g.ingredient, g.quantity, g.recipe_id, ig.unita, r.nome as recipe_name, r.immagine as recipe_image, r.porzioni as porzioni_originali, ig.grammi as grammi_originali
        FROM groceryList g
        LEFT JOIN ingredienti_grammi ig ON g.ingredient = ig.ingrediente AND g.recipe_id = ig.ricetta_id
        LEFT JOIN ricettario r ON g.recipe_id = r.id
