@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router";
+import { useParams, useNavigate, Link } from "react-router";
 
 const isLoggedIn = (userId) =>
   userId && userId !== "null" && userId !== "" && userId !== undefined && userId !== "undefined";
@@ -223,9 +223,9 @@ const Ricetta = () => {
                 onClick={handleSaveRecipe}
                 title={saved ? "Rimuovi dai segnalibri" : "Aggiungi ai segnalibri"}
                 aria-label={saved ? "Rimuovi dai segnalibri" : "Aggiungi ai segnalibri"}
-                className={`rounded-full p-2 shadow transition text-2xl ${saved ? "bg-refresh-blue text-white hover:bg-refresh-pink" : "bg-white/80 text-gray-400 hover:text-refresh-blue"}`}
+                className={`bg-white/80 rounded-full p-2 shadow transition hover:bg-refresh-blue ${saved ? "text-refresh-blue hover:text-refresh-pink" : "text-gray-400 hover:text-refresh-blue"}`}
               >
-                <i className={`${saved ? 'fa-solid' : 'fa-regular'} fa-bookmark`}></i>
+                <i className={`${saved ? 'fa-solid' : 'fa-regular'} fa-bookmark text-xl`}></i>
               </button>
             )}
           </div>
@@ -260,9 +260,16 @@ const Ricetta = () => {
           <div className="flex items-center gap-2 text-gray-700 text-base font-semibold"><i className="fa-regular fa-clock mr-1" /> {ricetta.tempo_preparazione} min</div>
           <div className="flex items-center gap-2 text-gray-700 text-base font-semibold"><i className="fa-solid fa-fire mr-1" /> {ricetta.kcal} kcal</div>
           <div className="flex items-center gap-2 text-gray-700 text-base font-semibold"><i className="fa-solid fa-utensils mr-1" /> {ricetta.porzioni} porzioni</div>
-          {ricetta.author && <div className="flex items-center gap-2 text-gray-700 text-base font-semibold"><i className="fa-solid fa-user mr-1" /> {ricetta.author}</div>}
+          {ricetta.author && (
+            <div className="flex items-center gap-2 text-gray-700 text-base font-semibold">
+              <i className="fa-solid fa-user mr-1" />
+              <Link to={`/chef/${ricetta.author_id}`} className="text-refresh-blue hover:underline">
+                {ricetta.author}
+              </Link>
+            </div>
+          )}
           {/* Numero di salvataggi */}
-          <div className="flex items-center gap-2 text-refresh-pink font-bold text-base" title="Numero di salvataggi">
+          <div className="flex items-center gap-2 text-refresh-blue font-bold text-base" title="Numero di salvataggi">
             <i className="fa-solid fa-bookmark" />
             {savedCount}
           </div>

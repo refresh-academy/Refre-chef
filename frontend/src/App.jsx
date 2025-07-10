@@ -12,6 +12,7 @@ import GroceryList from './routes/GroceryList.jsx'
 import NotFound from './routes/NotFound.jsx'
 import HomePage from './routes/HomePage.jsx'
 import MyRecipes from './routes/MyRecipes.jsx'
+import ChefProfile from './routes/ChefProfile.jsx';
 import { jwtDecode } from 'jwt-decode';
 
 
@@ -262,6 +263,7 @@ function App() {
           <Route path="/ricetta/:id" element={<Ricetta user={user} />} />
           <Route path="/grocery-list" element={<ProtectedGroceryList user={user} />} />
           <Route path="/my-recipes" element={<MyRecipes user={user} />} />
+          <Route path="/chef/:authorId" element={<ChefProfile />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>

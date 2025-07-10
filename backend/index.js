@@ -443,6 +443,27 @@ app.get('/api/ricetta-saves/:id', async (req, res) => {
   }
 });
 
+// GET /api/chef/:authorId/ricette - tutte le ricette di un autore
+app.get('/api/chef/:authorId/ricette', async (req, res) => {
+  const authorId = req.params.authorId;
+  try {
+    const query = `
+      SELECT r.id, r.nome, r.descrizione, r.tipologia, r.alimentazione, r.immagine, r.origine, r.porzioni, r.allergeni, r.tempo_preparazione, r.kcal, r.author_id, u.nickname as author
+      FROM ricettario r
+      LEFT JOIN utenti u ON r.author_id = u.id_user
+      WHERE r.author_id = ?
+    `;
+    const ricette = await dbAll(query, [authorId]);
+    for (const r of ricette) {
+      const steps = await dbAll('SELECT step_number, testo FROM steps WHERE ricetta_id = ? ORDER BY step_number ASC', [r.id]);
+      r.steps = steps.map(s => s.testo);
+    }
+    res.json(ricette);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
 });

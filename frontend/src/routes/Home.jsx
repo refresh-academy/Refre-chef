@@ -48,7 +48,7 @@ function RecipeCard({ ricetta, userId, saved, handleSaveRecipe, handleRecipeClic
           <span className="flex items-center gap-1"><i className="fa-solid fa-utensils" /> {ricetta.porzioni} porzioni</span>
           {ricetta.author && <span className="flex items-center gap-1"><i className="fa-solid fa-user" /> {ricetta.author}</span>}
           {/* Numero di salvataggi */}
-          <span className="flex items-center gap-1 text-refresh-pink font-bold" title="Numero di salvataggi">
+          <span className="flex items-center gap-1 text-refresh-blue font-bold" title="Numero di salvataggi">
             <i className="fa-solid fa-bookmark" />
             {ricetta.saved_count || 0}
           </span>
