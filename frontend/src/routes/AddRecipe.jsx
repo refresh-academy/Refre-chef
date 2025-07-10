@@ -154,7 +154,7 @@ const AddRecipe = ({ user, editMode }) => {
       const sanitizedIngredients = ingredients.map(ing => ({
         nome: (ing.nome || '').trim(),
         grammi: Math.max(1, Number(ing.grammi) || 1),
-        unita: ing.unita === 'ml' ? 'ml' : 'g'
+        unita: ing.unita || 'g'
       }));
       const sanitizedSteps = steps.map(s => s.trim());
       let res, data;
@@ -248,9 +248,11 @@ const AddRecipe = ({ user, editMode }) => {
                   value={ing.unita}
                   onChange={e => handleIngredientChange(idx, e)}
                   className="border p-2 rounded w-20"
+                  disabled={false}
                 >
                   <option value="g">g</option>
                   <option value="ml">ml</option>
+                  <option value="n">n</option>
                 </select>
                 <button type="button" onClick={() => handleRemoveIngredient(idx)} className="text-red-500 hover:text-red-700 text-xl font-bold px-2">&times;</button>
               </div>

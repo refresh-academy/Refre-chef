@@ -244,10 +244,21 @@ const GroceryList = () => {
                             onChange={e => setEditValue(Number(e.target.value))}
                             className="border rounded w-16 p-1"
                           />
-                          <span className="text-gray-500 font-normal">{item.unita ? item.unita : 'g'}</span>
+                          <select
+                            value={item.unita || 'g'}
+                            onChange={e => {
+                              const newUnita = e.target.value;
+                              setItems(items.map((i, idx) => idx === editIndex ? { ...i, unita: newUnita } : i));
+                            }}
+                            className="border rounded p-1 w-16"
+                          >
+                            <option value="g">g</option>
+                            <option value="ml">ml</option>
+                            <option value="n">n</option>
+                          </select>
                         </div>
                       ) : (
-                        <span className="w-1/3 min-w-[120px] text-center">{item.quantity} <span className="text-gray-500 font-normal">{item.unita ? item.unita : 'g'}</span></span>
+                        <span className="w-1/3 min-w-[120px] text-center">n {item.quantity} <span className="text-gray-500 font-normal">{item.unita ? item.unita : 'g'}</span></span>
                       )}
                       <div className="flex items-center gap-2 w-1/3 min-w-[120px] justify-end">
                         {editIndex === items.findIndex(i => i.ingredient === item.ingredient && i.recipe_id === item.recipe_id) ? (

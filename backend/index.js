@@ -228,6 +228,57 @@ app.post('/api/aggiungiRicetta', authenticateToken, async (req, res) => {
   }
 });
 
+// PUT /api/ricette/:id (aggiorna ricetta esistente)
+app.put('/api/ricette/:id', authenticateToken, async (req, res) => {
+  const ricettaId = req.params.id;
+  const userId = req.user.userId;
+  const { nome, descrizione, tipologia, alimentazione, immagine, origine, porzioni, allergeni, tempo_preparazione, kcal, ingredienti_grammi, steps } = req.body;
+  if (!nome || !descrizione || !tipologia || !alimentazione || !immagine || !origine || !porzioni || !allergeni || !tempo_preparazione || !kcal) {
+    return res.status(400).json({ error: 'Missing required fields.' });
+  }
+  if (!Array.isArray(ingredienti_grammi) || ingredienti_grammi.length === 0 || ingredienti_grammi.some(ing => !ing.nome || !ing.grammi)) {
+    return res.status(400).json({ error: 'Ingredienti e grammi obbligatori.' });
+  }
+  try {
+    // Verifica che l'utente sia l'autore
+    const rows = await dbAll('SELECT author_id FROM ricettario WHERE id = ?', [ricettaId]);
+    if (!rows.length) {
+      return res.status(404).json({ error: 'Ricetta non trovata.' });
+    }
+    if (String(rows[0].author_id) !== String(userId)) {
+      return res.status(403).json({ error: 'Non sei autorizzato a modificare questa ricetta.' });
+    }
+    // Aggiorna ricetta
+    await dbRun(
+      `UPDATE ricettario SET nome=?, descrizione=?, tipologia=?, alimentazione=?, immagine=?, origine=?, porzioni=?, allergeni=?, kcal=?, tempo_preparazione=? WHERE id=?`,
+      [nome, descrizione, tipologia, alimentazione, immagine, origine, porzioni, allergeni, kcal, tempo_preparazione, ricettaId]
+    );
+    // Cancella ingredienti e reinserisci
+    await dbRun('DELETE FROM ingredienti_grammi WHERE ricetta_id = ?', [ricettaId]);
+    for (const ing of ingredienti_grammi) {
+      await dbRun(
+        `INSERT INTO ingredienti_grammi (ricetta_id, ingrediente, grammi, unita) VALUES (?, ?, ?, ?)`,
+        [ricettaId, ing.nome, ing.grammi, ing.unita ? ing.unita : 'g']
+      );
+    }
+    // Cancella steps e reinserisci
+    await dbRun('DELETE FROM steps WHERE ricetta_id = ?', [ricettaId]);
+    if (Array.isArray(steps) && steps.length > 0) {
+      for (let i = 0; i < steps.length; i++) {
+        const testo = steps[i];
+        await dbRun(
+          `INSERT INTO steps (ricetta_id, step_number, testo) VALUES (?, ?, ?)`,
+          [ricettaId, i + 1, testo]
+        );
+      }
+    }
+    res.status(200).json({ message: 'Ricetta aggiornata con successo.' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Errore durante l\'aggiornamento della ricetta', details: err.message });
+  }
+});
+
 // GET /api/ricetteSalvate (protected, uses user from token)
 app.get('/api/ricetteSalvate', authenticateToken, async (req, res) => {
   const userId = req.user.userId;
