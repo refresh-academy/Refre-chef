@@ -39,7 +39,7 @@ const HomePage = () => {
           <img src={logorefreChef} alt="RefreChef Logo" className="w-32 md:w-44 mb-4 drop-shadow-xl" />
           <h1 className="text-4xl md:text-5xl font-extrabold text-refresh-blue mb-2 text-center drop-shadow">Benvenuto su RefreChef!</h1>
           <p className="text-lg md:text-xl text-gray-700 mb-6 text-center max-w-2xl">Scopri, cerca e salva le migliori ricette italiane. Ispirati, cucina e condividi!</p>
-          <div className="flex flex-col md:flex-row gap-3 w-full max-w-xl items-center justify-center">
+          <div className="flex flex-col md:flex-row gap-3 w-full max-w-xl items-stretch justify-center">
             <input
               type="text"
               placeholder="Cerca una ricetta o un ingrediente..."
@@ -58,9 +58,18 @@ const HomePage = () => {
             >
               Cerca
             </button>
+          </div>
+          <div className="flex flex-row gap-3 w-full max-w-xl items-center justify-center mt-6">
+            <Link
+              to="/ricette"
+              className="bg-refresh-blue hover:bg-refresh-pink text-white font-semibold px-8 py-3 rounded-full transition text-lg shadow text-center"
+            >
+              <div className='flex flex-col items-center'>
+                Vai alle ricette  ➤
+              </div>
+            </Link>
             <button
-              className="bg-refresh-pink text-white font-bold px-6 py-3 rounded-full shadow hover:bg-refresh-blue transition text-lg whitespace-nowrap flex items-center gap-2"
-              style={{ height: '48px' }}
+              className="bg-refresh-blue text-white font-bold px-6 py-3 rounded-full shadow hover:bg-refresh-pink transition text-lg whitespace-nowrap flex items-center gap-2"
               onClick={async () => {
                 // Fetch all recipes only when button is clicked
                 try {
@@ -76,16 +85,9 @@ const HomePage = () => {
                 }
               }}
             >
-           Mi sento fortunato
+              Mi sento fortunato
             </button>
           </div>
-          <Link
-            to="/ricette"
-            className="mt-6 bg-refresh-blue hover:bg-refresh-pink text-white font-semibold px-8 py-3 rounded-full transition text-lg shadow"
-          >
-            <div className='flex flex-col items-center'>
-            Vai alle ricette <p className='text-2xl'> ➤ </p></div>
-          </Link> 
         </div>
 
         {/* Suggested Plates */}
