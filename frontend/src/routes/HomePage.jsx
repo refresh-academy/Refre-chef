@@ -15,6 +15,8 @@ const HomePage = () => {
   const [search, setSearch] = useState('');
   const navigate = useNavigate();
   const [suggested, setSuggested] = useState([]);
+  const [randomRecipe, setRandomRecipe] = useState(null);
+  const [showRandomModal, setShowRandomModal] = useState(false);
 
   useEffect(() => {
     // Carica ricette popolari (più salvate)
@@ -55,6 +57,26 @@ const HomePage = () => {
               onClick={() => navigate('/ricette' + (search ? `?q=${encodeURIComponent(search)}` : ''))}
             >
               Cerca
+            </button>
+            <button
+              className="bg-refresh-pink text-white font-bold px-6 py-3 rounded-full shadow hover:bg-refresh-blue transition text-lg whitespace-nowrap flex items-center gap-2"
+              style={{ height: '48px' }}
+              onClick={async () => {
+                // Fetch all recipes only when button is clicked
+                try {
+                  const res = await fetch('http://localhost:3000/api/ricette');
+                  const data = await res.json();
+                  if (Array.isArray(data) && data.length > 0) {
+                    const random = data[Math.floor(Math.random() * data.length)];
+                    setRandomRecipe(random);
+                    setShowRandomModal(true);
+                  }
+                } catch {
+                  alert('Errore nel caricamento delle ricette.');
+                }
+              }}
+            >
+           Mi sento fortunato
             </button>
           </div>
           <Link
@@ -114,6 +136,48 @@ const HomePage = () => {
         </div>
 
         {/* Le ultime ricette ora non vengono mostrate qui, ma solo nella pagina Ricette */}
+
+        {/* Modal Ricetta Casuale */}
+        {showRandomModal && randomRecipe && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+            <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-lg w-full relative animate-fade-in">
+              <button
+                className="absolute top-2 right-2 text-gray-400 hover:text-refresh-pink text-2xl font-bold"
+                onClick={() => setShowRandomModal(false)}
+                aria-label="Chiudi"
+              >
+                ×
+              </button>
+              <div className="flex flex-row gap-4">
+                <div className="relative w-40 min-w-[10rem] h-40 min-h-[10rem] flex-shrink-0 overflow-hidden">
+                  <img
+                    src={randomRecipe.immagine && randomRecipe.immagine.trim() !== '' ? randomRecipe.immagine : '/fallback-food.jpg'}
+                    alt={randomRecipe.nome}
+                    className="w-full h-full object-cover object-center rounded-lg"
+                    onError={e => (e.target.src = '/fallback-food.jpg')}
+                  />
+                </div>
+                <div className="flex-1 flex flex-col justify-between">
+                  <h3 className="text-xl font-bold text-refresh-blue mb-2">{randomRecipe.nome}</h3>
+                  <div className="mb-1 text-gray-700 text-sm line-clamp-4">{randomRecipe.descrizione}</div>
+                  <div className="flex flex-wrap gap-2 mt-2 text-gray-700 text-base font-semibold items-center">
+                    <span className="flex items-center gap-1"><i className="fa-regular fa-clock" /> {randomRecipe.tempo_preparazione} min</span>
+                    <span className="flex items-center gap-1"><i className="fa-solid fa-fire" /> {randomRecipe.kcal} kcal</span>
+                    <span className="flex items-center gap-1"><i className="fa-solid fa-utensils" /> {randomRecipe.porzioni} porzioni</span>
+                    {randomRecipe.author && <span className="flex items-center gap-1"><i className="fa-solid fa-user" /> {randomRecipe.author}</span>}
+                  </div>
+                  <Link
+                    to={`/ricetta/${randomRecipe.id}`}
+                    className="mt-4 inline-block bg-refresh-blue hover:bg-refresh-pink text-white font-semibold px-6 py-2 rounded-full transition text-lg shadow text-center"
+                    onClick={() => setShowRandomModal(false)}
+                  >
+                    Vai alla ricetta
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
