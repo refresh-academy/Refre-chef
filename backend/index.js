@@ -370,6 +370,25 @@ app.put('/api/groceryList/ingredient', authenticateToken, async (req, res) => {
   }
 });
 
+// Remove all ingredients of a recipe from the user's grocery list
+app.delete('/api/groceryList/recipe', authenticateToken, async (req, res) => {
+  const userId = req.user.userId;
+  const { recipe_id } = req.body;
+  if (!recipe_id) {
+    return res.status(400).json({ error: 'recipe_id is required.' });
+  }
+  try {
+    const result = await dbRun('DELETE FROM groceryList WHERE user_id = ? AND recipe_id = ?', [userId, recipe_id]);
+    if (result.changes > 0) {
+      res.status(200).json({ message: 'Tutti gli ingredienti della ricetta rimossi dalla lista.' });
+    } else {
+      res.status(404).json({ error: 'Nessun ingrediente trovato per questa ricetta nella lista.' });
+    }
+  } catch (err) {
+    res.status(500).json({ error: 'Errore nella rimozione degli ingredienti', details: err.message });
+  }
+});
+
 // Endpoint to get ingredients with grams for a recipe
 app.get('/api/ingredienti/:ricettaId', async (req, res) => {
   const ricettaId = req.params.ricettaId;

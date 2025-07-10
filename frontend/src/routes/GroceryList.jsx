@@ -6,6 +6,7 @@ const GroceryList = () => {
   const [error, setError] = useState('');
   const [editIndex, setEditIndex] = useState(null);
   const [editValue, setEditValue] = useState(1);
+  const [removingRecipeId, setRemovingRecipeId] = useState(null);
 
   const token = localStorage.getItem('token');
 
@@ -102,6 +103,31 @@ const GroceryList = () => {
     }
   };
 
+  const handleRemoveRecipe = async (recipe_id, recipe_name) => {
+    if (!window.confirm(`Rimuovere tutti gli ingredienti di "${recipe_name}" dalla lista?`)) return;
+    setRemovingRecipeId(recipe_id);
+    try {
+      const res = await fetch('http://localhost:3000/api/groceryList/recipe', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : '',
+        },
+        body: JSON.stringify({ recipe_id }),
+      });
+      if (res.ok) {
+        setItems(items.filter(i => String(i.recipe_id) !== String(recipe_id)));
+      } else {
+        const data = await res.json();
+        setError(data.error || 'Errore nella rimozione della ricetta dalla lista');
+      }
+    } catch {
+      setError('Errore di rete.');
+    } finally {
+      setRemovingRecipeId(null);
+    }
+  };
+
   return (
     <div className="relative w-full flex flex-col items-center justify-center" style={{ minHeight: 'calc(100vh - 64px)' }}>
       {/* Overlay bianco trasparente sotto la navbar (navbar height 64px) */}
@@ -128,6 +154,15 @@ const GroceryList = () => {
                 <div className="flex items-center gap-3 mb-2">
                   {group.recipe_image && <img src={group.recipe_image} alt={group.recipe_name} className="w-10 h-10 object-cover rounded" />}
                   <h2 className="text-lg font-semibold text-refresh-pink">{group.recipe_name || 'Aggiunti manualmente'}</h2>
+                  {group.recipe_name && (
+                    <button
+                      className={`ml-2 px-2 py-1 rounded bg-refresh-pink text-white text-xs font-bold hover:bg-refresh-blue transition ${removingRecipeId === recipeId ? 'opacity-60 pointer-events-none' : ''}`}
+                      onClick={() => handleRemoveRecipe(recipeId, group.recipe_name)}
+                      disabled={removingRecipeId === recipeId}
+                    >
+                      {removingRecipeId === recipeId ? 'Rimozione...' : 'Rimuovi tutta la ricetta'}
+                    </button>
+                  )}
                 </div>
                 <ul className="divide-y">
                   {group.items.map((item, idx) => (
