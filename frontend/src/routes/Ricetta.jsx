@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router";
 
 const isLoggedIn = (userId) =>
@@ -19,6 +19,10 @@ const Ricetta = () => {
   const [addedIngredients, setAddedIngredients] = useState([]);
   const [numPorzioni, setNumPorzioni] = useState(null);
   const [savedCount, setSavedCount] = useState(0);
+  const [recensione, setRecensione] = useState(null); // stelle dell'utente
+  const [mediaStelle, setMediaStelle] = useState(0);
+  const [numRecensioni, setNumRecensioni] = useState(0);
+  const [reviewMsg, setReviewMsg] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -40,9 +44,7 @@ const Ricetta = () => {
         if (Array.isArray(data)) {
           setSaved(data.some((r) => String(r.id) === String(id)));
         }
-      } catch {
-        // Ignore errors
-      }
+      } catch {/* Ignora errori */}
     };
     checkSaved();
   }, [userId, id]);
@@ -92,6 +94,64 @@ const Ricetta = () => {
     if (ricetta && ricetta.porzioni) setNumPorzioni(Number(ricetta.porzioni));
   }, [ricetta]);
 
+  // Carica media stelle e recensione utente
+  const fetchRecensioni = useCallback(async () => {
+    if (!id) return;
+    try {
+      const res = await fetch(`http://localhost:3000/api/ricette/${id}/recensioni`);
+      const data = await res.json();
+      if (res.ok) {
+        setMediaStelle(Number(data.media) || 0);
+        setNumRecensioni(Number(data.numero) || 0);
+      }
+    } catch {/* Ignora errori */}
+    // Se loggato, carica la recensione dell'utente
+    if (userId) {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`http://localhost:3000/api/ricette/${id}/recensioni/utente`, {
+          headers: { 'Authorization': token ? `Bearer ${token}` : '' },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setRecensione(data.stelle || null);
+        }
+      } catch {/* Ignora errori */}
+    }
+  }, [id, userId]);
+
+  useEffect(() => { fetchRecensioni(); }, [fetchRecensioni]);
+
+  // Funzione per inviare la recensione
+  const handleReview = async (stelle) => {
+    setReviewMsg('');
+    const token = localStorage.getItem('token');
+    if (!token || !userId) {
+      setReviewMsg('Devi essere loggato per recensire.');
+      return;
+    }
+    try {
+      const res = await fetch(`http://localhost:3000/api/ricette/${id}/recensione`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ stelle }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setRecensione(stelle);
+        setReviewMsg('Recensione salvata!');
+        fetchRecensioni();
+      } else {
+        setReviewMsg(data.error || 'Errore nel salvataggio della recensione');
+      }
+    } catch {
+      setReviewMsg('Errore di rete.');
+    }
+  };
+
   const handleSaveRecipe = async (e) => {
     e.stopPropagation();
     if (!isLoggedIn(userId)) {
@@ -116,9 +176,7 @@ const Ricetta = () => {
           const resSaves = await fetch(`http://localhost:3000/api/ricetta-saves/${id}`);
           const savesData = await resSaves.json();
           setSavedCount(savesData.saved_count || 0);
-        } catch {
-          // Silently ignore errors updating the counter
-        }
+        } catch {/* Silently ignore errors updating the counter */}
       } else {
         const data = await res.json();
         alert(data.error || "Errore durante l'operazione.");
@@ -202,32 +260,36 @@ const Ricetta = () => {
           <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/60 to-transparent p-6 pb-2">
             <h1 className="text-3xl md:text-4xl font-extrabold text-white drop-shadow-lg">{ricetta.nome}</h1>
           </div>
-          {/* Pulsanti azione sopra immagine */}
-          <div className="absolute top-4 right-4 flex gap-2 z-10">
-            <button
-              onClick={handleCopyLink}
-              title="Copia link ricetta"
-              className="bg-white/80 hover:bg-refresh-blue text-refresh-blue hover:text-white rounded-full p-2 shadow transition"
-            >
-              <i className="fa-solid fa-link"></i>
-            </button>
-            <button
-              onClick={handleShare}
-              title="Condividi su Twitter"
-              className="bg-white/80 hover:bg-refresh-pink text-refresh-pink hover:text-white rounded-full p-2 shadow transition"
-            >
-              <i className="fa-solid fa-share-nodes"></i>
-            </button>
-            {isLoggedIn(userId) && (
+          {/* Pulsanti azione sopra immagine + recensioni */}
+          <div className="absolute top-4 right-4 flex flex-col items-end gap-2 z-10">
+            <div className="flex gap-2 items-center">
               <button
-                onClick={handleSaveRecipe}
-                title={saved ? "Rimuovi dai segnalibri" : "Aggiungi ai segnalibri"}
-                aria-label={saved ? "Rimuovi dai segnalibri" : "Aggiungi ai segnalibri"}
-                className={`bg-white/80 rounded-full p-2 shadow transition hover:bg-refresh-blue ${saved ? "text-refresh-blue hover:text-refresh-pink" : "text-gray-400 hover:text-refresh-blue"}`}
+                onClick={handleCopyLink}
+                title="Copia link ricetta"
+                className="bg-white/80 hover:bg-refresh-blue text-refresh-blue hover:text-white rounded-full p-2 shadow transition"
               >
-                <i className={`${saved ? 'fa-solid' : 'fa-regular'} fa-bookmark text-xl`}></i>
+                <i className="fa-solid fa-link"></i>
               </button>
-            )}
+              <button
+                onClick={handleShare}
+                title="Condividi su Twitter"
+                className="bg-white/80 hover:bg-refresh-pink text-refresh-pink hover:text-white rounded-full p-2 shadow transition"
+              >
+                <i className="fa-solid fa-share-nodes"></i>
+              </button>
+              {isLoggedIn(userId) && (
+                <>
+                  <button
+                    onClick={handleSaveRecipe}
+                    title={saved ? "Rimuovi dai segnalibri" : "Aggiungi ai segnalibri"}
+                    aria-label={saved ? "Rimuovi dai segnalibri" : "Aggiungi ai segnalibri"}
+                    className={`bg-white/80 rounded-full p-2 shadow transition hover:bg-refresh-blue ${saved ? "text-refresh-blue hover:text-refresh-pink" : "text-gray-400 hover:text-refresh-blue"}`}
+                  >
+                    <i className={`${saved ? 'fa-solid' : 'fa-regular'} fa-bookmark text-xl`}></i>
+                  </button>
+                </>
+              )}
+            </div>
           </div>
           {/* Bottone carrello */}
           {isLoggedIn(userId) && (
@@ -255,8 +317,8 @@ const Ricetta = () => {
           )}
         </div>
 
-        {/* Info rapide */}
-        <div className="flex flex-wrap gap-4 px-6 py-4 bg-white border-b border-gray-200">
+        {/* Info rapide con rating */}
+        <div className="flex flex-wrap gap-4 px-6 py-4 bg-white border-b border-gray-200 items-center">
           <div className="flex items-center gap-2 text-gray-700 text-base font-semibold"><i className="fa-regular fa-clock mr-1" /> {ricetta.tempo_preparazione} min</div>
           <div className="flex items-center gap-2 text-gray-700 text-base font-semibold"><i className="fa-solid fa-fire mr-1" /> {ricetta.kcal} kcal</div>
           <div className="flex items-center gap-2 text-gray-700 text-base font-semibold"><i className="fa-solid fa-utensils mr-1" /> {ricetta.porzioni} porzioni</div>
@@ -268,6 +330,24 @@ const Ricetta = () => {
               </Link>
             </div>
           )}
+          {/* Stelle e recensioni - ora nella barra info */}
+          <div className="flex items-center gap-2 ml-2">
+            <span className="text-yellow-400 text-lg md:text-xl animate-pulse">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <i key={i} className={
+                  i < Math.round(mediaStelle)
+                    ? 'fa-solid fa-star drop-shadow'
+                    : 'fa-regular fa-star text-gray-300'
+                }></i>
+              ))}
+            </span>
+            <span className="bg-white border border-yellow-300 text-yellow-600 font-bold rounded-full px-2 py-0.5 text-base shadow-inner ml-1">
+              {mediaStelle.toFixed(1)} / 5
+            </span>
+            <span className="bg-refresh-blue/10 text-refresh-blue font-semibold rounded-full px-2 py-0.5 text-xs ml-1">
+              {numRecensioni} recensioni
+            </span>
+          </div>
           {/* Numero di salvataggi */}
           <div className="flex items-center gap-2 text-refresh-blue font-bold text-base" title="Numero di salvataggi">
             <i className="fa-solid fa-bookmark" />
@@ -275,7 +355,7 @@ const Ricetta = () => {
           </div>
         </div>
 
-        {/* Ingredienti e preparazione affiancati */}
+        {/* Ingredienti, preparazione e recensione utente affiancati */}
         <div className="flex flex-col md:flex-row gap-8 px-6 py-8 bg-white">
           {/* Ingredienti */}
           <div className="md:w-1/3 w-full">
@@ -322,7 +402,8 @@ const Ricetta = () => {
                     >
                       <span className="font-medium text-refresh-blue">{ing.ingrediente}</span>
                       <span className="bg-refresh-pink/10 text-refresh-pink font-bold rounded-full px-3 py-1 text-sm ml-4 shadow-inner">
-                        {Math.round((ing.grammi * (numPorzioni || ricetta?.porzioni || 1)) / (ricetta?.porzioni || 1))}{ing.unita ? ing.unita : 'g'}
+                        {Math.round((ing.grammi * (numPorzioni || ricetta?.porzioni || 1)) / (ricetta?.porzioni || 1))}
+                        {ing.unita && ing.unita !== 'n' ? ing.unita : ''}
                       </span>
                     </li>
                   ))
@@ -335,8 +416,8 @@ const Ricetta = () => {
               )}
             </div>
           </div>
-          {/* Preparazione */}
-          <div className="md:w-2/3 w-full">
+          {/* Preparazione e recensione utente */}
+          <div className="md:w-2/3 w-full flex flex-col gap-4">
             <div className="bg-gray-50 rounded-2xl shadow p-5">
               <h2 className="text-xl font-bold text-refresh-pink mb-3">Preparazione</h2>
               {ricetta.steps && ricetta.steps.length > 0 ? (
@@ -351,6 +432,33 @@ const Ricetta = () => {
                 </div>
               )}
             </div>
+            {/* Form recensione utente - UI migliorata (ora accanto a ingredienti, sotto preparazione) */}
+            {isLoggedIn(userId) && (
+              <div className="flex flex-col md:flex-row md:items-center gap-2 mb-6 mt-1 bg-gray-50 rounded-2xl shadow p-5">
+                <span className="text-gray-700 font-semibold">La tua recensione:</span>
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      className={`text-base md:text-lg focus:outline-none transition-transform duration-150 ${recensione && i < recensione ? 'scale-110' : ''}`}
+                      onClick={() => handleReview(i + 1)}
+                      aria-label={`Dai ${i + 1} stelle`}
+                      style={{ cursor: 'pointer' }}
+                      onMouseOver={e => e.currentTarget.classList.add('text-yellow-300')}
+                      onMouseOut={e => e.currentTarget.classList.remove('text-yellow-300')}
+                    >
+                      <i className={
+                        recensione && i < recensione
+                          ? 'fa-solid fa-star text-yellow-400 drop-shadow'
+                          : 'fa-regular fa-star text-gray-300'
+                      }></i>
+                    </button>
+                  ))}
+                </div>
+                {reviewMsg && <span className="ml-2 text-sm text-refresh-blue font-semibold">{reviewMsg}</span>}
+              </div>
+            )}
           </div>
         </div>
 

@@ -138,6 +138,11 @@ const AddRecipe = ({ user, editMode }) => {
     }
     try {
       const token = localStorage.getItem('token');
+      if (!token || token.length < 20) {
+        setError('Sessione scaduta o non autenticata. Fai login di nuovo.');
+        setLoading(false);
+        return;
+      }
       const sanitizedForm = {
         ...form,
         nome: form.nome.trim(),
@@ -222,7 +227,7 @@ const AddRecipe = ({ user, editMode }) => {
           <input name="kcal" value={form.kcal} onChange={handleChange} placeholder="Kcal*" type="number" className="border p-2 rounded" required min={1} />
           {/* Ingredienti dinamici */}
           <div className="flex flex-col gap-2">
-            <label className="font-semibold">Ingredienti* (nome e grammi)</label>
+            <label className="font-semibold">Ingredienti</label>
             {ingredients.map((ing, idx) => (
               <div key={idx} className="flex gap-2 items-center">
                 <input
@@ -254,6 +259,8 @@ const AddRecipe = ({ user, editMode }) => {
                   <option value="ml">ml</option>
                   <option value="n">n</option>
                 </select>
+                {/* Mostra l'unità solo se diversa da 'n' nell'anteprima */}
+                {ing.unita !== 'n' && <span className="text-gray-500 font-normal">{ing.unita}</span>}
                 <button type="button" onClick={() => handleRemoveIngredient(idx)} className="text-red-500 hover:text-red-700 text-xl font-bold px-2">&times;</button>
               </div>
             ))}

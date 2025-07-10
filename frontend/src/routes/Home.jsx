@@ -3,6 +3,43 @@ import { useOutletContext, useNavigate, useLocation } from 'react-router';
 
 const RECIPES_PER_PAGE = 10;
 
+// Componente per mostrare le stelle media recensioni
+function RecipeStars({ recipeId }) {
+  const [media, setMedia] = useState(0);
+  const [numero, setNumero] = useState(0);
+  useEffect(() => {
+    let active = true;
+    fetch(`http://localhost:3000/api/ricette/${recipeId}/recensioni`)
+      .then(res => res.json())
+      .then(data => {
+        if (active && data && typeof data.media !== 'undefined') {
+          setMedia(Number(data.media) || 0);
+          setNumero(Number(data.numero) || 0);
+        }
+      });
+    return () => { active = false; };
+  }, [recipeId]);
+  return (
+    <span className="flex items-center gap-1 ml-2">
+      <span className="text-yellow-400 text-base animate-pulse">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <i key={i} className={
+            i < Math.round(media)
+              ? 'fa-solid fa-star drop-shadow'
+              : 'fa-regular fa-star text-gray-300'
+          }></i>
+        ))}
+      </span>
+      <span className="bg-white border border-yellow-300 text-yellow-600 font-bold rounded-full px-1 py-0.5 text-xs shadow-inner ml-1">
+        {media.toFixed(1)}
+      </span>
+      <span className="bg-refresh-blue/10 text-refresh-blue font-semibold rounded-full px-1 py-0.5 text-xs ml-1">
+        {numero}
+      </span>
+    </span>
+  );
+}
+
 function RecipeCard({ ricetta, userId, saved, handleSaveRecipe, handleRecipeClick, search, saving }) {
   const [imgError, setImgError] = useState(false);
   const imageUrl = ricetta.immagine && ricetta.immagine.trim() !== '' && !imgError ? ricetta.immagine : '/fallback-food.jpg';
@@ -47,6 +84,8 @@ function RecipeCard({ ricetta, userId, saved, handleSaveRecipe, handleRecipeClic
           <span className="flex items-center gap-1"><i className="fa-solid fa-fire" /> {ricetta.kcal} kcal</span>
           <span className="flex items-center gap-1"><i className="fa-solid fa-utensils" /> {ricetta.porzioni} porzioni</span>
           {ricetta.author && <span className="flex items-center gap-1"><i className="fa-solid fa-user" /> {ricetta.author}</span>}
+          {/* Stelle media recensioni */}
+          <RecipeStars recipeId={ricetta.id} />
           {/* Numero di salvataggi */}
           <span className="flex items-center gap-1 text-refresh-blue font-bold" title="Numero di salvataggi">
             <i className="fa-solid fa-bookmark" />

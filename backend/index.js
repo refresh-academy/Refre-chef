@@ -32,6 +32,15 @@ const db = new sqlite3.Database(dbPath, (err) => {
       recipe_id INTEGER NOT NULL,
       UNIQUE(user_id, ingredient, recipe_id)
     )`);
+    // Crea la tabella recensioni se non esiste
+    db.run(`CREATE TABLE IF NOT EXISTS recensioni (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      ricetta_id INTEGER NOT NULL,
+      user_id INTEGER NOT NULL,
+      stelle INTEGER NOT NULL CHECK(stelle >= 1 AND stelle <= 5),
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(ricetta_id, user_id)
+    )`);
   }
 });
 
@@ -531,6 +540,54 @@ app.get('/api/chef/:authorId/ricette', async (req, res) => {
     res.json(ricette);
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+// Endpoint per aggiungere una recensione (stelle) a una ricetta
+app.post('/api/ricette/:id/recensione', authenticateToken, async (req, res) => {
+  const ricettaId = req.params.id;
+  const userId = req.user.userId;
+  const { stelle } = req.body;
+  if (!stelle || stelle < 1 || stelle > 5) {
+    return res.status(400).json({ error: 'Le stelle devono essere tra 1 e 5.' });
+  }
+  try {
+    // Inserisce o aggiorna la recensione dell'utente per questa ricetta, aggiorna anche created_at
+    await dbRun(
+      `INSERT INTO recensioni (ricetta_id, user_id, stelle, created_at) VALUES (?, ?, ?, datetime('now'))
+       ON CONFLICT(ricetta_id, user_id) DO UPDATE SET stelle = excluded.stelle, created_at = datetime('now')`,
+      [ricettaId, userId, stelle]
+    );
+    res.status(201).json({ message: 'Recensione salvata.' });
+  } catch (err) {
+    res.status(500).json({ error: 'Errore nel salvataggio della recensione', details: err.message });
+  }
+});
+
+// Endpoint per ottenere la recensione dell'utente autenticato per una ricetta
+app.get('/api/ricette/:id/recensioni/utente', authenticateToken, async (req, res) => {
+  const ricettaId = req.params.id;
+  const userId = req.user.userId;
+  try {
+    const rows = await dbAll('SELECT stelle, created_at FROM recensioni WHERE ricetta_id = ? AND user_id = ?', [ricettaId, userId]);
+    if (rows.length > 0) {
+      res.status(200).json({ stelle: rows[0].stelle, created_at: rows[0].created_at });
+    } else {
+      res.status(200).json({ stelle: null, created_at: null });
+    }
+  } catch (err) {
+    res.status(500).json({ error: 'Errore nel recupero della recensione utente', details: err.message });
+  }
+});
+
+// Endpoint per ottenere la media stelle e il numero di recensioni di una ricetta
+app.get('/api/ricette/:id/recensioni', async (req, res) => {
+  const ricettaId = req.params.id;
+  try {
+    const rows = await dbAll('SELECT AVG(stelle) as media, COUNT(*) as numero FROM recensioni WHERE ricetta_id = ?', [ricettaId]);
+    res.status(200).json({ media: rows[0]?.media || 0, numero: rows[0]?.numero || 0 });
+  } catch (err) {
+    res.status(500).json({ error: 'Errore nel recupero delle recensioni', details: err.message });
   }
 });
 
