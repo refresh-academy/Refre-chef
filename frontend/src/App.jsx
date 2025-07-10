@@ -14,6 +14,7 @@ import HomePage from './routes/HomePage.jsx'
 import MyRecipes from './routes/MyRecipes.jsx'
 import ChefProfile from './routes/ChefProfile.jsx';
 import { jwtDecode } from 'jwt-decode';
+import Footer from './Footer.jsx';
 
 
 const Layout = ({ user }) => {
@@ -215,6 +216,7 @@ const Layout = ({ user }) => {
           ? { search, setSearch, maxTime, setMaxTime, maxKcal, setMaxKcal, alimentazione, setAlimentazione }
           : { search: '', setSearch: () => {}, maxTime: '', setMaxTime: () => {}, maxKcal: '', setMaxKcal: () => {}, alimentazione: '', setAlimentazione: () => {} }
       } />
+      <Footer />
     </div>
   );
 }
