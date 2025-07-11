@@ -255,6 +255,7 @@ const GroceryList = () => {
                             <option value="g">g</option>
                             <option value="ml">ml</option>
                             <option value="n">n</option>
+                            <option value="qb">qb</option>
                           </select>
                         </div>
                       ) : (
