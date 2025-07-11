@@ -210,6 +210,15 @@ const Layout = ({ user }) => {
                 <option value="Vegan">🌱 Vegano</option>
               </select>
             </div>
+            <button
+              className="ml-8 flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-refresh-blue to-refresh-pink text-white font-bold shadow-lg border-none transition-all duration-200 hover:from-refresh-pink hover:to-refresh-blue hover:scale-105 focus:outline-none focus:ring-2 focus:ring-refresh-pink focus:ring-offset-2"
+              onClick={() => { setMaxTime(''); setMaxKcal(''); setAlimentazione(''); }}
+              style={{height: '40px', minWidth: '140px'}}
+              title="Reset filtri"
+            >
+              <i className="fa-solid fa-rotate-left text-lg" />
+              Reset filtri
+            </button>
           </div>
         </div>
       )}
