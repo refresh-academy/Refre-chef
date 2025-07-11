@@ -223,6 +223,7 @@ const Layout = ({ user }) => {
                 className="w-48 p-2 border-2 border-yellow-300 rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all duration-200 hover:border-refresh-pink"
               >
                 <option value="nome">Nome (A-Z)</option>
+                <option value="nomeZA">Nome (Z-A)</option>
                 <option value="salvati">Più salvate</option>
               </select>
             </div>

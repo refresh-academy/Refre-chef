@@ -315,6 +315,12 @@ const Home = (props) => {
     .sort((a, b) => {
       if (sortBy === 'salvati') {
         return (b.saved_count || 0) - (a.saved_count || 0);
+      } else if (sortBy === 'nomeZA') {
+        const nameA = (a.nome || '').toLowerCase();
+        const nameB = (b.nome || '').toLowerCase();
+        if (nameA < nameB) return 1;
+        if (nameA > nameB) return -1;
+        return 0;
       } else {
         const nameA = (a.nome || '').toLowerCase();
         const nameB = (b.nome || '').toLowerCase();
