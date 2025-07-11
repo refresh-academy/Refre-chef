@@ -145,7 +145,7 @@ const Home = (props) => {
   const [saved, setSaved] = useState([]);
   const [popolari, setPopolari] = useState([]);
   const [savingMap, setSavingMap] = useState({}); // { [ricettaId]: true/false }
-  const { maxTime, maxKcal, alimentazione } = useOutletContext();
+  const { maxTime, maxKcal, alimentazione, sortBy } = useOutletContext();
   const location = useLocation();
   const navigate = useNavigate();
   // Prendo userId solo da props.user, così la visibilità è reattiva e sicura
@@ -313,11 +313,15 @@ const Home = (props) => {
       return true;
     })
     .sort((a, b) => {
-      const nameA = (a.nome || '').toLowerCase();
-      const nameB = (b.nome || '').toLowerCase();
-      if (nameA < nameB) return -1;
-      if (nameA > nameB) return 1;
-      return 0;
+      if (sortBy === 'salvati') {
+        return (b.saved_count || 0) - (a.saved_count || 0);
+      } else {
+        const nameA = (a.nome || '').toLowerCase();
+        const nameB = (b.nome || '').toLowerCase();
+        if (nameA < nameB) return -1;
+        if (nameA > nameB) return 1;
+        return 0;
+      }
     });
 
   const totalPages = Math.ceil(filteredRecipes.length / RECIPES_PER_PAGE);

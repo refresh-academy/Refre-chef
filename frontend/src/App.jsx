@@ -27,6 +27,7 @@ const Layout = ({ user }) => {
   const [maxTime, setMaxTime] = useState('');
   const [maxKcal, setMaxKcal] = useState('');
   const [alimentazione, setAlimentazione] = useState('');
+  const [sortBy, setSortBy] = useState('nome');
   const dropdownRef = useRef(null);
   const location = useLocation();
   const navigate = useNavigate();
@@ -210,9 +211,24 @@ const Layout = ({ user }) => {
                 <option value="Vegan">🌱 Vegano</option>
               </select>
             </div>
+            <div className="flex flex-col items-center justify-end">
+              <label htmlFor="sortBy" className="flex items-center gap-2 text-xs font-semibold px-2 py-1 rounded bg-yellow-50 text-yellow-700 border border-yellow-300 shadow mb-2">
+                <i className="fa-solid fa-arrow-down-a-z text-yellow-700" />
+                Ordina per
+              </label>
+              <select
+                id="sortBy"
+                value={sortBy}
+                onChange={e => setSortBy(e.target.value)}
+                className="w-48 p-2 border-2 border-yellow-300 rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all duration-200 hover:border-refresh-pink"
+              >
+                <option value="nome">Nome (A-Z)</option>
+                <option value="salvati">Più salvate</option>
+              </select>
+            </div>
             <button
               className="ml-8 flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-refresh-blue to-refresh-pink text-white font-bold shadow-lg border-none transition-all duration-200 hover:from-refresh-pink hover:to-refresh-blue hover:scale-105 focus:outline-none focus:ring-2 focus:ring-refresh-pink focus:ring-offset-2"
-              onClick={() => { setMaxTime(''); setMaxKcal(''); setAlimentazione(''); }}
+              onClick={() => { setMaxTime(''); setMaxKcal(''); setAlimentazione(''); setSortBy('nome'); }}
               style={{height: '40px', minWidth: '140px'}}
               title="Reset filtri"
             >
@@ -224,8 +240,8 @@ const Layout = ({ user }) => {
       )}
       <Outlet context={
         location.pathname === '/ricette'
-          ? { search, setSearch, maxTime, setMaxTime, maxKcal, setMaxKcal, alimentazione, setAlimentazione }
-          : { search: '', setSearch: () => {}, maxTime: '', setMaxTime: () => {}, maxKcal: '', setMaxKcal: () => {}, alimentazione: '', setAlimentazione: () => {} }
+          ? { search, setSearch, maxTime, setMaxTime, maxKcal, setMaxKcal, alimentazione, setAlimentazione, sortBy, setSortBy }
+          : { search: '', setSearch: () => {}, maxTime: '', setMaxTime: () => {}, maxKcal: '', setMaxKcal: () => {}, alimentazione: '', setAlimentazione: () => {}, sortBy: 'nome', setSortBy: () => {} }
       } />
       <Footer />
     </div>
