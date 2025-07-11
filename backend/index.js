@@ -49,6 +49,16 @@ const db = new sqlite3.Database(dbPath, (err) => {
       messaggio TEXT NOT NULL,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )`);
+    // Create commenti table if it doesn't exist
+    db.run(`CREATE TABLE IF NOT EXISTS commenti (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      ricetta_id INTEGER NOT NULL,
+      user_id INTEGER NOT NULL,
+      testo TEXT NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY(ricetta_id) REFERENCES ricettario(id),
+      FOREIGN KEY(user_id) REFERENCES utenti(id_user)
+    )`);
   }
 });
 
@@ -615,6 +625,38 @@ app.post('/api/contatti', async (req, res) => {
     res.status(201).json({ message: 'Messaggio inviato con successo!' });
   } catch (err) {
     res.status(500).json({ error: 'Errore nel salvataggio del messaggio', details: err.message });
+  }
+});
+
+// Endpoint to add a comment to a recipe
+app.post('/api/ricette/:id/commento', authenticateToken, async (req, res) => {
+  const ricettaId = req.params.id;
+  const userId = req.user.userId;
+  const { testo } = req.body;
+  if (!testo || testo.trim().length === 0) {
+    return res.status(400).json({ error: 'Il commento non può essere vuoto.' });
+  }
+  try {
+    await dbRun(
+      `INSERT INTO commenti (ricetta_id, user_id, testo) VALUES (?, ?, ?)`,
+      [ricettaId, userId, testo.trim()]
+    );
+    res.status(201).json({ message: 'Commento aggiunto.' });
+  } catch (err) {
+    res.status(500).json({ error: 'Errore nel salvataggio del commento', details: err.message });
+  }
+});
+// Endpoint to get all comments for a recipe
+app.get('/api/ricette/:id/commenti', async (req, res) => {
+  const ricettaId = req.params.id;
+  try {
+    const rows = await dbAll(
+      `SELECT c.id, c.testo, c.created_at, u.nickname as author FROM commenti c LEFT JOIN utenti u ON c.user_id = u.id_user WHERE c.ricetta_id = ? ORDER BY c.created_at ASC`,
+      [ricettaId]
+    );
+    res.status(200).json(rows);
+  } catch (err) {
+    res.status(500).json({ error: 'Errore nel recupero dei commenti', details: err.message });
   }
 });
 
