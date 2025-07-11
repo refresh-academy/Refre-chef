@@ -301,9 +301,11 @@ app.get('/api/ricetteSalvate', authenticateToken, async (req, res) => {
   const userId = req.user.userId;
   try {
     const savedRecipes = await dbAll(
-      `SELECT r.id, r.nome, r.alimentazione, r.immagine, r.descrizione, r.kcal, r.tempo_preparazione, r.porzioni
+      `SELECT r.id, r.nome, r.alimentazione, r.immagine, r.descrizione, r.kcal, r.tempo_preparazione, r.porzioni, r.allergeni, r.author_id, u.nickname as author,
+        (SELECT COUNT(*) FROM ricetteSalvate s2 WHERE s2.id_ricetta = r.id) as saved_count
        FROM ricettario r
        INNER JOIN ricetteSalvate s ON r.id = s.id_ricetta
+       LEFT JOIN utenti u ON r.author_id = u.id_user
        WHERE s.id_user = ?`,
       [userId]
     );
