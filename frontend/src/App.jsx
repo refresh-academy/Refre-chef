@@ -233,20 +233,9 @@ function ProtectedGroceryList({ user }) {
 
 function App() {
   const [user, setUser] = useState(null);
-  const navigate = useNavigate();
-
   // Make setUser available globally for logout in Layout
   useEffect(() => { window.setUser = setUser; }, [setUser]);
-
-  // Logout function
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('token');
-    localStorage.removeItem('userId');
-    if (navigate) navigate('/login');
-  };
-
-  // Persist user session after refresh and handle token expiration
+  // Persist user session after refresh
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
@@ -254,30 +243,11 @@ function App() {
         const decoded = jwtDecode(token);
         if (decoded && decoded.userId && decoded.nickname) {
           setUser({ userId: decoded.userId, nickname: decoded.nickname });
-          // Check token expiration
-          if (decoded.exp) {
-            const expMs = decoded.exp * 1000;
-            const now = Date.now();
-            if (expMs <= now) {
-              logout();
-            } else {
-              // Set timer to auto-logout at expiration
-              const timeout = setTimeout(() => {
-                logout();
-                alert('Sessione scaduta. Effettua di nuovo il login.');
-              }, expMs - now);
-              return () => clearTimeout(timeout);
-            }
-          }
         }
       } catch {
         // Ignore invalid token
-        logout();
       }
-    } else {
-      setUser(null);
     }
-    // eslint-disable-next-line
   }, []);
   return (
     <BrowserRouter>
