@@ -3,15 +3,31 @@ import React, { useState } from 'react';
 const Contatti = () => {
   const [form, setForm] = useState({ nome: '', email: '', messaggio: '' });
   const [sent, setSent] = useState(false);
+  const [error, setError] = useState('');
 
   const handleChange = e => {
     const { name, value } = e.target;
     setForm(f => ({ ...f, [name]: value }));
   };
 
-  const handleSubmit = e => {
+  const handleSubmit = async e => {
     e.preventDefault();
-    setSent(true);
+    setError('');
+    try {
+      const res = await fetch('/api/contatti', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setSent(true);
+      } else {
+        setError(data.error || 'Errore nell\'invio del messaggio.');
+      }
+    } catch {
+      setError('Errore di rete.');
+    }
   };
 
   return (
@@ -60,6 +76,7 @@ const Contatti = () => {
                 rows={4}
                 required
               />
+              {error && <div className="text-red-500 text-sm">{error}</div>}
               <button type="submit" className="bg-refresh-blue text-white font-bold py-2 rounded hover:bg-refresh-pink transition">
                 Invia messaggio
               </button>

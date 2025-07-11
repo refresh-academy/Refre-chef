@@ -41,6 +41,14 @@ const db = new sqlite3.Database(dbPath, (err) => {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       UNIQUE(ricetta_id, user_id)
     )`);
+    // Crea la tabella contatti se non esiste
+    db.run(`CREATE TABLE IF NOT EXISTS contatti (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      nome TEXT NOT NULL,
+      email TEXT NOT NULL,
+      messaggio TEXT NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`);
   }
 });
 
@@ -588,6 +596,23 @@ app.get('/api/ricette/:id/recensioni', async (req, res) => {
     res.status(200).json({ media: rows[0]?.media || 0, numero: rows[0]?.numero || 0 });
   } catch (err) {
     res.status(500).json({ error: 'Errore nel recupero delle recensioni', details: err.message });
+  }
+});
+
+// Endpoint per ricevere i messaggi di contatto
+app.post('/api/contatti', async (req, res) => {
+  const { nome, email, messaggio } = req.body;
+  if (!nome || !email || !messaggio) {
+    return res.status(400).json({ error: 'Tutti i campi sono obbligatori.' });
+  }
+  try {
+    await dbRun(
+      `INSERT INTO contatti (nome, email, messaggio) VALUES (?, ?, ?)`,
+      [nome, email, messaggio]
+    );
+    res.status(201).json({ message: 'Messaggio inviato con successo!' });
+  } catch (err) {
+    res.status(500).json({ error: 'Errore nel salvataggio del messaggio', details: err.message });
   }
 });
 
