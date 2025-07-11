@@ -126,8 +126,12 @@ const AddRecipe = ({ user, editMode }) => {
       setLoading(false);
       return;
     }
-    if (ingredients.some(ing => !ing.nome || !ing.grammi || Number(ing.grammi) < 1)) {
-      setError('Compila tutti gli ingredienti e i grammi (solo valori positivi).');
+    if (ingredients.some(ing =>
+      !ing.nome ||
+      !ing.unita ||
+      (ing.unita !== 'q.b.' && (!ing.grammi || Number(ing.grammi) < 1))
+    )) {
+      setError('Compila tutti gli ingredienti: nome e unità obbligatori, quantità solo se non è q.b.');
       setLoading(false);
       return;
     }
@@ -242,11 +246,12 @@ const AddRecipe = ({ user, editMode }) => {
                   name="grammi"
                   type="number"
                   min="1"
-                  value={ing.grammi}
+                  value={ing.unita === 'q.b.' ? 1 : ing.grammi}
                   onChange={e => handleIngredientChange(idx, e)}
                   placeholder="Quantità"
                   className="border p-2 rounded w-28"
-                  required
+                  required={ing.unita !== 'q.b.' ? true : false}
+                  disabled={ing.unita === 'q.b.'}
                 />
                 <select
                   name="unita"
@@ -258,6 +263,7 @@ const AddRecipe = ({ user, editMode }) => {
                   <option value="g">g</option>
                   <option value="ml">ml</option>
                   <option value="n">n</option>
+                  <option value="q.b.">q.b.</option>
                 </select>
                 {/* Mostra l'unità solo se diversa da 'n' nell'anteprima */}
                 {ing.unita !== 'n' && <span className="text-gray-500 font-normal">{ing.unita}</span>}
