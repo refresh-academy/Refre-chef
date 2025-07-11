@@ -546,6 +546,33 @@ const Ricetta = () => {
                     </div>
                   )}
                 </div>
+                {/* Form recensione utente - UI migliorata (ora accanto a ingredienti, sotto preparazione) */}
+                {isLoggedIn(userId) && (
+                  <div className="flex flex-col md:flex-row md:items-center gap-2 mb-6 mt-1 bg-gray-50 rounded-2xl shadow p-5">
+                    <span className="text-gray-700 font-semibold">La tua recensione:</span>
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <button
+                          key={i}
+                          type="button"
+                          className={`text-base md:text-lg focus:outline-none transition-transform duration-150 ${recensione && i < recensione ? 'scale-110' : ''}`}
+                          onClick={() => handleReview(i + 1)}
+                          aria-label={`Dai ${i + 1} stelle`}
+                          style={{ cursor: 'pointer' }}
+                          onMouseOver={e => e.currentTarget.classList.add('text-yellow-300')}
+                          onMouseOut={e => e.currentTarget.classList.remove('text-yellow-300')}
+                        >
+                          <i className={
+                            recensione && i < recensione
+                              ? 'fa-solid fa-star text-yellow-400 drop-shadow'
+                              : 'fa-regular fa-star text-gray-300'
+                          }></i>
+                        </button>
+                      ))}
+                    </div>
+                    {reviewMsg && <span className="ml-2 text-sm text-refresh-blue font-semibold">{reviewMsg}</span>}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -581,37 +608,7 @@ const Ricetta = () => {
         {/* Commenti - card separata, subito sotto la scheda ricetta */}
         <div className="w-full max-w-2xl mx-auto mt-8 mb-16 bg-white rounded-3xl shadow-2xl p-6 border-t-4 border-refresh-blue relative z-10">
           <h2 className="text-2xl font-bold text-refresh-blue mb-6 text-center">Commenti</h2>
-          {/* Messaggio nessun commento sopra la recensione utente */}
-          {comments.length === 0 && (
-            <div className="text-gray-500 mb-4 text-center font-semibold">Nessun commento ancora. Sii il primo a commentare!</div>
-          )}
-          {/* Stelle recensione utente sotto il messaggio nessun commento */}
-          {isLoggedIn(userId) && comments.length === 0 && false && (
-            <div className="flex flex-row items-center gap-3 mb-6 mt-1 bg-gray-50 rounded-2xl shadow p-5 justify-center">
-              <span className="text-gray-700 font-semibold">La tua recensione:</span>
-              <div className="flex items-center gap-1">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <button
-                    key={i}
-                    type="button"
-                    className={`text-base md:text-lg focus:outline-none transition-transform duration-150 ${recensione && i < recensione ? 'scale-110' : ''}`}
-                    onClick={() => handleReview(i + 1)}
-                    aria-label={`Dai ${i + 1} stelle`}
-                    style={{ cursor: 'pointer' }}
-                    onMouseOver={e => e.currentTarget.classList.add('text-yellow-300')}
-                    onMouseOut={e => e.currentTarget.classList.remove('text-yellow-300')}
-                  >
-                    <i className={
-                      recensione && i < recensione
-                        ? 'fa-solid fa-star text-yellow-400 drop-shadow'
-                        : 'fa-regular fa-star text-gray-300'
-                    }></i>
-                  </button>
-                ))}
-              </div>
-              {reviewMsg && <span className="ml-2 text-sm text-refresh-blue font-semibold">{reviewMsg}</span>}
-            </div>
-          )}
+          {comments.length === 0 && <div className="text-gray-500 mb-4 text-center">Nessun commento ancora. Sii il primo a commentare!</div>}
           <ul className="flex flex-col gap-6 mb-8">
             {comments.map(c => (
               <li key={c.id} className="flex flex-col items-start bg-gray-50 rounded-xl shadow p-4 border border-gray-100">
@@ -660,39 +657,14 @@ const Ricetta = () => {
             ))}
           </ul>
           {isLoggedIn(userId) && (
-            <form onSubmit={handleSubmitComment} className="flex flex-col gap-2 mt-4 relative">
-              <div className="absolute left-2 top-2 flex flex-row items-center gap-2 z-10 bg-white/80 px-2 py-1 rounded">
-                <span className="text-gray-700 font-semibold text-sm">La tua recensione:</span>
-                <div className="flex items-center gap-1">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <button
-                      key={i}
-                      type="button"
-                      className={`text-base md:text-lg focus:outline-none transition-transform duration-150 ${recensione && i < recensione ? 'scale-110' : ''}`}
-                      onClick={() => handleReview(i + 1)}
-                      aria-label={`Dai ${i + 1} stelle`}
-                      style={{ cursor: 'pointer' }}
-                      onMouseOver={e => e.currentTarget.classList.add('text-yellow-300')}
-                      onMouseOut={e => e.currentTarget.classList.remove('text-yellow-300')}
-                    >
-                      <i className={
-                        recensione && i < recensione
-                          ? 'fa-solid fa-star text-yellow-400 drop-shadow'
-                          : 'fa-regular fa-star text-gray-300'
-                      }></i>
-                    </button>
-                  ))}
-                </div>
-                {reviewMsg && <span className="ml-2 text-xs text-refresh-blue font-semibold">{reviewMsg}</span>}
-              </div>
+            <form onSubmit={handleSubmitComment} className="flex flex-col gap-2 mt-4">
               <textarea
                 value={commentText}
                 onChange={e => setCommentText(e.target.value)}
                 rows={3}
                 maxLength={500}
                 placeholder="Scrivi un commento..."
-                className="border rounded-lg p-2 w-full focus:outline-none focus:ring-2 focus:ring-refresh-blue pt-8"
-                style={{ paddingTop: '2.5rem' }}
+                className="border rounded-lg p-2 w-full focus:outline-none focus:ring-2 focus:ring-refresh-blue"
               />
               <div className="flex items-center gap-2">
                 <button type="submit" className="bg-refresh-blue text-white font-bold px-4 py-2 rounded hover:bg-refresh-pink transition">Invia</button>
