@@ -13,6 +13,8 @@ import NotFound from './routes/NotFound.jsx'
 import HomePage from './routes/HomePage.jsx'
 import MyRecipes from './routes/MyRecipes.jsx'
 import ChefProfile from './routes/ChefProfile.jsx';
+import ChiSiamo from './routes/ChiSiamo.jsx';
+import Privacy from './routes/Privacy.jsx';
 import { jwtDecode } from 'jwt-decode';
 import Footer from './Footer.jsx';
 
@@ -56,6 +58,12 @@ const Layout = ({ user }) => {
         <div className="flex-1" />
         {/* Desktop nav links */}
         <div className="hidden md:flex flex-row items-center gap-2 pr-4">
+          <Link to="/chi-siamo" className="flex items-center justify-center pr-4 text-refresh-blue font-semibold hover:bg-white hover:text-refresh-pink rounded px-3 py-1 transition">
+            Chi siamo
+          </Link>
+          <Link to="/privacy" className="flex items-center justify-center pr-4 text-refresh-blue font-semibold hover:bg-white hover:text-refresh-pink rounded px-3 py-1 transition">
+            Privacy
+          </Link>
           {
             user ? (
               <>
@@ -118,7 +126,8 @@ const Layout = ({ user }) => {
           </button>
           {mobileMenuOpen && (
             <div className="absolute top-16 right-4 bg-white border rounded shadow-lg z-50 flex flex-col min-w-[180px]">
-              <Link to={'/ricette'} className='px-4 py-2 text-refresh-blue font-semibold hover:bg-white hover:text-refresh-pink border-b rounded transition' onClick={() => setMobileMenuOpen(false)}>Ricette</Link>
+              <Link to={'/chi-siamo'} className='px-4 py-2 text-refresh-blue font-semibold hover:bg-white hover:text-refresh-pink border-b rounded transition' onClick={() => setMobileMenuOpen(false)}>Chi siamo</Link>
+              <Link to={'/privacy'} className='px-4 py-2 text-refresh-blue font-semibold hover:bg-white hover:text-refresh-pink border-b rounded transition' onClick={() => setMobileMenuOpen(false)}>Privacy</Link>
               {user ? (
                 <>
                   <Link to="/add-recipe" className="px-4 py-2 text-refresh-blue font-semibold hover:bg-white hover:text-refresh-pink border-b rounded transition" onClick={() => setMobileMenuOpen(false)}>Crea ricetta</Link>
@@ -254,7 +263,7 @@ function App() {
       <div className="fixed inset-0 -z-10 w-full h-full bg-cover bg-center bg-no-repeat bg-fixed bg-white" style={{ backgroundImage: "url('/background.webp')" }} />
       <Routes>
         <Route element={<Layout user={user} />}> 
-          <Route path="/" element={<HomePage />} />
+          <Route index element={<HomePage user={user} />} />
           <Route path="/ricette" element={<Home user={user} />} />
           <Route path="/login" element={<Login setUser={setUser} />} />
           <Route path="/register" element={<Registration />} />
@@ -266,6 +275,8 @@ function App() {
           <Route path="/grocery-list" element={<ProtectedGroceryList user={user} />} />
           <Route path="/my-recipes" element={<MyRecipes user={user} />} />
           <Route path="/chef/:authorId" element={<ChefProfile />} />
+          <Route path="chi-siamo" element={<ChiSiamo />} />
+          <Route path="privacy" element={<Privacy />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
