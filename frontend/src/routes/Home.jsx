@@ -73,7 +73,7 @@ function RecipeCard({ ricetta, userId, saved, handleSaveRecipe, handleRecipeClic
           onError={() => setImgError(true)}
         />
       </div>
-      <div className="flex-1 flex flex-col justify-between p-4 min-h-[12rem]">
+      <div className="flex-1 flex flex-col justify-between p-4 min-h-[12rem] relative">
         <h2 className="text-xl font-bold mb-2">{highlight(ricetta.nome || '', search)}</h2>
         {ricetta.descrizione && (
           <div className="mb-1 text-gray-700 text-sm">{highlight(ricetta.descrizione, search)}</div>
@@ -83,7 +83,6 @@ function RecipeCard({ ricetta, userId, saved, handleSaveRecipe, handleRecipeClic
           <span className="flex items-center gap-1"><i className="fa-regular fa-clock" /> {ricetta.tempo_preparazione} min</span>
           <span className="flex items-center gap-1"><i className="fa-solid fa-fire" /> {ricetta.kcal} kcal</span>
           <span className="flex items-center gap-1"><i className="fa-solid fa-utensils" /> {ricetta.porzioni} porzioni</span>
-          {ricetta.author && <span className="flex items-center gap-1"><i className="fa-solid fa-user" /> {ricetta.author}</span>}
           {/* Stelle media recensioni */}
           <RecipeStars recipeId={ricetta.id} />
           {/* Numero di salvataggi */}
@@ -93,6 +92,13 @@ function RecipeCard({ ricetta, userId, saved, handleSaveRecipe, handleRecipeClic
           </span>
         </div>
         <div className="mb-1"><span className="font-semibold">Allergeni:</span> {highlight(ricetta.allergeni || '', search)}</div>
+        {/* Autore in basso a destra */}
+        {ricetta.author && (
+          <div className="absolute bottom-2 right-4 flex items-center gap-1 text-gray-700 text-sm font-semibold bg-white/80 px-3 py-1 rounded-full shadow z-10">
+            <i className="fa-solid fa-user" />
+            {ricetta.author}
+          </div>
+        )}
       </div>
     </div>
   );
