@@ -58,12 +58,6 @@ const Layout = ({ user }) => {
         <div className="flex-1" />
         {/* Desktop nav links */}
         <div className="hidden md:flex flex-row items-center gap-2 pr-4">
-          <Link to="/chi-siamo" className="flex items-center justify-center pr-4 text-refresh-blue font-semibold hover:bg-white hover:text-refresh-pink rounded px-3 py-1 transition">
-            Chi siamo
-          </Link>
-          <Link to="/privacy" className="flex items-center justify-center pr-4 text-refresh-blue font-semibold hover:bg-white hover:text-refresh-pink rounded px-3 py-1 transition">
-            Privacy
-          </Link>
           {
             user ? (
               <>
@@ -126,8 +120,6 @@ const Layout = ({ user }) => {
           </button>
           {mobileMenuOpen && (
             <div className="absolute top-16 right-4 bg-white border rounded shadow-lg z-50 flex flex-col min-w-[180px]">
-              <Link to={'/chi-siamo'} className='px-4 py-2 text-refresh-blue font-semibold hover:bg-white hover:text-refresh-pink border-b rounded transition' onClick={() => setMobileMenuOpen(false)}>Chi siamo</Link>
-              <Link to={'/privacy'} className='px-4 py-2 text-refresh-blue font-semibold hover:bg-white hover:text-refresh-pink border-b rounded transition' onClick={() => setMobileMenuOpen(false)}>Privacy</Link>
               {user ? (
                 <>
                   <Link to="/add-recipe" className="px-4 py-2 text-refresh-blue font-semibold hover:bg-white hover:text-refresh-pink border-b rounded transition" onClick={() => setMobileMenuOpen(false)}>Crea ricetta</Link>
@@ -241,9 +233,20 @@ function ProtectedGroceryList({ user }) {
 
 function App() {
   const [user, setUser] = useState(null);
+  const navigate = useNavigate();
+
   // Make setUser available globally for logout in Layout
   useEffect(() => { window.setUser = setUser; }, [setUser]);
-  // Persist user session after refresh
+
+  // Logout function
+  const logout = () => {
+    setUser(null);
+    localStorage.removeItem('token');
+    localStorage.removeItem('userId');
+    if (navigate) navigate('/login');
+  };
+
+  // Persist user session after refresh and handle token expiration
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
@@ -251,11 +254,30 @@ function App() {
         const decoded = jwtDecode(token);
         if (decoded && decoded.userId && decoded.nickname) {
           setUser({ userId: decoded.userId, nickname: decoded.nickname });
+          // Check token expiration
+          if (decoded.exp) {
+            const expMs = decoded.exp * 1000;
+            const now = Date.now();
+            if (expMs <= now) {
+              logout();
+            } else {
+              // Set timer to auto-logout at expiration
+              const timeout = setTimeout(() => {
+                logout();
+                alert('Sessione scaduta. Effettua di nuovo il login.');
+              }, expMs - now);
+              return () => clearTimeout(timeout);
+            }
+          }
         }
       } catch {
         // Ignore invalid token
+        logout();
       }
+    } else {
+      setUser(null);
     }
+    // eslint-disable-next-line
   }, []);
   return (
     <BrowserRouter>
