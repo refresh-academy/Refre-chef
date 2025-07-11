@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useOutletContext, useNavigate, useLocation } from 'react-router';
+import { useOutletContext, useNavigate, useLocation, Link } from 'react-router';
 
 const RECIPES_PER_PAGE = 10;
 
@@ -83,7 +83,6 @@ function RecipeCard({ ricetta, userId, saved, handleSaveRecipe, handleRecipeClic
           <span className="flex items-center gap-1"><i className="fa-regular fa-clock" /> {ricetta.tempo_preparazione} min</span>
           <span className="flex items-center gap-1"><i className="fa-solid fa-fire" /> {ricetta.kcal} kcal</span>
           <span className="flex items-center gap-1"><i className="fa-solid fa-utensils" /> {ricetta.porzioni} porzioni</span>
-          {ricetta.author && <span className="flex items-center gap-1"><i className="fa-solid fa-user" /> {ricetta.author}</span>}
           {/* Stelle media recensioni */}
           <RecipeStars recipeId={ricetta.id} />
           {/* Numero di salvataggi */}
@@ -93,6 +92,16 @@ function RecipeCard({ ricetta, userId, saved, handleSaveRecipe, handleRecipeClic
           </span>
         </div>
         <div className="mb-1"><span className="font-semibold">Allergeni:</span> {highlight(ricetta.allergeni || '', search)}</div>
+        {ricetta.author && ricetta.author_id && (
+          <Link
+            to={`/chef/${ricetta.author_id}`}
+            className="absolute bottom-2 right-4 flex items-center gap-1 text-gray-500 text-sm bg-white/80 px-2 py-1 rounded shadow z-10 cursor-pointer hover:text-refresh-blue hover:underline"
+            onClick={e => e.stopPropagation()}
+            title={`Vai al profilo di ${ricetta.author}`}
+          >
+            <i className="fa-solid fa-user" /> {ricetta.author}
+          </Link>
+        )}
       </div>
     </div>
   );
