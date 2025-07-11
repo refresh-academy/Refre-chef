@@ -651,12 +651,56 @@ app.get('/api/ricette/:id/commenti', async (req, res) => {
   const ricettaId = req.params.id;
   try {
     const rows = await dbAll(
-      `SELECT c.id, c.testo, c.created_at, u.nickname as author FROM commenti c LEFT JOIN utenti u ON c.user_id = u.id_user WHERE c.ricetta_id = ? ORDER BY c.created_at ASC`,
+      `SELECT c.id, c.testo, c.created_at, c.user_id, u.nickname as author FROM commenti c LEFT JOIN utenti u ON c.user_id = u.id_user WHERE c.ricetta_id = ? ORDER BY c.created_at ASC`,
       [ricettaId]
     );
     res.status(200).json(rows);
   } catch (err) {
     res.status(500).json({ error: 'Errore nel recupero dei commenti', details: err.message });
+  }
+});
+
+// Endpoint to edit a comment (only by the author)
+app.put('/api/commenti/:commentId', authenticateToken, async (req, res) => {
+  const commentId = req.params.commentId;
+  const userId = req.user.userId;
+  const { testo } = req.body;
+  if (!testo || testo.trim().length === 0) {
+    return res.status(400).json({ error: 'Il commento non può essere vuoto.' });
+  }
+  try {
+    // Check ownership
+    const rows = await dbAll('SELECT user_id FROM commenti WHERE id = ?', [commentId]);
+    if (!rows.length) {
+      return res.status(404).json({ error: 'Commento non trovato.' });
+    }
+    if (String(rows[0].user_id) !== String(userId)) {
+      return res.status(403).json({ error: 'Non sei autorizzato a modificare questo commento.' });
+    }
+    await dbRun('UPDATE commenti SET testo = ? WHERE id = ?', [testo.trim(), commentId]);
+    res.status(200).json({ message: 'Commento aggiornato.' });
+  } catch (err) {
+    res.status(500).json({ error: 'Errore durante l\'aggiornamento del commento', details: err.message });
+  }
+});
+
+// Endpoint to delete a comment (only by the author)
+app.delete('/api/commenti/:commentId', authenticateToken, async (req, res) => {
+  const commentId = req.params.commentId;
+  const userId = req.user.userId;
+  try {
+    // Check ownership
+    const rows = await dbAll('SELECT user_id FROM commenti WHERE id = ?', [commentId]);
+    if (!rows.length) {
+      return res.status(404).json({ error: 'Commento non trovato.' });
+    }
+    if (String(rows[0].user_id) !== String(userId)) {
+      return res.status(403).json({ error: 'Non sei autorizzato a eliminare questo commento.' });
+    }
+    await dbRun('DELETE FROM commenti WHERE id = ?', [commentId]);
+    res.status(200).json({ message: 'Commento eliminato.' });
+  } catch (err) {
+    res.status(500).json({ error: 'Errore durante l\'eliminazione del commento', details: err.message });
   }
 });
 

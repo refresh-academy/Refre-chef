@@ -26,6 +26,8 @@ const Ricetta = () => {
   const [comments, setComments] = useState([]);
   const [commentText, setCommentText] = useState('');
   const [commentMsg, setCommentMsg] = useState('');
+  const [editingCommentId, setEditingCommentId] = useState(null);
+  const [editingCommentText, setEditingCommentText] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -279,6 +281,67 @@ const Ricetta = () => {
         fetchComments();
       } else {
         setCommentMsg(data.error || 'Errore nel salvataggio del commento');
+      }
+    } catch {
+      setCommentMsg('Errore di rete.');
+    }
+  };
+
+  const handleEditComment = (comment) => {
+    setEditingCommentId(comment.id);
+    setEditingCommentText(comment.testo);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingCommentId(null);
+    setEditingCommentText('');
+  };
+
+  const handleSaveEditComment = async (commentId) => {
+    if (!editingCommentText.trim()) {
+      setCommentMsg('Il commento non può essere vuoto.');
+      return;
+    }
+    const token = localStorage.getItem('token');
+    try {
+      const res = await fetch(`http://localhost:3000/api/commenti/${commentId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : '',
+        },
+        body: JSON.stringify({ testo: editingCommentText }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setEditingCommentId(null);
+        setEditingCommentText('');
+        setCommentMsg('Commento aggiornato!');
+        fetchComments();
+      } else {
+        setCommentMsg(data.error || 'Errore nell\'aggiornamento del commento');
+      }
+    } catch {
+      setCommentMsg('Errore di rete.');
+    }
+  };
+
+  const handleDeleteComment = async (commentId) => {
+    if (!window.confirm('Sei sicuro di voler eliminare questo commento?')) return;
+    const token = localStorage.getItem('token');
+    try {
+      const res = await fetch(`http://localhost:3000/api/commenti/${commentId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : '',
+        },
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setCommentMsg('Commento eliminato.');
+        fetchComments();
+      } else {
+        setCommentMsg(data.error || 'Errore nell\'eliminazione del commento');
       }
     } catch {
       setCommentMsg('Errore di rete.');
@@ -549,11 +612,47 @@ const Ricetta = () => {
           <ul className="flex flex-col gap-6 mb-8">
             {comments.map(c => (
               <li key={c.id} className="flex flex-col items-start bg-gray-50 rounded-xl shadow p-4 border border-gray-100">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="font-semibold text-refresh-blue">{c.author || 'Utente'}</span>
-                  <span className="text-xs text-gray-400">{new Date(c.created_at).toLocaleString()}</span>
+                <div className="flex items-center gap-2 mb-2 w-full justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-refresh-blue">{c.author || 'Utente'}</span>
+                    <span className="text-xs text-gray-400">{new Date(c.created_at).toLocaleString()}</span>
+                  </div>
+                  {isLoggedIn(userId) && userId && c.user_id && String(userId) === String(c.user_id) && (
+                    <div className="flex gap-2">
+                      <button
+                        className="text-xs text-refresh-blue hover:text-refresh-pink underline"
+                        onClick={() => handleEditComment(c)}
+                      >Modifica</button>
+                      <button
+                        className="text-xs text-red-500 hover:text-red-700 underline"
+                        onClick={() => handleDeleteComment(c.id)}
+                      >Elimina</button>
+                    </div>
+                  )}
                 </div>
-                <div className="text-gray-800 whitespace-pre-line w-full">{c.testo}</div>
+                {editingCommentId === c.id ? (
+                  <div className="w-full flex flex-col gap-2 mt-2">
+                    <textarea
+                      value={editingCommentText}
+                      onChange={e => setEditingCommentText(e.target.value)}
+                      rows={3}
+                      maxLength={500}
+                      className="border rounded-lg p-2 w-full focus:outline-none focus:ring-2 focus:ring-refresh-blue"
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        className="bg-refresh-blue text-white font-bold px-3 py-1 rounded hover:bg-refresh-pink transition"
+                        onClick={() => handleSaveEditComment(c.id)}
+                      >Salva</button>
+                      <button
+                        className="bg-gray-300 text-gray-800 font-bold px-3 py-1 rounded hover:bg-gray-400 transition"
+                        onClick={handleCancelEdit}
+                      >Annulla</button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-gray-800 whitespace-pre-line w-full">{c.testo}</div>
+                )}
               </li>
             ))}
           </ul>
