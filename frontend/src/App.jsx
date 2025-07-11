@@ -15,6 +15,7 @@ import MyRecipes from './routes/MyRecipes.jsx'
 import ChefProfile from './routes/ChefProfile.jsx';
 import ChiSiamo from './routes/ChiSiamo.jsx';
 import Privacy from './routes/Privacy.jsx';
+import Contatti from './routes/Contatti.jsx';
 import { jwtDecode } from 'jwt-decode';
 import Footer from './Footer.jsx';
 
@@ -269,6 +270,7 @@ function App() {
           <Route path="/chef/:authorId" element={<ChefProfile />} />
           <Route path="chi-siamo" element={<ChiSiamo />} />
           <Route path="privacy" element={<Privacy />} />
+          <Route path="contatti" element={<Contatti />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
