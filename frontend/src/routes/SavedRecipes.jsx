@@ -1,6 +1,43 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router';
 
+// RecipeStars component from Home.jsx
+function RecipeStars({ recipeId }) {
+  const [media, setMedia] = useState(0);
+  const [numero, setNumero] = useState(0);
+  useEffect(() => {
+    let active = true;
+    fetch(`http://localhost:3000/api/ricette/${recipeId}/recensioni`)
+      .then(res => res.json())
+      .then(data => {
+        if (active && data && typeof data.media !== 'undefined') {
+          setMedia(Number(data.media) || 0);
+          setNumero(Number(data.numero) || 0);
+        }
+      });
+    return () => { active = false; };
+  }, [recipeId]);
+  return (
+    <span className="flex items-center gap-1 ml-2">
+      <span className="text-yellow-400 text-base animate-pulse">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <i key={i} className={
+            i < Math.round(media)
+              ? 'fa-solid fa-star drop-shadow'
+              : 'fa-regular fa-star text-gray-300'
+          }></i>
+        ))}
+      </span>
+      <span className="bg-white border border-yellow-300 text-yellow-600 font-bold rounded-full px-1 py-0.5 text-xs shadow-inner ml-1">
+        {media.toFixed(1)}
+      </span>
+      <span className="bg-refresh-blue/10 text-refresh-blue font-semibold rounded-full px-1 py-0.5 text-xs ml-1">
+        {numero}
+      </span>
+    </span>
+  );
+}
+
 function RecipeCard({ ricetta, handleRemove, handleRecipeClick }) {
   const [imgError, setImgError] = useState(false);
   const imageUrl = ricetta.immagine && ricetta.immagine.trim() !== '' && !imgError ? ricetta.immagine : '/fallback-food.jpg';
@@ -22,27 +59,41 @@ function RecipeCard({ ricetta, handleRemove, handleRecipeClick }) {
       </div>
       <div className="flex-1 flex flex-col justify-between p-4 min-h-[12rem] relative">
         <h2 className="text-xl font-bold mb-2">{ricetta.nome}</h2>
-        {ricetta.tipologia && (
-          <div className="mb-1 text-gray-700 text-sm"><span className="font-semibold">Tipologia:</span> {ricetta.tipologia}</div>
-        )}
         {ricetta.descrizione && (
           <div className="mb-1 text-gray-700 text-sm">{ricetta.descrizione}</div>
         )}
+        {/* Info rapide con icone */}
         <div className="flex flex-wrap gap-3 mb-2 text-gray-700 text-base font-semibold items-center">
           <span className="flex items-center gap-1"><i className="fa-regular fa-clock" /> {ricetta.tempo_preparazione} min</span>
           <span className="flex items-center gap-1"><i className="fa-solid fa-fire" /> {ricetta.kcal} kcal</span>
           <span className="flex items-center gap-1"><i className="fa-solid fa-utensils" /> {ricetta.porzioni} porzioni</span>
+          {/* Stelle media recensioni */}
+          <RecipeStars recipeId={ricetta.id} />
+          {/* Numero di salvataggi */}
+          <span className="flex items-center gap-1 text-refresh-blue font-bold" title="Numero di salvataggi">
+            <i className="fa-solid fa-bookmark" />
+            {ricetta.saved_count || 0}
+          </span>
         </div>
         <div className="mb-1"><span className="font-semibold">Allergeni:</span> {ricetta.allergeni}</div>
-        {ricetta.author && ricetta.author_id && (
-          <Link
-            to={`/chef/${ricetta.author_id}`}
-            className="absolute bottom-2 right-4 flex items-center gap-1 text-gray-500 text-sm bg-white/80 px-2 py-1 rounded shadow z-10 cursor-pointer hover:text-refresh-blue hover:underline"
-            onClick={e => e.stopPropagation()}
-            title={`Vai al profilo di ${ricetta.author}`}
-          >
-            <i className="fa-solid fa-user" /> {ricetta.author}
-          </Link>
+        {ricetta.author && (
+          ricetta.author_id ? (
+            <Link
+              to={`/chef/${ricetta.author_id}`}
+              className="absolute bottom-2 right-4 flex items-center gap-1 text-gray-500 text-sm bg-white/80 px-2 py-1 rounded shadow z-10 cursor-pointer hover:text-refresh-blue hover:underline"
+              onClick={e => e.stopPropagation()}
+              title={`Vai al profilo di ${ricetta.author}`}
+            >
+              <i className="fa-solid fa-user" /> {ricetta.author}
+            </Link>
+          ) : (
+            <span
+              className="absolute bottom-2 right-4 flex items-center gap-1 text-gray-500 text-sm bg-white/80 px-2 py-1 rounded shadow z-10"
+              title={ricetta.author}
+            >
+              <i className="fa-solid fa-user" /> {ricetta.author}
+            </span>
+          )
         )}
         <button
           className="mt-4 px-3 py-1 rounded bg-refresh-blue text-white font-semibold hover:bg-refresh-pink transition self-start"

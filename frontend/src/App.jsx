@@ -27,6 +27,7 @@ const Layout = ({ user }) => {
   const [maxTime, setMaxTime] = useState('');
   const [maxKcal, setMaxKcal] = useState('');
   const [alimentazione, setAlimentazione] = useState('');
+  const [sortBy, setSortBy] = useState('nome');
   const dropdownRef = useRef(null);
   const location = useLocation();
   const navigate = useNavigate();
@@ -210,9 +211,24 @@ const Layout = ({ user }) => {
                 <option value="Vegan">🌱 Vegano</option>
               </select>
             </div>
+            <div className="flex flex-col items-center justify-end">
+              <label htmlFor="sortBy" className="flex items-center gap-2 text-xs font-semibold px-2 py-1 rounded bg-yellow-50 text-yellow-700 border border-yellow-300 shadow mb-2">
+                <i className="fa-solid fa-arrow-down-a-z text-yellow-700" />
+                Ordina per
+              </label>
+              <select
+                id="sortBy"
+                value={sortBy}
+                onChange={e => setSortBy(e.target.value)}
+                className="w-48 p-2 border-2 border-yellow-300 rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all duration-200 hover:border-refresh-pink"
+              >
+                <option value="nome">Nome (A-Z)</option>
+                <option value="salvati">Più salvate</option>
+              </select>
+            </div>
             <button
               className="ml-8 flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-refresh-blue to-refresh-pink text-white font-bold shadow-lg border-none transition-all duration-200 hover:from-refresh-pink hover:to-refresh-blue hover:scale-105 focus:outline-none focus:ring-2 focus:ring-refresh-pink focus:ring-offset-2"
-              onClick={() => { setMaxTime(''); setMaxKcal(''); setAlimentazione(''); }}
+              onClick={() => { setMaxTime(''); setMaxKcal(''); setAlimentazione(''); setSortBy('nome'); }}
               style={{height: '40px', minWidth: '140px'}}
               title="Reset filtri"
             >
@@ -224,8 +240,8 @@ const Layout = ({ user }) => {
       )}
       <Outlet context={
         location.pathname === '/ricette'
-          ? { search, setSearch, maxTime, setMaxTime, maxKcal, setMaxKcal, alimentazione, setAlimentazione }
-          : { search: '', setSearch: () => {}, maxTime: '', setMaxTime: () => {}, maxKcal: '', setMaxKcal: () => {}, alimentazione: '', setAlimentazione: () => {} }
+          ? { search, setSearch, maxTime, setMaxTime, maxKcal, setMaxKcal, alimentazione, setAlimentazione, sortBy, setSortBy }
+          : { search: '', setSearch: () => {}, maxTime: '', setMaxTime: () => {}, maxKcal: '', setMaxKcal: () => {}, alimentazione: '', setAlimentazione: () => {}, sortBy: 'nome', setSortBy: () => {} }
       } />
       <Footer />
     </div>
@@ -241,41 +257,118 @@ function ProtectedGroceryList({ user }) {
   return <GroceryList />;
 }
 
+function CookieConsentBanner({ onConsentChange, forceShow }) {
+  const [visible, setVisible] = useState(forceShow);
+  useEffect(() => { setVisible(forceShow); }, [forceShow]);
+  if (!visible) return null;
+  return (
+    <div style={{
+      position: 'fixed',
+      bottom: 0,
+      left: 0,
+      width: '100%',
+      zIndex: 1000,
+      background: 'rgba(255,255,255,0.98)',
+      borderTop: '1px solid #e0e0e0',
+      boxShadow: '0 -2px 12px rgba(0,0,0,0.07)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '1rem',
+      fontSize: '1rem',
+      color: '#333',
+    }}>
+      <span style={{ marginRight: '1.5rem' }}>
+        Questo sito utilizza solo cookie tecnici necessari al funzionamento. Nessun cookie di profilazione viene utilizzato.
+      </span>
+      <button
+        onClick={() => {
+          localStorage.setItem('cookieConsent', 'true');
+          setVisible(false);
+          if (onConsentChange) onConsentChange(true);
+        }}
+        style={{
+          background: 'linear-gradient(90deg, #3b82f6 0%, #ec4899 100%)',
+          color: 'white',
+          border: 'none',
+          borderRadius: '8px',
+          padding: '0.5rem 1.5rem',
+          fontWeight: 'bold',
+          cursor: 'pointer',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+          fontSize: '1rem',
+        }}
+        aria-label="Accetta cookie tecnici"
+      >
+        OK
+      </button>
+    </div>
+  );
+}
+
 function App() {
   const [user, setUser] = useState(null);
+  const [cookieConsent, setCookieConsent] = useState(() => {
+    const val = localStorage.getItem('cookieConsent');
+    return val === 'true' ? true : val === 'false' ? false : null;
+  });
+  // Show banner on first visit if no choice made
+  const [showConsentBanner, setShowConsentBanner] = useState(() => {
+    const val = localStorage.getItem('cookieConsent');
+    return val !== 'true';
+  });
   // Make setUser available globally for logout in Layout
   useEffect(() => { window.setUser = setUser; }, [setUser]);
-  // Persist user session after refresh
+  // Persist user session after refresh ONLY if cookies are accepted
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      try {
-        const decoded = jwtDecode(token);
-        if (decoded && decoded.userId && decoded.nickname) {
-          setUser({ userId: decoded.userId, nickname: decoded.nickname });
+    if (cookieConsent) {
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          const decoded = jwtDecode(token);
+          if (decoded && decoded.userId && decoded.nickname) {
+            setUser({ userId: decoded.userId, nickname: decoded.nickname });
+          }
+        } catch {
+          // Ignore invalid token
         }
-      } catch {
-        // Ignore invalid token
       }
+    } else if (cookieConsent === false) {
+      // Remove all session data if cookies are refused
+      localStorage.removeItem('token');
+      localStorage.removeItem('userId');
+      setUser(null);
     }
-  }, []);
+  }, [cookieConsent]);
+  // Block login, registration, and save if cookies are refused
+  const showCookieBlock = (msg) => {
+    if (cookieConsent === null) {
+      setShowConsentBanner(true);
+    } else {
+      alert(msg || 'Devi accettare i cookie tecnici per usare questa funzionalità.');
+    }
+  };
+  const handleConsentChange = (consent) => {
+    setCookieConsent(consent);
+    setShowConsentBanner(false);
+  };
   return (
     <BrowserRouter>
       {/* Global background image below everything */}
       <div className="fixed inset-0 -z-10 w-full h-full bg-cover bg-center bg-no-repeat bg-fixed bg-white" style={{ backgroundImage: "url('/background.webp')" }} />
       <Routes>
-        <Route element={<Layout user={user} />}> 
+        <Route element={<Layout user={user} cookieConsent={cookieConsent} showCookieBlock={showCookieBlock} />}> 
           <Route index element={<HomePage user={user} />} />
           <Route path="/ricette" element={<Home user={user} />} />
-          <Route path="/login" element={<Login setUser={setUser} />} />
-          <Route path="/register" element={<Registration />} />
-          <Route path="/saved-recipes/:userId" element={<SavedRecipes />} />
-          <Route path="/saved-recipes" element={<SavedRecipes />} />
-          <Route path="/add-recipe" element={<AddRecipe user={user} />} />
-          <Route path="/edit-recipe/:id" element={<AddRecipe user={user} editMode={true} />} />
+          <Route path="/login" element={cookieConsent === false ? (() => { showCookieBlock('Devi accettare i cookie tecnici per effettuare il login.'); return null; })() : <Login setUser={setUser} />} />
+          <Route path="/register" element={cookieConsent === false ? (() => { showCookieBlock('Devi accettare i cookie tecnici per registrarti.'); return null; })() : <Registration />} />
+          <Route path="/saved-recipes/:userId" element={cookieConsent === false ? (() => { showCookieBlock('Devi accettare i cookie tecnici per salvare le ricette.'); return null; })() : <SavedRecipes />} />
+          <Route path="/saved-recipes" element={cookieConsent === false ? (() => { showCookieBlock('Devi accettare i cookie tecnici per salvare le ricette.'); return null; })() : <SavedRecipes />} />
+          <Route path="/add-recipe" element={cookieConsent === false ? (() => { showCookieBlock('Devi accettare i cookie tecnici per aggiungere ricette.'); return null; })() : <AddRecipe user={user} />} />
+          <Route path="/edit-recipe/:id" element={cookieConsent === false ? (() => { showCookieBlock('Devi accettare i cookie tecnici per modificare ricette.'); return null; })() : <AddRecipe user={user} editMode={true} />} />
           <Route path="/ricetta/:id" element={<Ricetta user={user} />} />
-          <Route path="/grocery-list" element={<ProtectedGroceryList user={user} />} />
-          <Route path="/my-recipes" element={<MyRecipes user={user} />} />
+          <Route path="/grocery-list" element={cookieConsent === false ? (() => { showCookieBlock('Devi accettare i cookie tecnici per usare la lista spesa.'); return null; })() : <ProtectedGroceryList user={user} />} />
+          <Route path="/my-recipes" element={cookieConsent === false ? (() => { showCookieBlock('Devi accettare i cookie tecnici per vedere le tue ricette.'); return null; })() : <MyRecipes user={user} />} />
           <Route path="/chef/:authorId" element={<ChefProfile />} />
           <Route path="chi-siamo" element={<ChiSiamo />} />
           <Route path="privacy" element={<Privacy />} />
@@ -283,6 +376,7 @@ function App() {
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
+      <CookieConsentBanner onConsentChange={handleConsentChange} forceShow={showConsentBanner} />
     </BrowserRouter>
   )
 }
