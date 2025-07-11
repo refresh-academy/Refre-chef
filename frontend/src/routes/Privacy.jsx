@@ -24,11 +24,13 @@ const Privacy = () => (
           <li>Consentire agli utenti di lasciare recensioni e valutazioni.</li>
           <li>Migliorare l'esperienza d'uso del sito.</li>
         </ul>
-        <h2 className="text-xl font-semibold text-refresh-blue mt-6 mb-2">4. Cookie</h2>
-        <p className="text-gray-600 mb-2">
-          Utilizziamo solo cookie tecnici e di sessione necessari al funzionamento del sito (ad esempio per mantenere l'accesso dell'utente). Non utilizziamo cookie di profilazione o di terze parti a fini pubblicitari.
+        <h2 className="text-xl font-semibold text-refresh-blue mt-6 mb-2">Cookie Policy</h2>
+        <p className="text-gray-700 mb-4">
+          Questo sito utilizza esclusivamente cookie tecnici e di sessione, necessari al corretto funzionamento della piattaforma (ad esempio per mantenere l'accesso dell'utente dopo il login).<br/>
+          Non vengono utilizzati cookie di profilazione o di terze parti a fini pubblicitari o analitici.<br/>
+          <b>Se l'utente non accetta i cookie tecnici, potrà comunque navigare il sito e consultare le ricette pubbliche, ma alcune funzionalità come il login, la registrazione, il salvataggio delle ricette e la personalizzazione dell'esperienza non saranno disponibili.</b>
         </p>
-        <h2 className="text-xl font-semibold text-refresh-blue mt-6 mb-2">5. Conservazione dei dati</h2>
+        <h2 className="text-xl font-semibold text-refresh-blue mt-6 mb-2">4. Conservazione dei dati</h2>
         <p className="text-gray-600 mb-2">
           I dati vengono conservati per il tempo strettamente necessario a fornire i servizi richiesti e a garantire la sicurezza e il corretto funzionamento della piattaforma.
         </p>
