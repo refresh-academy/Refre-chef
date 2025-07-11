@@ -73,7 +73,7 @@ function RecipeCard({ ricetta, userId, saved, handleSaveRecipe, handleRecipeClic
           onError={() => setImgError(true)}
         />
       </div>
-      <div className="flex-1 flex flex-col justify-between p-4 min-h-[12rem]">
+      <div className="flex-1 flex flex-col justify-between p-4 min-h-[12rem] relative">
         <h2 className="text-xl font-bold mb-2">{highlight(ricetta.nome || '', search)}</h2>
         {ricetta.descrizione && (
           <div className="mb-1 text-gray-700 text-sm">{highlight(ricetta.descrizione, search)}</div>
@@ -92,16 +92,6 @@ function RecipeCard({ ricetta, userId, saved, handleSaveRecipe, handleRecipeClic
           </span>
         </div>
         <div className="mb-1"><span className="font-semibold">Allergeni:</span> {highlight(ricetta.allergeni || '', search)}</div>
-        {ricetta.author && ricetta.author_id && (
-          <Link
-            to={`/chef/${ricetta.author_id}`}
-            className="absolute bottom-2 right-4 flex items-center gap-1 text-gray-500 text-sm bg-white/80 px-2 py-1 rounded shadow z-10 cursor-pointer hover:text-refresh-blue hover:underline"
-            onClick={e => e.stopPropagation()}
-            title={`Vai al profilo di ${ricetta.author}`}
-          >
-            <i className="fa-solid fa-user" /> {ricetta.author}
-          </Link>
-        )}
       </div>
     </div>
   );
