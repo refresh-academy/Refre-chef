@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router';
+import { useParams, useNavigate, Link } from 'react-router';
 
 function RecipeCard({ ricetta, handleRemove, handleRecipeClick }) {
   const [imgError, setImgError] = useState(false);
@@ -20,7 +20,7 @@ function RecipeCard({ ricetta, handleRemove, handleRecipeClick }) {
           onError={() => setImgError(true)}
         />
       </div>
-      <div className="flex-1 flex flex-col justify-between p-4 min-h-[12rem]">
+      <div className="flex-1 flex flex-col justify-between p-4 min-h-[12rem] relative">
         <h2 className="text-xl font-bold mb-2">{ricetta.nome}</h2>
         {ricetta.tipologia && (
           <div className="mb-1 text-gray-700 text-sm"><span className="font-semibold">Tipologia:</span> {ricetta.tipologia}</div>
@@ -28,11 +28,22 @@ function RecipeCard({ ricetta, handleRemove, handleRecipeClick }) {
         {ricetta.descrizione && (
           <div className="mb-1 text-gray-700 text-sm">{ricetta.descrizione}</div>
         )}
-        <div className="flex flex-wrap gap-6 mb-2 text-gray-700 text-lg font-bold items-center">
-          <span className="flex items-center gap-1"><i className="fa-regular fa-clock" /><span className="font-semibold">Minuti:</span> {ricetta.tempo_preparazione ?? '-'} min</span>
-          <span className="flex items-center gap-1"><i className="fa-solid fa-fire" /><span className="font-semibold">Kcal:</span> {ricetta.kcal ?? '-'}</span>
-          <span className="flex items-center gap-1"><i className="fa-solid fa-utensils" /><span className="font-semibold">Porzioni:</span> {ricetta.porzioni ?? '-'}</span>
+        <div className="flex flex-wrap gap-3 mb-2 text-gray-700 text-base font-semibold items-center">
+          <span className="flex items-center gap-1"><i className="fa-regular fa-clock" /> {ricetta.tempo_preparazione} min</span>
+          <span className="flex items-center gap-1"><i className="fa-solid fa-fire" /> {ricetta.kcal} kcal</span>
+          <span className="flex items-center gap-1"><i className="fa-solid fa-utensils" /> {ricetta.porzioni} porzioni</span>
         </div>
+        <div className="mb-1"><span className="font-semibold">Allergeni:</span> {ricetta.allergeni}</div>
+        {ricetta.author && ricetta.author_id && (
+          <Link
+            to={`/chef/${ricetta.author_id}`}
+            className="absolute bottom-2 right-4 flex items-center gap-1 text-gray-500 text-sm bg-white/80 px-2 py-1 rounded shadow z-10 cursor-pointer hover:text-refresh-blue hover:underline"
+            onClick={e => e.stopPropagation()}
+            title={`Vai al profilo di ${ricetta.author}`}
+          >
+            <i className="fa-solid fa-user" /> {ricetta.author}
+          </Link>
+        )}
         <button
           className="mt-4 px-3 py-1 rounded bg-refresh-blue text-white font-semibold hover:bg-refresh-pink transition self-start"
           onClick={(e) => handleRemove(ricetta.id, e)}

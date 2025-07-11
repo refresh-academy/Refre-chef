@@ -92,6 +92,25 @@ function RecipeCard({ ricetta, userId, saved, handleSaveRecipe, handleRecipeClic
           </span>
         </div>
         <div className="mb-1"><span className="font-semibold">Allergeni:</span> {highlight(ricetta.allergeni || '', search)}</div>
+        {ricetta.author && (
+          ricetta.author_id ? (
+            <Link
+              to={`/chef/${ricetta.author_id}`}
+              className="absolute bottom-2 right-4 flex items-center gap-1 text-gray-500 text-sm bg-white/80 px-2 py-1 rounded shadow z-10 cursor-pointer hover:text-refresh-blue hover:underline"
+              onClick={e => e.stopPropagation()}
+              title={`Vai al profilo di ${ricetta.author}`}
+            >
+              <i className="fa-solid fa-user" /> {ricetta.author}
+            </Link>
+          ) : (
+            <span
+              className="absolute bottom-2 right-4 flex items-center gap-1 text-gray-500 text-sm bg-white/80 px-2 py-1 rounded shadow z-10"
+              title={ricetta.author}
+            >
+              <i className="fa-solid fa-user" /> {ricetta.author}
+            </span>
+          )
+        )}
       </div>
     </div>
   );

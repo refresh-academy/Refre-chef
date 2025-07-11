@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router';
+import { useParams, useNavigate, Link } from 'react-router';
 
 function RecipeCard({ ricetta, onClick }) {
   const [imgError, setImgError] = useState(false);
@@ -18,7 +18,7 @@ function RecipeCard({ ricetta, onClick }) {
           onError={() => setImgError(true)}
         />
       </div>
-      <div className="flex-1 flex flex-col justify-between p-4 min-h-[12rem]">
+      <div className="flex-1 flex flex-col justify-between p-4 min-h-[12rem] relative">
         <h2 className="text-xl font-bold mb-2">{ricetta.nome}</h2>
         {ricetta.descrizione && (
           <div className="mb-1 text-gray-700 text-sm">{ricetta.descrizione}</div>
@@ -27,9 +27,18 @@ function RecipeCard({ ricetta, onClick }) {
           <span className="flex items-center gap-1"><i className="fa-regular fa-clock" /> {ricetta.tempo_preparazione} min</span>
           <span className="flex items-center gap-1"><i className="fa-solid fa-fire" /> {ricetta.kcal} kcal</span>
           <span className="flex items-center gap-1"><i className="fa-solid fa-utensils" /> {ricetta.porzioni} porzioni</span>
-          {ricetta.author && <span className="flex items-center gap-1"><i className="fa-solid fa-user" /> {ricetta.author}</span>}
         </div>
         <div className="mb-1"><span className="font-semibold">Allergeni:</span> {ricetta.allergeni}</div>
+        {ricetta.author && ricetta.author_id && (
+          <Link
+            to={`/chef/${ricetta.author_id}`}
+            className="absolute bottom-2 right-4 flex items-center gap-1 text-gray-500 text-sm bg-white/80 px-2 py-1 rounded shadow z-10 cursor-pointer hover:text-refresh-blue hover:underline"
+            onClick={e => e.stopPropagation()}
+            title={`Vai al profilo di ${ricetta.author}`}
+          >
+            <i className="fa-solid fa-user" /> {ricetta.author}
+          </Link>
+        )}
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useNavigate, Link } from 'react-router';
 
 function RecipeCard({ ricetta, handleEdit, handleDelete, handleRecipeClick }) {
   const [imgError, setImgError] = useState(false);
@@ -20,14 +20,27 @@ function RecipeCard({ ricetta, handleEdit, handleDelete, handleRecipeClick }) {
           onError={() => setImgError(true)}
         />
       </div>
-      <div className="flex-1 flex flex-col justify-between p-4 min-h-[12rem]">
+      <div className="flex-1 flex flex-col justify-between p-4 min-h-[12rem] relative">
         <h2 className="text-xl font-bold mb-2">{ricetta.nome}</h2>
-        <div className="mb-1 text-gray-700 text-sm">{ricetta.descrizione}</div>
+        {ricetta.descrizione && (
+          <div className="mb-1 text-gray-700 text-sm">{ricetta.descrizione}</div>
+        )}
         <div className="flex flex-wrap gap-3 mb-2 text-gray-700 text-base font-semibold items-center">
           <span className="flex items-center gap-1"><i className="fa-regular fa-clock" /> {ricetta.tempo_preparazione} min</span>
           <span className="flex items-center gap-1"><i className="fa-solid fa-fire" /> {ricetta.kcal} kcal</span>
           <span className="flex items-center gap-1"><i className="fa-solid fa-utensils" /> {ricetta.porzioni} porzioni</span>
         </div>
+        <div className="mb-1"><span className="font-semibold">Allergeni:</span> {ricetta.allergeni}</div>
+        {ricetta.author && ricetta.author_id && (
+          <Link
+            to={`/chef/${ricetta.author_id}`}
+            className="absolute bottom-2 right-4 flex items-center gap-1 text-gray-500 text-sm bg-white/80 px-2 py-1 rounded shadow z-10 cursor-pointer hover:text-refresh-blue hover:underline"
+            onClick={e => e.stopPropagation()}
+            title={`Vai al profilo di ${ricetta.author}`}
+          >
+            <i className="fa-solid fa-user" /> {ricetta.author}
+          </Link>
+        )}
         <div className="flex gap-2 mt-2">
           <button onClick={e => { e.stopPropagation(); handleEdit(ricetta.id); }} className="bg-refresh-blue text-white px-3 py-1 rounded hover:bg-refresh-pink transition">Modifica</button>
           <button onClick={e => { e.stopPropagation(); handleDelete(ricetta.id); }} className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-700 transition">Elimina</button>
