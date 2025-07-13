@@ -171,7 +171,7 @@ const Layout = ({ user }) => {
                 <option value="20">10-20 minuti</option>
                 <option value="30">20-30 minuti</option>
                 <option value="60">30-60 minuti</option>
-                <option value="oltre60">60 o oltre</option>
+                <option value="oltre60">Oltre</option>
               </select>
             </div>
             <div className="flex flex-col items-center">
