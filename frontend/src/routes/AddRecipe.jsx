@@ -302,9 +302,11 @@ const AddRecipe = ({ user, editMode }) => {
                     onChange={e => handleIngredientChange(idx, e)}
                     className="border p-2 rounded w-20"
                   >
-                    <option value="g">g</option>
-                    <option value="ml">ml</option>
-                    <option value="pz">pz</option>
+                    <option value=" g">g</option>
+                    <option value=" ml">ml</option>
+                    <option value="n">n</option>
+                    <option value=" cuc">Cucchiaio/i</option>
+                    <option value=" tz">Tazzina/e</option>
                     <option value="q.b.">q.b.</option>
                   </select>
                   <button type="button" onClick={() => handleRemoveIngredient(idx)} className="text-red-500 hover:text-red-700 text-lg font-bold">&times;</button>
