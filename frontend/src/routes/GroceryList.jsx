@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router';
 
 const GroceryList = () => {
   const [items, setItems] = useState([]);
@@ -7,6 +8,8 @@ const GroceryList = () => {
   const [editIndex, setEditIndex] = useState(null);
   const [editValue, setEditValue] = useState(1);
   const [removingRecipeId, setRemovingRecipeId] = useState(null);
+  const [recommended, setRecommended] = useState([]);
+  const navigate = useNavigate();
 
   const token = localStorage.getItem('token');
 
@@ -34,6 +37,16 @@ const GroceryList = () => {
     fetchList();
     // eslint-disable-next-line
   }, []);
+
+  useEffect(() => {
+    if (!loading && items.length === 0) {
+      fetch('http://localhost:3000/api/ricette-popolari')
+        .then(res => res.json())
+        .then(data => {
+          if (Array.isArray(data)) setRecommended(data);
+        });
+    }
+  }, [loading, items]);
 
   const handleRemove = async (ingredient, recipe_id) => {
     if (!window.confirm(`Rimuovere "${ingredient}" dalla lista?`)) return;
@@ -182,7 +195,32 @@ const GroceryList = () => {
         {loading && <div>Caricamento...</div>}
         {error && <div className="text-red-500 mb-4">{error}</div>}
         {!loading && !error && items.length === 0 && (
-          <div>La lista della spesa è vuota.</div>
+          <>
+            <div>La lista della spesa è vuota.</div>
+            {recommended.length > 0 && (
+              <div className="w-full max-w-5xl bg-white/80 rounded-lg shadow-lg p-6 mt-8 flex flex-col items-center">
+                <h2 className="text-2xl font-bold text-refresh-pink mb-4 text-left w-full">Ricette consigliate</h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
+                  {recommended.map(r => (
+                    <div key={r.id} className="bg-white rounded-2xl shadow flex flex-row overflow-hidden group min-h-[180px] h-full cursor-pointer hover:shadow-xl transition" onClick={() => navigate(`/ricetta/${r.id}`)}>
+                      <div className="relative w-48 min-w-[12rem] h-48 min-h-[12rem] flex-shrink-0 overflow-hidden">
+                        <img
+                          src={r.immagine && r.immagine.trim() !== '' ? r.immagine : '/fallback-food.jpg'}
+                          alt={r.nome}
+                          className="w-full h-full object-cover object-center rounded-l group-hover:scale-105 transition-transform duration-300"
+                          onError={e => (e.target.src = '/fallback-food.jpg')}
+                        />
+                      </div>
+                      <div className="p-4 flex-1 flex flex-col min-h-[12rem] h-full justify-between">
+                        <h3 className="text-lg font-bold text-refresh-blue mb-2">{r.nome}</h3>
+                        <span className="mt-4 inline-block text-refresh-pink font-semibold">Scopri la ricetta &rarr;</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
         )}
         {!loading && !error && items.length > 0 && (
           <div className="w-full max-w-lg bg-white rounded shadow p-6">
