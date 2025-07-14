@@ -29,8 +29,38 @@ const Footer = () => {
       borderTop: '1px solid #e0e0e0',
       padding: '2rem 0 0.5rem 0',
       fontFamily: 'inherit',
+      width: '100%',
     }}>
-      <div style={{
+      <style>{`
+        @media (max-width: 700px) {
+          .footer-main {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 2rem !important;
+            padding: 0 1rem !important;
+          }
+          .footer-nav {
+            flex-direction: column !important;
+            gap: 0.75rem !important;
+            align-items: flex-start !important;
+          }
+          .footer-logo {
+            margin-bottom: 0.5rem !important;
+          }
+          .footer-social {
+            margin-top: 1rem !important;
+          }
+        }
+        @media (max-width: 400px) {
+          .footer-main {
+            padding: 0 0.25rem !important;
+          }
+          .footer-logo span {
+            font-size: 1rem !important;
+          }
+        }
+      `}</style>
+      <div className="footer-main" style={{
         display: 'flex',
         flexWrap: 'wrap',
         justifyContent: 'space-between',
@@ -39,28 +69,29 @@ const Footer = () => {
         margin: '0 auto',
         padding: '0 2rem',
         gap: '1.5rem',
+        width: '100%',
       }}>
         {/* Logo */}
-        <a href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}>
-          <img src="/logorefreChef.png" alt="RefreChef Logo" style={{ height: '48px' }} />
+        <a href="/" className="footer-logo" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}>
+          <img src="/logorefreChef.png" alt="RefreChef Logo" style={{ height: '48px', maxWidth: '100%' }} />
           <span style={{ fontWeight: 'bold', color: '#2d3748', fontSize: '1.2rem' }}>RefreChef</span>
         </a>
         {/* Navigation */}
-        <nav style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
+        <nav className="footer-nav" style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
           {navLinks.map(link => (
-            <a key={link.href} href={link.href} style={{ color: '#333', textDecoration: 'none', fontWeight: 500, fontSize: '1rem' }}>{link.label}</a>
+            <a key={link.href} href={link.href} style={{ color: '#333', textDecoration: 'none', fontWeight: 500, fontSize: '1rem', padding: '0.25rem 0' }}>{link.label}</a>
           ))}
         </nav>
         {/* Social icons */}
-        <div style={{ display: 'flex', gap: '1rem' }}>
+        <div className="footer-social" style={{ display: 'flex', gap: '1rem' }}>
           {socialLinks.map(link => (
-            <a key={link.href} href={link.href} target="_blank" rel="noopener noreferrer" aria-label={link.label} style={{ display: 'flex', alignItems: 'center' }}>
+            <a key={link.href} href={link.href} target="_blank" rel="noopener noreferrer" aria-label={link.label} style={{ display: 'flex', alignItems: 'center', padding: '0.25rem' }}>
               {link.icon}
             </a>
           ))}
         </div>
       </div>
-      <div style={{ textAlign: 'center', color: '#888', fontSize: '0.95rem', marginTop: '1.5rem', paddingBottom: '0.5rem' }}>
+      <div style={{ textAlign: 'center', color: '#888', fontSize: '0.95rem', marginTop: '1.5rem', paddingBottom: '0.5rem', width: '100%' }}>
         © {new Date().getFullYear()} RefreChef. Tutti i diritti riservati.
       </div>
     </footer>
