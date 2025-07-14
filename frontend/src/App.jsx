@@ -184,7 +184,7 @@ const Layout = ({ user }) => {
           <div className="w-full flex justify-center items-center bg-transparent px-2 py-2">
             <div className="filter-bar backdrop-blur-md bg-white/80 border-2 border-refresh-blue shadow-xl rounded-2xl px-8 py-6 flex flex-row gap-8 items-end transition-all duration-300" style={{minWidth: 'fit-content'}}>
               <div className="flex flex-col items-center">
-                <label htmlFor="maxTime" className="flex items-center gap-2 text-xs font-semibold px-2 py-1 rounded bg-blue-50 text-refresh-blue border border-refresh-blue shadow mb-2">
+                <label htmlFor="maxTime" className="flex items-center gap-2 text-xs font-semibold mb-2 text-refresh-blue">
                   <i className="fa-regular fa-clock text-refresh-blue" />
                   Tempo massimo (min)
                 </label>
@@ -204,7 +204,7 @@ const Layout = ({ user }) => {
                 </select>
               </div>
               <div className="flex flex-col items-center">
-                <label htmlFor="maxKcal" className="flex items-center gap-2 text-xs font-semibold px-2 py-1 rounded bg-pink-50 text-refresh-pink border border-refresh-pink shadow mb-2">
+                <label htmlFor="maxKcal" className="flex items-center gap-2 text-xs font-semibold mb-2 text-refresh-pink">
                   <i className="fa-solid fa-fire text-refresh-pink" />
                   Kcal per porzione
                 </label>
@@ -224,7 +224,7 @@ const Layout = ({ user }) => {
                 </select>
               </div>
               <div className="flex flex-col items-center justify-end">
-                <label htmlFor="alimentazione" className="flex items-center gap-2 text-xs font-semibold px-2 py-1 rounded bg-gray-50 text-gray-700 border border-gray-300 shadow mb-2">
+                <label htmlFor="alimentazione" className="flex items-center gap-2 text-xs font-semibold mb-2 text-gray-700">
                   <i className="fa-solid fa-leaf text-green-600" />
                   Alimentazione
                 </label>
@@ -241,7 +241,7 @@ const Layout = ({ user }) => {
                 </select>
               </div>
               <div className="flex flex-col items-center justify-end">
-                <label htmlFor="sortBy" className="flex items-center gap-2 text-xs font-semibold px-2 py-1 rounded bg-yellow-50 text-yellow-700 border border-yellow-300 shadow mb-2">
+                <label htmlFor="sortBy" className="flex items-center gap-2 text-xs font-semibold mb-2 text-yellow-700">
                   <i className="fa-solid fa-arrow-down-a-z text-yellow-700" />
                   Ordina per
                 </label>
