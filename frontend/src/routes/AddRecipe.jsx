@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router';
 
 const initialState = {
@@ -23,6 +23,7 @@ const AddRecipe = ({ user, editMode }) => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+  const [invalidFields, setInvalidFields] = useState({});
 
   useEffect(() => {
     if (editMode && id && user) {
@@ -83,7 +84,8 @@ const AddRecipe = ({ user, editMode }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm(f => ({ ...f, [name]: value }));
+    setForm(prev => ({ ...prev, [name]: value }));
+    setInvalidFields(prev => ({ ...prev, [name]: false }));
   };
 
   const handleIngredientChange = (idx, e) => {
@@ -112,20 +114,36 @@ const AddRecipe = ({ user, editMode }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
     setLoading(true);
-    // Validazione base
-    if (!form.nome || !form.descrizione || !form.tipologia || !form.alimentazione || !form.immagine || !form.origine || !form.porzioni || !form.allergeni || !form.tempo_preparazione || !form.kcal) {
+    setError('');
+    // Validazione campi obbligatori
+    const newInvalidFields = {};
+    if (!form.nome) newInvalidFields.nome = true;
+    if (!form.tempo_preparazione || Number(form.tempo_preparazione) < 1) newInvalidFields.tempo_preparazione = true;
+    if (!form.kcal || Number(form.kcal) < 1) newInvalidFields.kcal = true;
+    if (!form.porzioni || Number(form.porzioni) < 1) newInvalidFields.porzioni = true;
+    if (!form.tipologia) newInvalidFields.tipologia = true;
+    if (!form.alimentazione) newInvalidFields.alimentazione = true;
+    if (!form.origine) newInvalidFields.origine = true;
+    if (!form.allergeni) newInvalidFields.allergeni = true;
+    if (!form.descrizione) newInvalidFields.descrizione = true;
+    if (!form.immagine) newInvalidFields.immagine = true;
+    // Ingredienti: almeno uno e tutti compilati
+    if (ingredients.length === 0 || ingredients.some(ing => !ing.nome || !ing.unita || (!ing.grammi && ing.unita !== 'q.b.'))) {
+      // newInvalidFields.ingredienti = true; // tolto bordo rosso
+    }
+    // Steps: almeno uno e tutti compilati
+    if (steps.length === 0 || steps.some(step => !step.trim())) {
+      // newInvalidFields.steps = true; // tolto bordo rosso
+    }
+    if (Object.keys(newInvalidFields).length > 0) {
+      setInvalidFields(newInvalidFields);
       setError('Compila tutti i campi obbligatori.');
       setLoading(false);
       return;
     }
-    if (Number(form.porzioni) < 1 || Number(form.tempo_preparazione) < 1 || Number(form.kcal) < 1) {
-      setError('Porzioni, tempo di preparazione e kcal devono essere maggiori di zero.');
-      setLoading(false);
-      return;
-    }
+    setInvalidFields({});
+
     if (ingredients.some(ing =>
       !ing.nome ||
       !ing.unita ||
@@ -233,7 +251,7 @@ const AddRecipe = ({ user, editMode }) => {
                 value={form.immagine}
                 onChange={handleChange}
                 placeholder="URL immagine*"
-                className="w-full border rounded-lg px-3 py-2 bg-white/90 text-base shadow focus:outline-none focus:ring-2 focus:ring-refresh-blue"
+                className={`w-full border rounded-lg px-3 py-2 bg-white/90 text-base shadow focus:outline-none focus:ring-2 focus:ring-refresh-blue ${invalidFields.immagine ? 'border-red-500 border-2' : ''}`}
                 required
               />
             </div>
@@ -243,7 +261,7 @@ const AddRecipe = ({ user, editMode }) => {
                 value={form.nome}
                 onChange={handleChange}
                 placeholder="Nome della ricetta*"
-                className="text-3xl md:text-4xl font-extrabold text-white drop-shadow-lg bg-transparent border-none outline-none w-full"
+                className={`z-50 text-3xl md:text-4xl font-extrabold drop-shadow-lg border-none outline-none w-full ${invalidFields.nome ? 'border-red-500 border-2 text-red-600 placeholder-red-400' : 'text-white'}`}
                 style={{ background: 'transparent' }}
                 required
               />
@@ -251,13 +269,13 @@ const AddRecipe = ({ user, editMode }) => {
           </div>
           {/* Info rapide con rating (ora tutti input) */}
           <div className="flex flex-wrap gap-4 px-6 py-4 bg-white border-b border-gray-200 items-center">
-            <input name="tempo_preparazione" value={form.tempo_preparazione} onChange={handleChange} placeholder="Tempo (min)*" type="number" min={1} className="w-28 border rounded px-2 py-1 text-base font-semibold text-refresh-blue" required />
-            <input name="kcal" value={form.kcal} onChange={handleChange} placeholder="Kcal*" type="number" min={1} className="w-24 border rounded px-2 py-1 text-base font-semibold text-refresh-blue" required />
-            <input name="porzioni" value={form.porzioni} onChange={handleChange} placeholder="Porzioni*" type="number" min={1} className="w-24 border rounded px-2 py-1 text-base font-semibold text-refresh-blue" required />
-            <input name="tipologia" value={form.tipologia} onChange={handleChange} placeholder="Tipologia*" className="w-36 border rounded px-2 py-1 text-base font-semibold text-refresh-blue" required />
-            <input name="alimentazione" value={form.alimentazione} onChange={handleChange} placeholder="Alimentazione*" className="w-36 border rounded px-2 py-1 text-base font-semibold text-refresh-blue" required />
-            <input name="origine" value={form.origine} onChange={handleChange} placeholder="Origine*" className="w-36 border rounded px-2 py-1 text-base font-semibold text-refresh-blue" required />
-            <input name="allergeni" value={form.allergeni} onChange={handleChange} placeholder="Allergeni*" className="w-36 border rounded px-2 py-1 text-base font-semibold text-refresh-blue" required />
+            <input name="tempo_preparazione" value={form.tempo_preparazione} onChange={handleChange} placeholder="Tempo (min)*" type="number" min={1} className={`w-28 border rounded px-2 py-1 text-base font-semibold text-refresh-blue ${invalidFields.tempo_preparazione ? 'border-red-500 border-2' : ''}`} required />
+            <input name="kcal" value={form.kcal} onChange={handleChange} placeholder="Kcal*" type="number" min={1} className={`w-24 border rounded px-2 py-1 text-base font-semibold text-refresh-blue ${invalidFields.kcal ? 'border-red-500 border-2' : ''}`} required />
+            <input name="porzioni" value={form.porzioni} onChange={handleChange} placeholder="Porzioni*" type="number" min={1} className={`w-24 border rounded px-2 py-1 text-base font-semibold text-refresh-blue ${invalidFields.porzioni ? 'border-red-500 border-2' : ''}`} required />
+            <input name="tipologia" value={form.tipologia} onChange={handleChange} placeholder="Tipologia*" className={`w-36 border rounded px-2 py-1 text-base font-semibold text-refresh-blue ${invalidFields.tipologia ? 'border-red-500 border-2' : ''}`} required />
+            <input name="alimentazione" value={form.alimentazione} onChange={handleChange} placeholder="Alimentazione*" className={`w-36 border rounded px-2 py-1 text-base font-semibold text-refresh-blue ${invalidFields.alimentazione ? 'border-red-500 border-2' : ''}`} required />
+            <input name="origine" value={form.origine} onChange={handleChange} placeholder="Origine*" className={`w-36 border rounded px-2 py-1 text-base font-semibold text-refresh-blue ${invalidFields.origine ? 'border-red-500 border-2' : ''}`} required />
+            <input name="allergeni" value={form.allergeni} onChange={handleChange} placeholder="Allergeni*" className={`w-36 border rounded px-2 py-1 text-base font-semibold text-refresh-blue ${invalidFields.allergeni ? 'border-red-500 border-2' : ''}`} required />
           </div>
           {/* Descrizione */}
           <div className="px-6 pt-6 pb-2">
@@ -266,7 +284,7 @@ const AddRecipe = ({ user, editMode }) => {
               value={form.descrizione}
               onChange={handleChange}
               placeholder="Breve descrizione*"
-              className="w-full border rounded-lg p-3 text-base mb-2"
+              className={`w-full border rounded-lg p-3 text-base mb-2 ${invalidFields.descrizione ? 'border-red-500 border-2' : ''}`}
               rows={2}
               required
             />
