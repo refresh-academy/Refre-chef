@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState} from 'react';
+import {useNavigate} from 'react-router';
 
 const Contatti = () => {
   const [form, setForm] = useState({ nome: '', email: '', messaggio: '' });
   const [sent, setSent] = useState(false);
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   const handleChange = e => {
     const { name, value } = e.target;
@@ -22,6 +24,7 @@ const Contatti = () => {
       const data = await res.json();
       if (res.ok) {
         setSent(true);
+        setTimeout(() => navigate('/ricette'), 500);
       } else {
         setError(data.error || 'Errore nell\'invio del messaggio.');
       }
