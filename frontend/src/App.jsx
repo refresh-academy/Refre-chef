@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import './App.css'
 import { BrowserRouter, Routes, Route, Link, Outlet, useLocation, useNavigate } from "react-router";
 import  logorefreChef from '/logorefreChef.png'
-import Home from './routes/Ricettario.jsx'
+import Ricettario from './routes/Ricettario.jsx'
 import Login from './routes/Login.jsx'
 import Registration from './routes/Registration.jsx'
 import SavedRecipes from './routes/SavedRecipes.jsx'
@@ -390,7 +390,7 @@ function App() {
       <Routes>
         <Route element={<Layout user={user} cookieConsent={cookieConsent} showCookieBlock={showCookieBlock} />}> 
           <Route index element={<HomePage user={user} />} />
-          <Route path="/ricette" element={<Home user={user} />} />
+          <Route path="/ricette" element={<Ricettario user={user} />} />
           <Route path="/login" element={cookieConsent === false ? (() => { showCookieBlock('Devi accettare i cookie tecnici per effettuare il login.'); return null; })() : <Login setUser={setUser} />} />
           <Route path="/register" element={cookieConsent === false ? (() => { showCookieBlock('Devi accettare i cookie tecnici per registrarti.'); return null; })() : <Registration />} />
           <Route path="/saved-recipes/:userId" element={cookieConsent === false ? (() => { showCookieBlock('Devi accettare i cookie tecnici per salvare le ricette.'); return null; })() : <SavedRecipes />} />

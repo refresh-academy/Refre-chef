@@ -136,7 +136,7 @@ function highlight(text, query) {
   });
 }
 
-const Home = (props) => {
+const Ricettario = (props) => {
   const [recipes, setRecipes] = useState([]);
   const [allIngredients, setAllIngredients] = useState({}); // { ricettaId: [ingredienti] }
   const [loading, setLoading] = useState(true);
@@ -490,4 +490,4 @@ const Home = (props) => {
   );
 };
 
-export default Home;
+export default Ricettario;

@@ -186,12 +186,15 @@ const AddRecipe = ({ user, editMode }) => {
         tempo_preparazione: Math.max(1, Number(form.tempo_preparazione) || 1),
         kcal: Math.max(1, Number(form.kcal) || 1),
       };
-      const sanitizedIngredients = ingredients.map(ing => ({
-        nome: (ing.nome || '').trim(),
-        grammi: Math.max(0.1, parseFloat(ing.grammi.replace(',', '.')) || 0.1),
-        unita: ing.unita || 'g'
-      }));
+      const sanitizedIngredients = ingredients.map(ing => {console.log('questo è ing', ing)
+        return ({
+          nome: (ing.nome || '').trim(),
+          grammi: Math.max(0.1, Number(ing.grammi) || 0.1),
+          unita: ing.unita || 'g'
+        });
+      });
       const sanitizedSteps = steps.map(s => s.trim());
+      console.log('Qui');
       let res, data;
       if (editMode && id) {
         // UPDATE
@@ -231,8 +234,9 @@ const AddRecipe = ({ user, editMode }) => {
         setSuccess(editMode ? 'Ricetta aggiornata con successo!' : 'Ricetta aggiunta con successo!');
         setTimeout(() => navigate('/my-recipes'), 1200);
       }
-    } catch {
-      setError('Errore di rete.');
+    } catch (err) {
+      console.log(err);
+      setError('Errore di rete');
     } finally {
       setLoading(false);
     }

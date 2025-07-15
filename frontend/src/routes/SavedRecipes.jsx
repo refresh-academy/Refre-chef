@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router';
 
-// RecipeStars component from Home.jsx
+// RecipeStars component from Ricettario.jsx
 function RecipeStars({ recipeId }) {
   const [media, setMedia] = useState(0);
   const [numero, setNumero] = useState(0);
