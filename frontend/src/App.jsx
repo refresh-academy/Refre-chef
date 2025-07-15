@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import './App.css'
 import { BrowserRouter, Routes, Route, Link, Outlet, useLocation, useNavigate } from "react-router";
 import  logorefreChef from '/logorefreChef.png'
-import Home from './routes/Home.jsx'
+import Home from './routes/Ricettario.jsx'
 import Login from './routes/Login.jsx'
 import Registration from './routes/Registration.jsx'
 import SavedRecipes from './routes/SavedRecipes.jsx'
