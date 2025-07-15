@@ -90,6 +90,9 @@ const AddRecipe = ({ user, editMode }) => {
 
   const handleIngredientChange = (idx, e) => {
     const { name, value } = e.target;
+    if (name === 'grammi') {
+      console.log(`Input: "${value}" → Number: ${Number(value)} → con punto: ${Number(value.replace(',', '.'))}`);
+    }
     setIngredients(ings => ings.map((ing, i) => i === idx ? { ...ing, [name]: value } : ing));
   };
 
@@ -114,6 +117,11 @@ const AddRecipe = ({ user, editMode }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log('🔍 GRAMMI AL CLICK SALVA:');
+    ingredients.forEach((ing, i) => {
+      console.log(`${i + 1}. ${ing.nome}: "${ing.grammi}" (${ing.unita})`);
+    });
+
     setLoading(true);
     setError('');
     // Validazione campi obbligatori
@@ -147,7 +155,7 @@ const AddRecipe = ({ user, editMode }) => {
     if (ingredients.some(ing =>
       !ing.nome ||
       !ing.unita ||
-      (ing.unita !== 'q.b.' && (!ing.grammi || Number(ing.grammi) < 1))
+      (ing.unita !== 'q.b.' && (!ing.grammi))
     )) {
       setError('Compila tutti gli ingredienti: nome e unità obbligatori, quantità solo se non è q.b.');
       setLoading(false);
@@ -180,7 +188,7 @@ const AddRecipe = ({ user, editMode }) => {
       };
       const sanitizedIngredients = ingredients.map(ing => ({
         nome: (ing.nome || '').trim(),
-        grammi: Math.max(1, Number(ing.grammi) || 1),
+        grammi: Math.max(0.1, parseFloat(ing.grammi.replace(',', '.')) || 0.1),
         unita: ing.unita || 'g'
       }));
       const sanitizedSteps = steps.map(s => s.trim());
@@ -307,7 +315,8 @@ const AddRecipe = ({ user, editMode }) => {
                   <input
                     name="grammi"
                     type="number"
-                    min="1"
+                    min="0.1"
+                    step="0.1"
                     value={ing.unita === 'q.b.' ? '' : ing.grammi}
                     onChange={e => handleIngredientChange(idx, e)}
                     placeholder="Quantità"

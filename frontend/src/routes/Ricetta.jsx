@@ -517,7 +517,7 @@ const Ricetta = () => {
                         >
                           <span className="font-medium text-refresh-blue flex-1 min-w-0 pr-2">{ing.ingrediente}</span>
                           <span className="bg-refresh-pink/10 text-refresh-pink font-bold rounded-full px-3 py-1 text-sm ml-4 shadow-inner">
-                            {ing.unita === 'q.b.' ? 'q.b.' : `${Math.round((ing.grammi * (numPorzioni || ricetta?.porzioni || 1)) / (ricetta?.porzioni || 1))}${ing.unita && ing.unita !== 'n' ? ing.unita : ''}`.replace(/^1q\.b\.$/, 'q.b.')}
+                            {ing.unita === 'q.b.' ? 'q.b.' : `${((ing.grammi * (numPorzioni || ricetta?.porzioni || 0.1)) / (ricetta?.porzioni || 1))}${ing.unita && ing.unita !== 'n' ? ing.unita : ''}`.replace(/^1q\.b\.$/, 'q.b.')}
                           </span>
                         </li>
                       ))
