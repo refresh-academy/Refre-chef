@@ -49,7 +49,7 @@ const Layout = ({ user }) => {
   }, [dropdownOpen]);
   return (
     <div className='min-h-screen flex flex-col'>
-    <div className='flex flex-row bg-white shadow-md items-center w-screen'>
+    <div className='flex flex-row bg-white shadow-md items-center w-full'>
         <div className='flex flex-row items-center font-bold gap-5 p-2'>
           <Link to={'/'} className='flex flex-row items-center font-bold gap-5'>
             <img src={logorefreChef} className="w-10 h-10" alt="Refrechef-logo" />
