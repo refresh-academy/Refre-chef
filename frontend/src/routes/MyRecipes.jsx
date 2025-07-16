@@ -1,5 +1,20 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router';
+import ConfirmModal from '../routes/ConfirmModal.jsx';
+
+function ErrorModal({ message, onClose }) {
+  if (!message) return null;
+  return (
+    <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/40">
+      <div className="bg-white rounded shadow-lg p-6 min-w-[300px] max-w-[90vw] flex flex-col items-center">
+        <div className="text-red-600 text-lg font-semibold mb-4">Errore</div>
+        <div className="mb-4 text-center">{message}</div>
+        <button className="bg-refresh-blue text-white px-4 py-2 rounded hover:bg-refresh-pink transition" onClick={onClose}>Chiudi</button>
+      </div>
+    </div>
+  );
+}
+
 
 function RecipeCard({ ricetta, handleEdit, handleDelete, handleRecipeClick }) {
   const [imgError, setImgError] = useState(false);
@@ -54,6 +69,8 @@ const MyRecipes = ({ user }) => {
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [ricettaDaEliminare, setRicettaDaEliminare] = useState(null);
+  const [deleteError, setDeleteError] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -88,26 +105,32 @@ const MyRecipes = ({ user }) => {
     navigate(`/edit-recipe/${ricettaId}`);
   };
 
-  const handleDelete = async (ricettaId) => {
-    if (!window.confirm('Sei sicuro di voler eliminare questa ricetta?')) return;
+  const handleDelete = (ricettaId) => {
+  setRicettaDaEliminare(ricettaId);
+};
+
+  const confermaEliminazione = async () => {
+    if (!ricettaDaEliminare) return;
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:3000/api/ricette/${ricettaId}`, {
+      const res = await fetch(`http://localhost:3000/api/ricette/${ricettaDaEliminare}`, {
         method: 'DELETE',
         headers: {
           'Authorization': token ? `Bearer ${token}` : '',
         },
       });
       if (res.ok) {
-        setRecipes(prev => prev.filter(r => r.id !== ricettaId));
+        setRecipes(prev => prev.filter(r => r.id !== ricettaDaEliminare));
+        setRicettaDaEliminare(null);
       } else {
         const data = await res.json();
-        alert(data.error || 'Errore nell\'eliminazione della ricetta');
+        setDeleteError(data.error || "Errore nell'eliminazione della ricetta");
       }
     } catch {
-      alert('Errore di rete nell\'eliminazione.');
+      setDeleteError("Errore di rete nell'eliminazione.");
     }
   };
+
 
   const handleRecipeClick = (ricettaId) => {
     navigate(`/ricetta/${ricettaId}`);
@@ -138,6 +161,14 @@ const MyRecipes = ({ user }) => {
             />
           ))}
         </div>
+        {ricettaDaEliminare && (
+          <ConfirmModal
+            message="Sei sicuro di voler eliminare questa ricetta?"
+            onConfirm={confermaEliminazione}
+            onCancel={() => setRicettaDaEliminare(null)}
+          />
+        )}
+        <ErrorModal message={deleteError} onClose={() => setDeleteError('')} />
       </div>
     </div>
   );
