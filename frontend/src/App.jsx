@@ -192,8 +192,8 @@ const Layout = ({ user }) => {
                   id="maxTime"
                   value={maxTime}
                   onChange={e => setMaxTime(e.target.value)}
-                  className="w-32 p-2 border-2 border-refresh-blue rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-refresh-blue transition-all duration-200 hover:border-refresh-pink"
-                  style={{maxWidth: '120px'}}
+                  className="w-fit p-2 border-2 border-refresh-blue rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-refresh-blue transition-all duration-200 hover:border-refresh-pink"
+                
                 >
                   <option value="">Qualsiasi</option>
                   <option value="10">5-10 minuti</option>
@@ -212,8 +212,8 @@ const Layout = ({ user }) => {
                   id="maxKcal"
                   value={maxKcal}
                   onChange={e => setMaxKcal(e.target.value)}
-                  className="w-32 p-2 border-2 border-refresh-pink rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-refresh-pink transition-all duration-200 hover:border-refresh-blue"
-                  style={{maxWidth: '120px'}}
+                  className="w-fit p-2 border-2 border-refresh-pink rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-refresh-pink transition-all duration-200 hover:border-refresh-blue"
+                  
                 >
                   <option value="">Qualsiasi</option>
                   <option value="200">0-200 kcal</option>
@@ -232,7 +232,7 @@ const Layout = ({ user }) => {
                   id="alimentazione"
                   value={alimentazione}
                   onChange={e => setAlimentazione(e.target.value)}
-                  className="w-48 p-2 border-2 border-gray-300 rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-refresh-blue transition-all duration-200 hover:border-refresh-pink"
+                  className="w-fit p-2 border-2 border-gray-300 rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-refresh-blue transition-all duration-200 hover:border-refresh-pink"
                 >
                   <option value="">🍽️ Tutte le alimentazioni</option>
                   <option value="Onnivora">🥩 Onnivoro</option>
@@ -249,7 +249,7 @@ const Layout = ({ user }) => {
                   id="sortBy"
                   value={sortBy}
                   onChange={e => setSortBy(e.target.value)}
-                  className="w-48 p-2 border-2 border-yellow-300 rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all duration-200 hover:border-refresh-pink"
+                  className="w-fit p-2 border-2 border-yellow-300 rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all duration-200 hover:border-refresh-pink"
                 >
                   <option value="nome">Nome (A-Z)</option>
                   <option value="nomeZA">Nome (Z-A)</option>
