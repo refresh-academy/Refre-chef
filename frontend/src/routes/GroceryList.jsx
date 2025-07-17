@@ -11,6 +11,9 @@ const GroceryList = () => {
   const [removingRecipeId, setRemovingRecipeId] = useState(null);
   const [recommended, setRecommended] = useState([]);
   const navigate = useNavigate();
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [ingredientToDelete, setIngredientToDelete] = useState(null);
+  const [recipeIdToDelete, setRecipeIdToDelete] = useState(null);
 
   const token = localStorage.getItem('token');
 
@@ -69,6 +72,36 @@ const GroceryList = () => {
     } catch {
       setError('Errore di rete.');
     }
+  };
+
+  const handleRemoveClick = (ingredient, recipe_id) => {
+    setIngredientToDelete(ingredient);
+    setRecipeIdToDelete(recipe_id);
+    setShowDeleteModal(true);
+  };
+  const handleConfirmDelete = async () => {
+    if (!ingredientToDelete || !recipeIdToDelete) return;
+    try {
+      const res = await fetch('http://localhost:3000/api/groceryList/ingredient', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : '',
+        },
+        body: JSON.stringify({ ingredient: ingredientToDelete, recipe_id: recipeIdToDelete }),
+      });
+      if (res.ok) {
+        setItems(items.filter(i => !(i.ingredient === ingredientToDelete && i.recipe_id === recipeIdToDelete)));
+      } else {
+        const data = await res.json();
+        setError(data.error || 'Errore nella rimozione');
+      }
+    } catch {
+      setError('Errore di rete.');
+    }
+    setShowDeleteModal(false);
+    setIngredientToDelete(null);
+    setRecipeIdToDelete(null);
   };
 
   const handleEdit = (index, quantity) => {
@@ -320,7 +353,7 @@ const GroceryList = () => {
                             >Modifica</button>
                             <button
                               className="bg-refresh-blue text-white px-2 py-1 rounded hover:bg-refresh-pink transition"
-                              onClick={() => handleConfirmModalAction(item.ingredient, item.recipe_id)}
+                              onClick={() => handleRemoveClick(item.ingredient, item.recipe_id)}
                             >Rimuovi</button>
                           </>
                         )}
@@ -337,6 +370,13 @@ const GroceryList = () => {
           </div>
         )}
       </div>
+      {showDeleteModal && (
+        <ConfirmModal
+          message="Sei sicuro di voler eliminare questo ingrediente?"
+          onConfirm={handleConfirmDelete}
+          onCancel={() => { setShowDeleteModal(false); setIngredientToDelete(null); setRecipeIdToDelete(null); }}
+        />
+      )}
     </div>
   );
 };
