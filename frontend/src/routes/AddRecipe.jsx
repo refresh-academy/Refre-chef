@@ -79,7 +79,7 @@ const AddRecipe = ({ user, editMode }) => {
   }, [editMode, id, user]);
 
   if (!user) {
-    return <div className="flex flex-col items-center justify-center min-h-[60vh]"><h2 className="text-xl font-bold">Devi essere loggato per {editMode ? 'modificare' : 'aggiungere'} una ricetta.</h2></div>;
+    return <div className="flex flex-col bg-gray-200/80 text-refresh-pink items-center justify-center min-h-[60vh]"><h2 className="text-xl font-bold">Devi essere loggato per {editMode ? 'modificare' : 'aggiungere'} una ricetta.</h2></div>;
   }
 
   const handleChange = (e) => {
