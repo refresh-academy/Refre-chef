@@ -92,7 +92,7 @@ function authenticateToken(req, res, next) {
   const token = authHeader && authHeader.split(' ')[1];
   if (!token) return res.status(401).json({ error: 'Token required' });
   jwt.verify(token, JWT_SECRET, (err, user) => {
-    if (err) return res.status(403).json({ error: 'Invalid token' });
+    if (err) return res.status(403).json({ error: 'Token expired, you will be redirected in the login page' });
     req.user = user;
     next();
   });
@@ -201,7 +201,7 @@ app.post('/api/login', async (req, res) => {
     }
 
     const userId = user.id_user;
-    const token = jwt.sign({ userId, nickname: user.nickname }, JWT_SECRET, { expiresIn: '12h' });
+    const token = jwt.sign({ userId, nickname: user.nickname }, JWT_SECRET, { expiresIn: '2s' });
     res.status(200).json({ message: 'Login successful', userId: userId, nickname: user.nickname, token });
   } catch (err) {
     res.status(500).json({ error: 'Login failed', details: err.message });
