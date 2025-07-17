@@ -14,6 +14,8 @@ const GroceryList = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [ingredientToDelete, setIngredientToDelete] = useState(null);
   const [recipeIdToDelete, setRecipeIdToDelete] = useState(null);
+  const [showDeleteRecipeModal, setShowDeleteRecipeModal] = useState(false);
+  const [recipeToDelete, setRecipeToDelete] = useState(null);
 
   const token = localStorage.getItem('token');
 
@@ -175,6 +177,38 @@ const GroceryList = () => {
     }
   };
 
+  const handleRemoveRecipeClick = (recipeId, recipeName) => {
+    setRecipeToDelete({ id: recipeId, name: recipeName });
+    setShowDeleteRecipeModal(true);
+  };
+
+  const handleConfirmDeleteRecipe = async () => {
+    if (!recipeToDelete) return;
+    setRemovingRecipeId(recipeToDelete.id);
+    try {
+      const res = await fetch('http://localhost:3000/api/groceryList/recipe', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : '',
+        },
+        body: JSON.stringify({ recipe_id: recipeToDelete.id }),
+      });
+      if (res.ok) {
+        setItems(items.filter(i => String(i.recipe_id) !== String(recipeToDelete.id)));
+      } else {
+        const data = await res.json();
+        setError(data.error || 'Errore nella rimozione della ricetta dalla lista');
+      }
+    } catch {
+      setError('Errore di rete.');
+    } finally {
+      setRemovingRecipeId(null);
+      setShowDeleteRecipeModal(false);
+      setRecipeToDelete(null);
+    }
+  };
+
   // Utility: calcola porzioni attuali per una ricetta nella lista
   const getPorzioniInfo = (groupItems) => {
     if (!groupItems.length) return { attuali: 1, originali: 1 };
@@ -296,7 +330,7 @@ const GroceryList = () => {
                   {group.recipe_name && (
                     <button
                       className={`ml-2 px-2 py-1 rounded bg-refresh-pink text-white text-xs font-bold hover:bg-refresh-blue transition ${removingRecipeId === recipeId ? 'opacity-60 pointer-events-none' : ''}`}
-                      onClick={() => handleRemoveRecipe(recipeId, group.recipe_name)}
+                      onClick={() => handleRemoveRecipeClick(recipeId, group.recipe_name)}
                       disabled={removingRecipeId === recipeId}
                     >
                       {removingRecipeId === recipeId ? 'Rimozione...' : 'Rimuovi'}
@@ -375,6 +409,13 @@ const GroceryList = () => {
           message="Sei sicuro di voler eliminare questo ingrediente?"
           onConfirm={handleConfirmDelete}
           onCancel={() => { setShowDeleteModal(false); setIngredientToDelete(null); setRecipeIdToDelete(null); }}
+        />
+      )}
+      {showDeleteRecipeModal && (
+        <ConfirmModal
+          message={`Vuoi rimuovere tutti gli ingredienti di "${recipeToDelete?.name}" dalla lista della spesa?`}
+          onConfirm={handleConfirmDeleteRecipe}
+          onCancel={() => { setShowDeleteRecipeModal(false); setRecipeToDelete(null); }}
         />
       )}
     </div>
