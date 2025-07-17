@@ -6,6 +6,7 @@ const GroceryList = () => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [tokenExpired, setTokenExpired] = useState(false);
   const [editIndex, setEditIndex] = useState(null);
   const [editValue, setEditValue] = useState(1);
   const [removingRecipeId, setRemovingRecipeId] = useState(null);
@@ -28,7 +29,17 @@ const GroceryList = () => {
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || 'Errore nel caricamento della lista');
+        if (res.status === 403 && data.error === 'Token expired, you will be redirected in the login page') {
+          setTokenExpired(true);
+          setTimeout(() => {
+            if (typeof window.setUser === 'function') window.setUser(null);
+            localStorage.removeItem('userId');
+            localStorage.removeItem('token');
+            navigate('/login');
+          }, 1500);
+        } else {
+          setError(data.error || 'Errore nel caricamento della lista');
+        }
       } else {
         setItems(data);
       }
@@ -261,8 +272,11 @@ const GroceryList = () => {
       <div className="relative z-10 w-full flex flex-col items-center justify-center" style={{ minHeight: 'calc(100vh - 64px)' }}>
         <h1 className="text-2xl font-bold mb-4 text-refresh-blue">La tua lista della spesa</h1>
         {loading && <div>Caricamento...</div>}
-        {error && <div className="text-red-500 mb-4">{error}</div>}
-        {!loading && !error && items.length === 0 && (
+        {tokenExpired && (
+          <div className="text-xl font-bold  text-refresh-pink">Sessione scaduta, verrai reindirizzato al login...</div>
+        )}
+        {!loading && !tokenExpired && error && <div className="text-red-500 mb-4">{error}</div>}
+        {!loading && !tokenExpired && !error && items.length === 0 && (
           <>
             <div>La lista della spesa è vuota.</div>
             {recommended.length > 0 && (
@@ -290,7 +304,7 @@ const GroceryList = () => {
             )}
           </>
         )}
-        {!loading && !error && items.length > 0 && (
+        {!loading && !tokenExpired && items.length > 0 && (
           <div className="w-full max-w-lg bg-white rounded shadow p-6">
             {/* Raggruppa per ricetta */}
             {Object.entries(

@@ -134,7 +134,7 @@ const Layout = ({ user }) => {
                       if (typeof window.setUser === 'function') window.setUser(null);
                       localStorage.removeItem('userId');
                       setMobileMenuOpen(false);
-                      navigate('/');
+                      navigate('/login');
                     }}
                   >
                     Logout
@@ -282,7 +282,7 @@ const Layout = ({ user }) => {
 function ProtectedGroceryList({ user }) {
   const navigate = useNavigate();
   if (!user) {
-    navigate('/');
+    navigate('/login');
     return null;
   }
   return <GroceryList />;

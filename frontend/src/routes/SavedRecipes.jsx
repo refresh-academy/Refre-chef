@@ -111,6 +111,7 @@ const SavedRecipes = () => {
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [tokenExpired, setTokenExpired] = useState(false);
   const navigate = useNavigate();
 
   // Redirect to /saved-recipes if userId param is present
@@ -125,6 +126,7 @@ const SavedRecipes = () => {
     const fetchRecipes = async () => {
       setLoading(true);
       setError('');
+      setTokenExpired(false);
       try {
         const token = localStorage.getItem('token');
         const res = await fetch('http://localhost:3000/api/ricetteSalvate', {
@@ -133,8 +135,14 @@ const SavedRecipes = () => {
           },
         });
         const data = await res.json();
-        if (!res.ok) {
-          setError(data.error || 'Errore nel caricamento delle ricette');
+        if (res.status === 403 && data.error === 'Token expired, you will be redirected in the login page') {
+          setTokenExpired(true);
+          setTimeout(() => {
+            if (typeof window.setUser === 'function') window.setUser(null);
+            localStorage.removeItem('userId');
+            localStorage.removeItem('token');
+            navigate('/login');
+          }, 1500);
         } else {
           setRecipes(data);
         }
@@ -186,8 +194,13 @@ const SavedRecipes = () => {
       <div className="relative z-10 w-full flex flex-col items-center justify-center">
         <h1 className="text-2xl font-bold mb-4 text-refresh-blue">Ricette Salvate</h1>
         {loading && <div>Caricamento...</div>}
-        {error && <div className="text-red-500 mb-4">{error}</div>}
-        {!loading && !error && recipes.length === 0 && (
+        {!loading && tokenExpired && (
+          <div className="text-xl font-bold  text-refresh-pink">Sessione scaduta, verrai reindirizzato al login...</div>
+        )}
+        {!loading && !tokenExpired && error && (
+          <div>{error}</div>
+        )}
+        {!loading && !tokenExpired && !error && recipes.length === 0 && (
           <div>Nessuna ricetta salvata trovata.</div>
         )}
         <div className="flex flex-col gap-6 w-full max-w-5xl">
