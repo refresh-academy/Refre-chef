@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router';
+import ConfirmModal from './ConfirmModal';
 
 const isLoggedIn = (userId) =>
   userId && userId !== "null" && userId !== "" && userId !== undefined && userId !== "undefined";
@@ -29,6 +30,8 @@ const Ricetta = () => {
   const [editingCommentId, setEditingCommentId] = useState(null);
   const [editingCommentText, setEditingCommentText] = useState('');
   const navigate = useNavigate();
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [commentToDelete, setCommentToDelete] = useState(null);
 
   useEffect(() => {
     const stored = localStorage.getItem("userId");
@@ -326,11 +329,15 @@ const Ricetta = () => {
     }
   };
 
-  const handleDeleteComment = async (commentId) => {
-    if (!window.confirm('Sei sicuro di voler eliminare questo commento?')) return;
+  const handleDeleteComment = (commentId) => {
+    setCommentToDelete(commentId);
+    setShowDeleteModal(true);
+  };
+  const confirmDeleteComment = async () => {
+    if (!commentToDelete) return;
     const token = localStorage.getItem('token');
     try {
-      const res = await fetch(`http://localhost:3000/api/commenti/${commentId}`, {
+      const res = await fetch(`http://localhost:3000/api/commenti/${commentToDelete}`, {
         method: 'DELETE',
         headers: {
           'Authorization': token ? `Bearer ${token}` : '',
@@ -346,6 +353,8 @@ const Ricetta = () => {
     } catch {
       setCommentMsg('Errore di rete.');
     }
+    setShowDeleteModal(false);
+    setCommentToDelete(null);
   };
 
   if (loading)
@@ -680,6 +689,13 @@ const Ricetta = () => {
           )}
         </div>
       </>
+      {showDeleteModal && (
+        <ConfirmModal
+          message="Sei sicuro di voler eliminare questo commento?"
+          onConfirm={confirmDeleteComment}
+          onCancel={() => { setShowDeleteModal(false); setCommentToDelete(null); }}
+        />
+      )}
     </div>
   );
 };

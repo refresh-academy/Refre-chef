@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
+import ConfirmModal from './ConfirmModal';
 
 const GroceryList = () => {
   const [items, setItems] = useState([]);
@@ -48,8 +49,8 @@ const GroceryList = () => {
     }
   }, [loading, items]);
 
-  const handleRemove = async (ingredient, recipe_id) => {
-    if (!window.confirm(`Rimuovere "${ingredient}" dalla lista?`)) return;
+  const handleConfirmModalAction = async (ingredient, recipe_id) => {
+   
     try {
       const res = await fetch('http://localhost:3000/api/groceryList/ingredient', {
         method: 'DELETE',
@@ -99,7 +100,7 @@ const GroceryList = () => {
   };
 
   const handleClear = async () => {
-    if (!window.confirm('Svuotare tutta la lista della spesa?')) return;
+    //if (!window.confirm('Svuotare tutta la lista della spesa?')) return;
     try {
       const res = await fetch('http://localhost:3000/api/groceryList/clear', {
         method: 'POST',
@@ -117,7 +118,7 @@ const GroceryList = () => {
   };
 
   const handleRemoveRecipe = async (recipe_id, recipe_name) => {
-    if (!window.confirm(`Rimuovere tutti gli ingredienti di "${recipe_name}" dalla lista?`)) return;
+    //if (!window.confirm(`Rimuovere tutti gli ingredienti di "${recipe_name}" dalla lista?`)) return;
     setRemovingRecipeId(recipe_id);
     try {
       const res = await fetch('http://localhost:3000/api/groceryList/recipe', {
@@ -319,7 +320,7 @@ const GroceryList = () => {
                             >Modifica</button>
                             <button
                               className="bg-refresh-blue text-white px-2 py-1 rounded hover:bg-refresh-pink transition"
-                              onClick={() => handleRemove(item.ingredient, item.recipe_id)}
+                              onClick={() => handleConfirmModalAction(item.ingredient, item.recipe_id)}
                             >Rimuovi</button>
                           </>
                         )}
