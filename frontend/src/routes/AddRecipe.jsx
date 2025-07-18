@@ -24,6 +24,7 @@ const AddRecipe = ({ user, editMode }) => {
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
   const [invalidFields, setInvalidFields] = useState({});
+  const [tokenExpired, setTokenExpired] = useState(false);
 
   useEffect(() => {
     if (editMode && id && user) {
@@ -79,7 +80,7 @@ const AddRecipe = ({ user, editMode }) => {
   }, [editMode, id, user]);
 
   if (!user) {
-    return <div className="flex flex-col items-center justify-center min-h-[60vh]"><h2 className="text-xl font-bold">Devi essere loggato per {editMode ? 'modificare' : 'aggiungere'} una ricetta.</h2></div>;
+    return <div className="flex flex-col bg-gray-200/80 text-refresh-pink items-center justify-center min-h-[60vh]"><h2 className="text-xl font-bold">Devi essere loggato per {editMode ? 'modificare' : 'aggiungere'} una ricetta.</h2></div>;
   }
 
   const handleChange = (e) => {
@@ -169,7 +170,14 @@ const AddRecipe = ({ user, editMode }) => {
     try {
       const token = localStorage.getItem('token');
       if (!token || token.length < 20) {
-        setError('Sessione scaduta o non autenticata. Fai login di nuovo.');
+        setTokenExpired(true);
+        setTimeout(() => {
+          setError('');
+          if (typeof window.setUser === 'function') window.setUser(null);
+          localStorage.removeItem('userId');
+          localStorage.removeItem('token');
+          navigate('/login');
+        }, 1500);
         setLoading(false);
         return;
       }
@@ -186,7 +194,8 @@ const AddRecipe = ({ user, editMode }) => {
         tempo_preparazione: Math.max(1, Number(form.tempo_preparazione) || 1),
         kcal: Math.max(1, Number(form.kcal) || 1),
       };
-      const sanitizedIngredients = ingredients.map(ing => {console.log('questo è ing', ing)
+      const sanitizedIngredients = ingredients.map(ing => {
+        console.log('questo è ing', ing)
         return ({
           nome: (ing.nome || '').trim(),
           grammi: Math.max(0.1, Number(ing.grammi) || 0.1),
@@ -229,7 +238,20 @@ const AddRecipe = ({ user, editMode }) => {
         data = await res.json();
       }
       if (!res.ok) {
-        setError(data.error || 'Errore nel salvataggio della ricetta');
+        const errorMessage = data.error || 'Errore nel salvataggio della ricetta';
+        setError(errorMessage);
+
+        // Controlla se è un errore 403 (token scaduto)
+        if (res.status === 403 && data.error === 'Token expired, you will be redirected in the login page') {
+          setTokenExpired(true);
+          setTimeout(() => {
+            setError('');
+            if (typeof window.setUser === 'function') window.setUser(null);
+            localStorage.removeItem('userId');
+            localStorage.removeItem('token');
+            navigate('/login');
+          }, 1500);
+        }
       } else {
         setSuccess(editMode ? 'Ricetta aggiornata con successo!' : 'Ricetta aggiunta con successo!');
         setTimeout(() => navigate('/my-recipes'), 1200);
@@ -366,9 +388,11 @@ const AddRecipe = ({ user, editMode }) => {
           </div>
           {/* Error/success messages and submit */}
           <div className="px-6 pb-8 pt-2">
-            {error && <div className="text-red-500 mb-2 text-center font-semibold">{error}</div>}
+            {tokenExpired && (
+              <div className="text-xl font-bold  text-refresh-pink">Sessione scaduta, verrai reindirizzato al login...</div>)}
+            {!tokenExpired && error && <div className="text-red-500 mb-2 text-center font-semibold">{error}</div>}
             {success && <div className="text-green-600 mb-2 text-center font-semibold">{success}</div>}
-            <button type="submit" onClick={handleSubmit} disabled={loading} className="w-full bg-refresh-blue text-white font-bold py-3 rounded-full shadow hover:bg-refresh-pink transition text-lg mt-4 disabled:opacity-60 disabled:cursor-not-allowed">
+            <button type="submit" onClick={handleSubmit} disabled={loading || tokenExpired} className="w-full bg-refresh-blue text-white font-bold py-3 rounded-full shadow hover:bg-refresh-pink transition text-lg mt-4 disabled:opacity-60 disabled:cursor-not-allowed">
               {loading ? 'Salvataggio...' : editMode ? 'Salva modifiche' : 'Aggiungi ricetta'}
             </button>
           </div>

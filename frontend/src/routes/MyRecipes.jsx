@@ -106,8 +106,8 @@ const MyRecipes = ({ user }) => {
   };
 
   const handleDelete = (ricettaId) => {
-  setRicettaDaEliminare(ricettaId);
-};
+    setRicettaDaEliminare(ricettaId);
+  };
 
   const confermaEliminazione = async () => {
     if (!ricettaDaEliminare) return;
@@ -136,9 +136,13 @@ const MyRecipes = ({ user }) => {
     navigate(`/ricetta/${ricettaId}`);
   };
 
-  if (!user) {
-    return <div className="flex flex-col items-center justify-center min-h-[60vh]"><h2 className="text-xl font-bold">Devi essere loggato per vedere le tue ricette.</h2></div>;
-  }
+if (!user) {
+  return (
+    <div className="flex flex-col text-refresh-pink bg-gray-200/80  items-center justify-center min-h-[60vh]">
+      <h2 className="text-xl font-bold">Devi essere loggato per vedere le tue ricette.</h2>
+    </div>
+  );
+}
 
   return (
     <div className="relative w-full flex flex-col items-center justify-center" style={{ minHeight: 'calc(100vh - 64px)' }}>
