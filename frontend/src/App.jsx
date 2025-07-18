@@ -19,6 +19,8 @@ import Contatti from './routes/Contatti.jsx';
 import { jwtDecode } from 'jwt-decode';
 import Footer from './Footer.jsx';
 import { FaBell } from 'react-icons/fa';
+import ForgotPassword from './routes/ForgotPassword.jsx';
+import ResetPassword from './routes/ResetPassword.jsx';
 
 
 const Layout = ({ user }) => {
@@ -500,6 +502,8 @@ function App() {
           <Route path="chi-siamo" element={<ChiSiamo />} />
           <Route path="privacy" element={<Privacy />} />
           <Route path="contatti" element={<Contatti />} />
+          <Route path="forgot-password" element={<ForgotPassword />} />
+          <Route path="reset-password" element={<ResetPassword />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>

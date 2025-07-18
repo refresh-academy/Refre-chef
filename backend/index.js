@@ -4,6 +4,7 @@ const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
+const crypto = require('crypto');
 
 const app = express();
 const port = 3000;
@@ -69,6 +70,9 @@ const db = new sqlite3.Database(dbPath, (err) => {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY(user_id) REFERENCES utenti(id_user)
     )`);
+    // Add a column for password reset tokens if not exists
+    db.run(`ALTER TABLE utenti ADD COLUMN reset_token TEXT`, () => {});
+    db.run(`ALTER TABLE utenti ADD COLUMN reset_token_expires INTEGER`, () => {});
   }
 });
 
@@ -756,6 +760,41 @@ app.post('/api/notifications/:id/read', authenticateToken, async (req, res) => {
     res.status(200).json({ message: 'Notifica segnata come letta.' });
   } catch (err) {
     res.status(500).json({ error: 'Errore nel segnare la notifica come letta', details: err.message });
+  }
+});
+
+// Request password reset (step 1)
+app.post('/api/request-password-reset', async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ error: 'Email required' });
+  try {
+    const users = await dbAll('SELECT * FROM utenti WHERE email = ?', [email]);
+    if (users.length === 0) return res.status(404).json({ error: 'User not found' });
+    const token = crypto.randomBytes(32).toString('hex');
+    const expires = Date.now() + 1000 * 60 * 30; // 30 min
+    await dbRun('UPDATE utenti SET reset_token = ?, reset_token_expires = ? WHERE email = ?', [token, expires, email]);
+    // In produzione invia il token via email. Qui lo restituiamo per demo.
+    res.json({ message: 'Reset token generated', token });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to generate reset token', details: err.message });
+  }
+});
+// Set new password using reset token (step 2)
+app.post('/api/reset-password', async (req, res) => {
+  const { token, newPassword } = req.body;
+  if (!token || !newPassword) return res.status(400).json({ error: 'Token and new password required' });
+  try {
+    const users = await dbAll('SELECT * FROM utenti WHERE reset_token = ?', [token]);
+    if (users.length === 0) return res.status(400).json({ error: 'Invalid or expired token' });
+    const user = users[0];
+    if (!user.reset_token_expires || user.reset_token_expires < Date.now()) {
+      return res.status(400).json({ error: 'Token expired' });
+    }
+    const hashed = await bcrypt.hash(newPassword, 10);
+    await dbRun('UPDATE utenti SET password = ?, reset_token = NULL, reset_token_expires = NULL WHERE id_user = ?', [hashed, user.id_user]);
+    res.json({ message: 'Password updated successfully' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to reset password', details: err.message });
   }
 });
 

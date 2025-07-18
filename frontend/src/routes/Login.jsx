@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
+import { Link } from 'react-router';
 
 const Login = ({ setUser }) => {
   const [email, setEmail] = useState('');
@@ -80,6 +81,9 @@ const Login = ({ setUser }) => {
           </button>
           {error && <div className="text-red-500 text-sm">{error}</div>}
           {success && <div className="text-green-600 text-sm">{success}</div>}
+          <div className="text-right mt-2">
+            <Link to="/forgot-password" className="text-xs text-refresh-blue hover:text-refresh-pink underline">Password dimenticata?</Link>
+          </div>
         </form>
       </div>
     </div>
