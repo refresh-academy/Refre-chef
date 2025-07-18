@@ -59,6 +59,16 @@ const db = new sqlite3.Database(dbPath, (err) => {
       FOREIGN KEY(ricetta_id) REFERENCES ricettario(id),
       FOREIGN KEY(user_id) REFERENCES utenti(id_user)
     )`);
+    // Create notifications table if it doesn't exist
+    db.run(`CREATE TABLE IF NOT EXISTS notifications (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL, -- recipient
+      type TEXT NOT NULL, -- e.g. 'comment'
+      data TEXT, -- JSON string for extra info
+      read INTEGER DEFAULT 0, -- 0 = unread, 1 = read
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY(user_id) REFERENCES utenti(id_user)
+    )`);
   }
 });
 
@@ -201,7 +211,7 @@ app.post('/api/login', async (req, res) => {
     }
 
     const userId = user.id_user;
-    const token = jwt.sign({ userId, nickname: user.nickname }, JWT_SECRET, { expiresIn: '2s' });
+    const token = jwt.sign({ userId, nickname: user.nickname }, JWT_SECRET, { expiresIn: '12h' });
     res.status(200).json({ message: 'Login successful', userId: userId, nickname: user.nickname, token });
   } catch (err) {
     res.status(500).json({ error: 'Login failed', details: err.message });
@@ -641,6 +651,21 @@ app.post('/api/ricette/:id/commento', authenticateToken, async (req, res) => {
       `INSERT INTO commenti (ricetta_id, user_id, testo) VALUES (?, ?, ?)`,
       [ricettaId, userId, testo.trim()]
     );
+    // Fetch recipe info to notify the author
+    const recipeRows = await dbAll('SELECT nome, author_id FROM ricettario WHERE id = ?', [ricettaId]);
+    if (recipeRows.length > 0) {
+      const { nome, author_id } = recipeRows[0];
+      if (author_id && String(author_id) !== String(userId)) { // Don't notify self
+        // Get commenter info
+        const commenterRows = await dbAll('SELECT nickname FROM utenti WHERE id_user = ?', [userId]);
+        const commenter = commenterRows[0]?.nickname || 'Qualcuno';
+        // Insert notification for the author
+        await dbRun(
+          `INSERT INTO notifications (user_id, type, data) VALUES (?, ?, ?)`,
+          [author_id, 'comment', JSON.stringify({ ricettaId, ricettaNome: nome, commenter, testo: testo.trim() })]
+        );
+      }
+    }
     res.status(201).json({ message: 'Commento aggiunto.' });
   } catch (err) {
     res.status(500).json({ error: 'Errore nel salvataggio del commento', details: err.message });
@@ -701,6 +726,36 @@ app.delete('/api/commenti/:commentId', authenticateToken, async (req, res) => {
     res.status(200).json({ message: 'Commento eliminato.' });
   } catch (err) {
     res.status(500).json({ error: 'Errore durante l\'eliminazione del commento', details: err.message });
+  }
+});
+
+// Endpoint to get notifications for a user (protected)
+app.get('/api/notifications', authenticateToken, async (req, res) => {
+  const userId = req.user.userId;
+  try {
+    const rows = await dbAll(
+      `SELECT id, type, data, read, created_at FROM notifications WHERE user_id = ? ORDER BY created_at DESC`,
+      [userId]
+    );
+    res.status(200).json(rows.map(n => ({ ...n, data: n.data ? JSON.parse(n.data) : null })));
+  } catch (err) {
+    res.status(500).json({ error: 'Errore nel recupero delle notifiche', details: err.message });
+  }
+});
+// Endpoint to mark a notification as read (protected)
+app.post('/api/notifications/:id/read', authenticateToken, async (req, res) => {
+  const userId = req.user.userId;
+  const notificationId = req.params.id;
+  try {
+    // Only allow marking own notifications
+    const rows = await dbAll('SELECT user_id FROM notifications WHERE id = ?', [notificationId]);
+    if (!rows.length || String(rows[0].user_id) !== String(userId)) {
+      return res.status(403).json({ error: 'Non autorizzato.' });
+    }
+    await dbRun('UPDATE notifications SET read = 1 WHERE id = ?', [notificationId]);
+    res.status(200).json({ message: 'Notifica segnata come letta.' });
+  } catch (err) {
+    res.status(500).json({ error: 'Errore nel segnare la notifica come letta', details: err.message });
   }
 });
 
