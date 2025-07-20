@@ -45,25 +45,25 @@ function RecipeCard({ ricetta, handleRemove, handleRecipeClick }) {
   return (
     <div
       key={ricetta.id}
-      className="bg-white rounded shadow p-0 flex flex-row items-stretch gap-0 min-h-[180px] cursor-pointer hover:shadow-lg transition-shadow relative overflow-hidden"
+      className="bg-white rounded shadow p-0 flex flex-row items-stretch gap-0 min-h-[140px] sm:min-h-[180px] cursor-pointer hover:shadow-lg transition-shadow relative overflow-hidden"
       onClick={() => handleRecipeClick(ricetta.id)}
     >
-      <div className="relative w-48 min-w-[12rem] h-48 min-h-[12rem] flex-shrink-0 overflow-hidden">
+      <div className="relative w-32 h-32 min-w-[8rem] min-h-[8rem] sm:w-48 sm:h-48 sm:min-w-[12rem] sm:min-h-[12rem] flex-shrink-0 overflow-hidden">
         <img
           src={imageUrl}
           alt={ricetta.nome || 'Immagine di default'}
           className="w-full h-full object-cover object-center rounded-l"
-          style={{ minHeight: '180px', height: '100%' }}
+          style={{ minHeight: undefined, height: undefined }}
           onError={() => setImgError(true)}
         />
       </div>
-      <div className="flex-1 flex flex-col justify-between p-4 min-h-[12rem] relative">
-        <h2 className="text-xl font-bold mb-2">{ricetta.nome}</h2>
+      <div className="flex-1 flex flex-col justify-between p-2 sm:p-4 min-h-[8rem] sm:min-h-[12rem] relative">
+        <h2 className="text-base sm:text-xl font-bold mb-1 sm:mb-2 break-words">{ricetta.nome}</h2>
         {ricetta.descrizione && (
-          <div className="mb-1 text-gray-700 text-sm">{ricetta.descrizione}</div>
+          <div className="mb-1 text-gray-700 text-xs sm:text-sm break-words whitespace-pre-line">{ricetta.descrizione}</div>
         )}
         {/* Info rapide con icone */}
-        <div className="flex flex-wrap gap-3 mb-2 text-gray-700 text-base font-semibold items-center">
+        <div className="flex flex-wrap gap-2 sm:gap-3 mb-1 sm:mb-2 text-gray-700 text-xs sm:text-base font-semibold items-center">
           <span className="flex items-center gap-1"><i className="fa-regular fa-clock" /> {ricetta.tempo_preparazione} min</span>
           <span className="flex items-center gap-1"><i className="fa-solid fa-fire" /> {ricetta.kcal} kcal</span>
           <span className="flex items-center gap-1"><i className="fa-solid fa-utensils" /> {ricetta.porzioni} porzioni</span>
@@ -75,12 +75,21 @@ function RecipeCard({ ricetta, handleRemove, handleRecipeClick }) {
             {ricetta.saved_count || 0}
           </span>
         </div>
-        <div className="mb-1"><span className="font-semibold">Allergeni:</span> {ricetta.allergeni}</div>
+        <div className="mb-1 text-xs sm:text-base break-words whitespace-pre-line border-t border-gray-100 pt-1 sm:border-0 sm:pt-0 bg-gray-50 sm:bg-transparent">
+          <span className="font-semibold">Allergeni:</span> {ricetta.allergeni && ricetta.allergeni.trim() ? ricetta.allergeni : <span className="italic text-gray-400">Nessuno</span>}
+        </div>
+        {/* Author: mobile version (below content) */}
+        {ricetta.author && (
+          <div className="flex items-center gap-1 text-gray-500 text-xs bg-white/80 px-2 py-1 rounded shadow mt-2 sm:hidden">
+            <i className="fa-solid fa-user" /> {ricetta.author}
+          </div>
+        )}
+        {/* Author: desktop version (absolute bottom right) */}
         {ricetta.author && (
           ricetta.author_id ? (
             <Link
               to={`/chef/${ricetta.author_id}`}
-              className="absolute bottom-2 right-4 flex items-center gap-1 text-gray-500 text-sm bg-white/80 px-2 py-1 rounded shadow z-10 cursor-pointer hover:text-refresh-blue hover:underline"
+              className="hidden sm:flex absolute bottom-2 right-4 items-center gap-1 text-gray-500 text-sm bg-white/80 px-2 py-1 rounded shadow z-10 cursor-pointer hover:text-refresh-blue hover:underline"
               onClick={e => e.stopPropagation()}
               title={`Vai al profilo di ${ricetta.author}`}
             >
@@ -88,7 +97,7 @@ function RecipeCard({ ricetta, handleRemove, handleRecipeClick }) {
             </Link>
           ) : (
             <span
-              className="absolute bottom-2 right-4 flex items-center gap-1 text-gray-500 text-sm bg-white/80 px-2 py-1 rounded shadow z-10"
+              className="hidden sm:flex absolute bottom-2 right-4 items-center gap-1 text-gray-500 text-sm bg-white/80 px-2 py-1 rounded shadow z-10"
               title={ricetta.author}
             >
               <i className="fa-solid fa-user" /> {ricetta.author}
