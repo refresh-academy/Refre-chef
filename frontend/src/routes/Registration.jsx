@@ -27,7 +27,7 @@ const Registration = () => {
         setError(data.error || 'Registrazione fallita');
       } else {
         setSuccess('Registrazione avvenuta con successo! Benvenuto, ' + nickname);
-        navigate('/ricette');
+        navigate('/login');
       }
     } catch (err) {
       setError('Errore di rete.');
