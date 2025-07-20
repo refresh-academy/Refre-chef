@@ -148,6 +148,17 @@ const Ricetta = () => {
         body: JSON.stringify({ stelle }),
       });
       const data = await res.json();
+      if (res.status === 403 && data.error === 'Token expired, you will be redirected in the login page') {
+        setReviewMsg('Sessione scaduta, verrai reindirizzato al login...');
+        setTimeout(() => {
+          setReviewMsg('');
+          if (typeof window.setUser === 'function') window.setUser(null);
+          localStorage.removeItem('userId');
+          localStorage.removeItem('token');
+          navigate('/login');
+        }, 1500);
+        return;
+      }
       if (res.ok) {
         setRecensione(stelle);
         setReviewMsg('Recensione salvata!');
@@ -278,6 +289,17 @@ const Ricetta = () => {
         body: JSON.stringify({ testo: commentText }),
       });
       const data = await res.json();
+      if (res.status === 403 && data.error === 'Token expired, you will be redirected in the login page') {
+        setCommentMsg('Sessione scaduta, verrai reindirizzato al login...');
+        setTimeout(() => {
+          setCommentMsg('');
+          if (typeof window.setUser === 'function') window.setUser(null);
+          localStorage.removeItem('userId');
+          localStorage.removeItem('token');
+          navigate('/login');
+        }, 1500);
+        return;
+      }
       if (res.ok) {
         setCommentText('');
         setCommentMsg('Commento aggiunto!');
