@@ -61,17 +61,17 @@ const HomePage = () => {
               Cerca
             </button>
           </div>
-          <div className="flex flex-row gap-3 w-full max-w-xl items-center justify-center mt-6">
+          <div className="flex flex-col md:flex-row gap-3 w-full max-w-xl items-center justify-center mt-6">
             <Link
               to="/ricette"
-              className="bg-refresh-blue hover:bg-refresh-pink text-white font-semibold px-8 py-3 rounded-full transition text-lg shadow text-center"
+              className="bg-refresh-blue hover:bg-refresh-pink text-white font-semibold px-8 py-3 rounded-full transition text-lg shadow text-center w-full md:w-auto"
             >
               <div className='flex flex-col items-center'>
                 Vai alle ricette  ➤
               </div>
             </Link>
             <button
-              className="bg-refresh-blue text-white font-bold px-6 py-3 rounded-full shadow hover:bg-refresh-pink transition text-lg whitespace-nowrap flex items-center gap-2"
+              className="bg-refresh-blue text-white font-bold px-6 py-3 rounded-full shadow hover:bg-refresh-pink transition text-lg whitespace-nowrap flex items-center gap-2 w-full md:w-auto justify-center text-center"
               onClick={async () => {
                 // Fetch all recipes only when button is clicked
                 try {
