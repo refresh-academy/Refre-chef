@@ -179,34 +179,23 @@ const Ricettario = (props) => {
       setLoading(true);
       setError('');
       try {
-        const resRicette = await fetch('http://localhost:3000/api/ricette');
-        const data = await resRicette.json();
-        // After loading recipes, fetch saved_count for each
-        const recipesWithSaves = await Promise.all(
-          data.map(async (r) => {
-            try {
-              const res = await fetch(`http://localhost:3000/api/ricetta-saves/${r.id}`);
-              const d = await res.json();
-              return { ...r, saved_count: d.saved_count || 0 };
-            } catch {
-              return { ...r, saved_count: 0 };
-            }
-          })
-        );
-        setRecipes(recipesWithSaves);
-        // Fetch all ingredients for all recipes
-        const ids = recipesWithSaves.map(r => r.id);
-        const allIngs = {};
-        await Promise.all(ids.map(async (id) => {
-          try {
-            const resIng = await fetch(`http://localhost:3000/api/ingredienti/${id}`);
-            const dataIng = await resIng.json();
-            allIngs[id] = Array.isArray(dataIng) ? dataIng.map(i => i.ingrediente) : [];
-          } catch {
-            allIngs[id] = [];
-          }
-        }));
-        setAllIngredients(allIngs);
+        const token = localStorage.getItem('token');
+        const res = await fetch('http://localhost:3000/api/ricette-complete', {
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+        });
+        const data = await res.json();
+        if (res.ok) {
+          setRecipes(data.recipes || []);
+          // Build allIngredients map for search/filter UI
+          const allIngs = {};
+          (data.recipes || []).forEach(r => {
+            allIngs[r.id] = (r.ingredienti || []).map(i => i.nome);
+          });
+          setAllIngredients(allIngs);
+          setSaved(Array.isArray(data.saved) ? data.saved : []);
+        } else {
+          setError(data.error || 'Errore nel caricamento delle ricette');
+        }
       } catch {
         setError('Errore di rete.');
       } finally {
@@ -214,25 +203,6 @@ const Ricettario = (props) => {
       }
     };
     fetchRecipes();
-
-    // Recupero ricette salvate dell'utente SOLO se loggato
-    if (userId) {
-      const token = localStorage.getItem('token');
-      fetch('http://localhost:3000/api/ricetteSalvate', {
-        headers: {
-          'Authorization': token ? `Bearer ${token}` : '',
-        },
-      })
-        .then(res => res.json())
-        .then(data => {
-          if (Array.isArray(data)) {
-            setSaved(data.map(r => r.id));
-          }
-        });
-    }
-  }, [tipologia, search, maxTime, maxKcal, alimentazione]);
-
-  useEffect(() => {
     // Carica ricette popolari (più salvate)
     fetch('http://localhost:3000/api/ricette-popolari')
       .then(res => res.json())
@@ -241,7 +211,7 @@ const Ricettario = (props) => {
           setPopolari(data);
         }
       });
-  }, []);
+  }, [tipologia, search, maxTime, maxKcal, alimentazione]);
 
   // Filtro solo per maxTime, maxKcal, alimentazione (il resto è lato backend)
   const filteredRecipes = recipes

@@ -138,6 +138,65 @@ app.get('/api/ricette', async (req, res) => {
   }
 });
 
+// GET /api/ricette-complete (batch endpoint for recipes, ingredients, saves)
+app.get('/api/ricette-complete', async (req, res) => {
+  let userId = null;
+  // Try to get user from token if present
+  const authHeader = req.headers['authorization'];
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.split(' ')[1];
+    try {
+      const user = jwt.verify(token, JWT_SECRET);
+      userId = user.userId;
+    } catch (err) {
+      // Ignore invalid/expired token, treat as not logged in
+    }
+  }
+  try {
+    // Get all recipes
+    const recipes = await dbAll(`
+      SELECT r.id, r.nome, r.descrizione, r.tipologia, r.alimentazione, r.immagine, r.origine, r.porzioni, r.allergeni, r.tempo_preparazione, r.kcal, r.author_id, u.nickname as author
+      FROM ricettario r
+      LEFT JOIN utenti u ON r.author_id = u.id_user
+    `);
+    // Get all ingredients for all recipes
+    const allIngredients = await dbAll('SELECT ricetta_id, ingrediente, grammi, unita FROM ingredienti_grammi');
+    // Get all steps for all recipes
+    const allSteps = await dbAll('SELECT ricetta_id, step_number, testo FROM steps ORDER BY ricetta_id, step_number ASC');
+    // Get all saved counts for all recipes
+    const allSaves = await dbAll('SELECT id_ricetta, COUNT(*) as saved_count FROM ricetteSalvate GROUP BY id_ricetta');
+    // If logged in, get saved recipes for user
+    let savedRecipeIds = [];
+    if (userId) {
+      const savedRows = await dbAll('SELECT id_ricetta FROM ricetteSalvate WHERE id_user = ?', [userId]);
+      savedRecipeIds = savedRows.map(r => r.id_ricetta);
+    }
+    // Map for quick lookup
+    const ingredientsMap = {};
+    allIngredients.forEach(ing => {
+      if (!ingredientsMap[ing.ricetta_id]) ingredientsMap[ing.ricetta_id] = [];
+      ingredientsMap[ing.ricetta_id].push({ nome: ing.ingrediente, grammi: ing.grammi, unita: ing.unita });
+    });
+    const stepsMap = {};
+    allSteps.forEach(st => {
+      if (!stepsMap[st.ricetta_id]) stepsMap[st.ricetta_id] = [];
+      stepsMap[st.ricetta_id].push(st.testo);
+    });
+    const savesMap = {};
+    allSaves.forEach(s => { savesMap[s.id_ricetta] = s.saved_count; });
+    // Attach to recipes
+    const recipesWithDetails = recipes.map(r => ({
+      ...r,
+      ingredienti: ingredientsMap[r.id] || [],
+      steps: stepsMap[r.id] || [],
+      saved_count: savesMap[r.id] || 0
+    }));
+    res.json({ recipes: recipesWithDetails, saved: savedRecipeIds });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.post('/api/salvaRicetta', authenticateToken, async (req, res) => {
   const userId = req.user.userId;
   const { id_ricetta } = req.body;
