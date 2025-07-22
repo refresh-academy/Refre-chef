@@ -865,6 +865,24 @@ app.post('/api/reset-password', async (req, res) => {
   }
 });
 
+// Centralized error handling middleware
+app.use((err, req, res, next) => {
+  // Generate a unique error code (timestamp + random)
+  const errorCode = `ERR-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+  const isDev = process.env.NODE_ENV !== 'production';
+
+  // Log the error for server-side debugging
+  console.error(`[${errorCode}]`, err);
+
+  res.status(err.status || 500).json({
+    error: {
+      code: errorCode,
+      message: err.message || 'Internal Server Error',
+      ...(isDev && { stack: err.stack })
+    }
+  });
+});
+
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
 });
