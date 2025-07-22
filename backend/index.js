@@ -916,3 +916,20 @@ process.on('SIGINT', () => {
     process.exit(0);
   });
 });
+
+// POST /api/logout (logout and clear cookie)
+app.post('/api/logout', authenticateToken, (req, res) => {
+  // Clear the HttpOnly cookie
+  res.clearCookie('token', { httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production' });
+  res.status(200).json({ message: 'Logout successful' });
+});
+
+// Example fetch request from the client side
+// await fetch('http://localhost:3000/api/aggiungiRicetta', {
+//   method: 'POST',
+//   headers: {
+//     'Content-Type': 'application/json'
+//   },
+//   credentials: 'include', // <-- This is required!
+//   body: JSON.stringify({ ... })
+// });

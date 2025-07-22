@@ -168,19 +168,6 @@ const AddRecipe = ({ user, editMode }) => {
       return;
     }
     try {
-      const token = localStorage.getItem('token');
-      if (!token || token.length < 20) {
-        setTokenExpired(true);
-        setTimeout(() => {
-          setError('');
-          if (typeof window.setUser === 'function') window.setUser(null);
-          localStorage.removeItem('userId');
-          localStorage.removeItem('token');
-          navigate('/login');
-        }, 1500);
-        setLoading(false);
-        return;
-      }
       const sanitizedForm = {
         ...form,
         nome: form.nome.trim(),
@@ -211,8 +198,8 @@ const AddRecipe = ({ user, editMode }) => {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': token ? `Bearer ${token}` : '',
           },
+          credentials: 'include', // <--- ADD THIS
           body: JSON.stringify({
             ...sanitizedForm,
             ingredienti_grammi: sanitizedIngredients,
@@ -226,8 +213,8 @@ const AddRecipe = ({ user, editMode }) => {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': token ? `Bearer ${token}` : '',
           },
+          credentials: 'include', // <--- ADD THIS
           body: JSON.stringify({
             ...sanitizedForm,
             ingredienti: sanitizedIngredients.map(ing => ing.nome).join(', '),
@@ -402,4 +389,4 @@ const AddRecipe = ({ user, editMode }) => {
   );
 };
 
-export default AddRecipe; 
+export default AddRecipe;
