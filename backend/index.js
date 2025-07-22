@@ -1,3 +1,5 @@
+require('dotenv').config(); // <-- Add this at the very top
+
 const express = require('express');
 const cors = require('cors');
 const sqlite3 = require('sqlite3').verbose();
@@ -8,7 +10,13 @@ const crypto = require('crypto');
 
 const app = express();
 const port = 3000;
-const JWT_SECRET = 'your_secret_key_here'; // Replace with env var in production
+
+// Use JWT_SECRET from environment variable, fallback to error if not set
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  console.error('FATAL ERROR: JWT_SECRET is not defined in .env');
+  process.exit(1);
+}
 
 app.use(express.json());
 
