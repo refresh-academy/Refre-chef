@@ -22,7 +22,6 @@ import { FaBell } from 'react-icons/fa';
 import ForgotPassword from './routes/ForgotPassword.jsx';
 import ResetPassword from './routes/ResetPassword.jsx';
 
-
 const Layout = ({ user }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -39,18 +38,27 @@ const Layout = ({ user }) => {
   const [notifLoading, setNotifLoading] = useState(false);
   const [notifError, setNotifError] = useState('');
   const notifRef = useRef(null);
+
   // Fetch notifications for logged-in user
   useEffect(() => {
     if (user) {
       setNotifLoading(true);
       setNotifError('');
-      fetch('/api/notifications', {
-        headers: { 'Authorization': localStorage.getItem('token') ? `Bearer ${localStorage.getItem('token')}` : '' },
+      fetch('http://localhost:3000/api/notifications', {
+        credentials: 'include',
       })
-        .then(res => res.json())
+        .then(res => {
+          if (res.status === 401 || res.status === 403) {
+            setNotifError('Non autorizzato. Effettua di nuovo il login.');
+            setNotifications([]);
+            return [];
+          }
+          return res.json();
+        })
         .then(data => {
           if (Array.isArray(data)) setNotifications(data);
-          else setNotifError('Errore nel caricamento delle notifiche');
+          else if (typeof data === 'object' && data !== null && data.error) setNotifError(data.error);
+          else if (data !== undefined) setNotifError('Errore nel caricamento delle notifiche');
         })
         .catch(() => setNotifError('Errore di rete'))
         .finally(() => setNotifLoading(false));
@@ -58,6 +66,7 @@ const Layout = ({ user }) => {
       setNotifications([]);
     }
   }, [user]);
+
   // Close dropdown on outside click
   useEffect(() => {
     function handleClickOutside(event) {
@@ -74,6 +83,7 @@ const Layout = ({ user }) => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [dropdownOpen]);
+
   // Close notification dropdown on outside click
   useEffect(() => {
     function handleClickOutside(event) {
@@ -90,17 +100,20 @@ const Layout = ({ user }) => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [notifOpen]);
+
   // Mark notification as read
   const markAsRead = async (id) => {
     try {
-      await fetch(`/api/notifications/${id}/read`, {
+      await fetch(`http://localhost:3000/api/notifications/${id}/read`, {
         method: 'POST',
-        headers: { 'Authorization': localStorage.getItem('token') ? `Bearer ${localStorage.getItem('token')}` : '' },
+        credentials: 'include',
       });
       setNotifications((prev) => prev.map(n => n.id === id ? { ...n, read: 1 } : n));
     } catch { /* intentionally ignored */ }
   };
+
   const unreadCount = notifications.filter(n => !n.read).length;
+
   return (
     <div className='min-h-screen flex flex-col'>
       <div className='flex flex-row bg-white shadow-md items-center w-full'>

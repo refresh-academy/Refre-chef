@@ -15,7 +15,6 @@ function ErrorModal({ message, onClose }) {
   );
 }
 
-
 function RecipeCard({ ricetta, handleEdit, handleDelete, handleRecipeClick }) {
   const [imgError, setImgError] = useState(false);
   const imageUrl = ricetta.immagine && ricetta.immagine.trim() !== '' && !imgError ? ricetta.immagine : '/fallback-food.jpg';
@@ -71,25 +70,28 @@ const MyRecipes = ({ user }) => {
   const [error, setError] = useState('');
   const [ricettaDaEliminare, setRicettaDaEliminare] = useState(null);
   const [deleteError, setDeleteError] = useState('');
+  const [tokenExpired, setTokenExpired] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!user) return;
     const fetchRecipes = async () => {
       setLoading(true);
       setError('');
       try {
-        const token = localStorage.getItem('token');
         const res = await fetch('http://localhost:3000/api/ricette', {
-          headers: {
-            'Authorization': token ? `Bearer ${token}` : '',
-          },
+          credentials: 'include',
         });
         const data = await res.json();
-        if (!res.ok) {
+        if (res.status === 403 && data.error && data.error.includes('Token expired')) {
+          setTokenExpired(true);
+          setTimeout(() => {
+            if (typeof window.setUser === 'function') window.setUser(null);
+            localStorage.removeItem('userId');
+            navigate('/login');
+          }, 1500);
+        } else if (!res.ok) {
           setError(data.error || 'Errore nel caricamento delle ricette');
         } else {
-          // Mostra solo le ricette create dall'utente loggato
           setRecipes(data.filter(r => String(r.author_id) === String(user.userId)));
         }
       } catch (err) {
@@ -99,7 +101,7 @@ const MyRecipes = ({ user }) => {
       }
     };
     fetchRecipes();
-  }, [user]);
+  }, [user, navigate]);
 
   const handleEdit = (ricettaId) => {
     navigate(`/edit-recipe/${ricettaId}`);
@@ -112,12 +114,9 @@ const MyRecipes = ({ user }) => {
   const confermaEliminazione = async () => {
     if (!ricettaDaEliminare) return;
     try {
-      const token = localStorage.getItem('token');
       const res = await fetch(`http://localhost:3000/api/ricette/${ricettaDaEliminare}`, {
         method: 'DELETE',
-        headers: {
-          'Authorization': token ? `Bearer ${token}` : '',
-        },
+        credentials: 'include',
       });
       if (res.ok) {
         setRecipes(prev => prev.filter(r => r.id !== ricettaDaEliminare));
@@ -131,18 +130,17 @@ const MyRecipes = ({ user }) => {
     }
   };
 
-
   const handleRecipeClick = (ricettaId) => {
     navigate(`/ricetta/${ricettaId}`);
   };
 
-if (!user) {
-  return (
-    <div className="flex flex-col text-refresh-pink bg-gray-200/80  items-center justify-center min-h-[60vh]">
-      <h2 className="text-xl font-bold">Devi essere loggato per vedere le tue ricette.</h2>
-    </div>
-  );
-}
+  if (!user) {
+    return (
+      <div className="flex flex-col text-refresh-pink bg-gray-200/80  items-center justify-center min-h-[60vh]">
+        <h2 className="text-xl font-bold">Devi essere loggato per vedere le tue ricette.</h2>
+      </div>
+    );
+  }
 
   return (
     <div className="relative w-full flex flex-col items-center justify-center" style={{ minHeight: 'calc(100vh - 64px)' }}>
@@ -178,4 +176,4 @@ if (!user) {
   );
 };
 
-export default MyRecipes; 
+export default MyRecipes;
