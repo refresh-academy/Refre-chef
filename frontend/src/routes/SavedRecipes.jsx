@@ -137,11 +137,9 @@ const SavedRecipes = () => {
       setError('');
       setTokenExpired(false);
       try {
-        const token = localStorage.getItem('token');
+        // REMOVE token/localStorage logic, use credentials: 'include'
         const res = await fetch('http://localhost:3000/api/ricetteSalvate', {
-          headers: {
-            'Authorization': token ? `Bearer ${token}` : '',
-          },
+          credentials: 'include',
         });
         const data = await res.json();
         if (res.status === 403 && data.error === 'Token expired, you will be redirected in the login page') {
@@ -153,7 +151,8 @@ const SavedRecipes = () => {
             navigate('/login');
           }, 1500);
         } else {
-          setRecipes(data);
+          // If backend returns { recipes: [...] }
+          setRecipes(Array.isArray(data.recipes) ? data.recipes : Array.isArray(data) ? data : []);
         }
       } catch (err) {
         setError('Errore di rete.');
@@ -227,4 +226,4 @@ const SavedRecipes = () => {
   );
 };
 
-export default SavedRecipes; 
+export default SavedRecipes;

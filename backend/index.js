@@ -284,7 +284,7 @@ app.post('/api/login', async (req, res) => {
     }
 
     const userId = user.id_user;
-    const token = jwt.sign({ userId, nickname: user.nickname }, JWT_SECRET, { expiresIn: '12h' });
+    const token = jwt.sign({ userId, nickname: user.nickname }, JWT_SECRET, { expiresIn: '2s' });
 
     // Set HttpOnly cookie
     res.cookie('token', token, {
