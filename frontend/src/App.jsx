@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import './App.css'
 import { BrowserRouter, Routes, Route, Link, Outlet, useLocation, useNavigate } from "react-router";
-import  logorefreChef from '/logorefreChef.png'
+import logorefreChef from '/logorefreChef.png'
 import Ricettario from './routes/Ricettario.jsx'
 import Login from './routes/Login.jsx'
 import Registration from './routes/Registration.jsx'
@@ -103,7 +103,7 @@ const Layout = ({ user }) => {
   const unreadCount = notifications.filter(n => !n.read).length;
   return (
     <div className='min-h-screen flex flex-col'>
-    <div className='flex flex-row bg-white shadow-md items-center w-full'>
+      <div className='flex flex-row bg-white shadow-md items-center w-full'>
         <div className='flex flex-row items-center font-bold gap-5 p-2'>
           <Link to={'/'} className='flex flex-row items-center font-bold gap-5'>
             <img src={logorefreChef} className="w-10 h-10" alt="Refrechef-logo" />
@@ -138,7 +138,7 @@ const Layout = ({ user }) => {
                   >
                     <FaBell className="text-2xl text-refresh-blue hover:text-refresh-pink transition" />
                     {unreadCount > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 font-bold animate-pulse" style={{minWidth:'20px',textAlign:'center'}}>{unreadCount}</span>
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 font-bold animate-pulse" style={{ minWidth: '20px', textAlign: 'center' }}>{unreadCount}</span>
                     )}
                   </button>
                   {notifOpen && (
@@ -280,7 +280,7 @@ const Layout = ({ user }) => {
             }
           `}</style>
           <div className="w-full flex justify-center items-center bg-transparent px-2 py-2">
-            <div className="filter-bar backdrop-blur-md bg-white/80 border-2 border-refresh-blue shadow-xl rounded-2xl px-8 py-6 flex flex-row gap-8 items-end transition-all duration-300" style={{minWidth: 'fit-content'}}>
+            <div className="filter-bar backdrop-blur-md bg-white/80 border-2 border-refresh-blue shadow-xl rounded-2xl px-8 py-6 flex flex-row gap-8 items-end transition-all duration-300" style={{ minWidth: 'fit-content' }}>
               <div className="flex flex-col items-center">
                 <label htmlFor="maxTime" className="flex items-center gap-2 text-xs font-semibold mb-2 text-refresh-blue">
                   <i className="fa-regular fa-clock text-refresh-blue" />
@@ -291,7 +291,7 @@ const Layout = ({ user }) => {
                   value={maxTime}
                   onChange={e => setMaxTime(e.target.value)}
                   className="w-fit p-2 border-2 border-refresh-blue rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-refresh-blue transition-all duration-200 hover:border-refresh-pink"
-                
+
                 >
                   <option value="">Qualsiasi</option>
                   <option value="10">5-10 minuti</option>
@@ -311,7 +311,7 @@ const Layout = ({ user }) => {
                   value={maxKcal}
                   onChange={e => setMaxKcal(e.target.value)}
                   className="w-fit p-2 border-2 border-refresh-pink rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-refresh-pink transition-all duration-200 hover:border-refresh-blue"
-                  
+
                 >
                   <option value="">Qualsiasi</option>
                   <option value="200">0-200 kcal</option>
@@ -357,7 +357,7 @@ const Layout = ({ user }) => {
               <button
                 className="ml-8 flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-refresh-blue to-refresh-pink text-white font-bold shadow-lg border-none transition-all duration-200 hover:from-refresh-pink hover:to-refresh-blue hover:scale-105 focus:outline-none focus:ring-2 focus:ring-refresh-pink focus:ring-offset-2"
                 onClick={() => { setMaxTime(''); setMaxKcal(''); setAlimentazione(''); setSortBy('nome'); }}
-                style={{height: '40px', minWidth: '140px'}}
+                style={{ height: '40px', minWidth: '140px' }}
                 title="Reset filtri"
               >
                 <i className="fa-solid fa-rotate-left text-lg" />
@@ -370,7 +370,7 @@ const Layout = ({ user }) => {
       <Outlet context={
         location.pathname === '/ricette'
           ? { search, setSearch, maxTime, setMaxTime, maxKcal, setMaxKcal, alimentazione, setAlimentazione, sortBy, setSortBy }
-          : { search: '', setSearch: () => {}, maxTime: '', setMaxTime: () => {}, maxKcal: '', setMaxKcal: () => {}, alimentazione: '', setAlimentazione: () => {}, sortBy: 'nome', setSortBy: () => {} }
+          : { search: '', setSearch: () => { }, maxTime: '', setMaxTime: () => { }, maxKcal: '', setMaxKcal: () => { }, alimentazione: '', setAlimentazione: () => { }, sortBy: 'nome', setSortBy: () => { } }
       } />
       <Footer />
     </div>
@@ -481,18 +481,61 @@ function App() {
     setCookieConsent(consent);
     setShowConsentBanner(false);
   };
+  const ProtectedRoute = ({
+    component: Component,
+    message,
+    cookieConsent,
+    showCookieBlock,
+    ...props
+  }) => {
+    useEffect(() => {
+      if (cookieConsent === false && message) {
+        showCookieBlock(message);
+      }
+    }, [cookieConsent, message, showCookieBlock]);
+
+    if (cookieConsent === false) {
+      return null;
+    }
+
+    return <Component {...props} />;
+  };
   return (
     <BrowserRouter>
       {/* Global background image below everything */}
       <div className="fixed inset-0 -z-10 w-full h-full bg-cover bg-center bg-no-repeat bg-fixed bg-white" style={{ backgroundImage: "url('/background.webp')" }} />
       <Routes>
-        <Route element={<Layout user={user} cookieConsent={cookieConsent} showCookieBlock={showCookieBlock} />}> 
+        <Route element={<Layout user={user} cookieConsent={cookieConsent} showCookieBlock={showCookieBlock} />}>
           <Route index element={<HomePage user={user} />} />
           <Route path="/ricette" element={<Ricettario user={user} />} />
-          <Route path="/login" element={cookieConsent === false ? (() => { showCookieBlock('Devi accettare i cookie tecnici per effettuare il login.'); return null; })() : <Login setUser={setUser} />} />
-          <Route path="/register" element={cookieConsent === false ? (() => { showCookieBlock('Devi accettare i cookie tecnici per registrarti.'); return null; })() : <Registration />} />
-          <Route path="/saved-recipes/:userId" element={cookieConsent === false ? (() => { showCookieBlock('Devi accettare i cookie tecnici per salvare le ricette.'); return null; })() : <SavedRecipes />} />
-          <Route path="/saved-recipes" element={cookieConsent === false ? (() => { showCookieBlock('Devi accettare i cookie tecnici per salvare le ricette.'); return null; })() : <SavedRecipes />} />
+          <Route path="/login" element={<ProtectedRoute
+            component={Login}
+            message="Devi accettare i cookie tecnici per effettuare il login."
+            cookieConsent={cookieConsent}
+            showCookieBlock={showCookieBlock}
+            setUser={setUser}
+          />} />
+          <Route path="/register" element={<ProtectedRoute
+            component={Registration}
+            message="Devi accettare i cookie tecnici per effettuare la registrazione."
+            cookieConsent={cookieConsent}
+            showCookieBlock={showCookieBlock}
+            setUser={setUser}
+          />} />
+          <Route path="/saved-recipes/:userId" element={<ProtectedRoute
+            component={SavedRecipes}
+            message="Devi accettare i cookie tecnici per poter accedere alle ricette salvate"
+            cookieConsent={cookieConsent}
+            showCookieBlock={showCookieBlock}
+            setUser={setUser}
+          />} />
+          <Route path="/saved-recipes" element={<ProtectedRoute
+            component={SavedRecipes}
+            message="Devi accettare i cookie tecnici per poter accedere alle ricette salvate"
+            cookieConsent={cookieConsent}
+            showCookieBlock={showCookieBlock}
+            setUser={setUser}
+          />} />
           <Route path="/add-recipe" element={cookieConsent === false ? (() => { showCookieBlock('Devi accettare i cookie tecnici per aggiungere ricette.'); return null; })() : <AddRecipe user={user} />} />
           <Route path="/edit-recipe/:id" element={cookieConsent === false ? (() => { showCookieBlock('Devi accettare i cookie tecnici per modificare ricette.'); return null; })() : <AddRecipe user={user} editMode={true} />} />
           <Route path="/ricetta/:id" element={<Ricetta user={user} />} />
