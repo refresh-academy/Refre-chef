@@ -7,6 +7,7 @@ const path = require('path');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
+const cookieParser = require('cookie-parser');
 
 const app = express();
 const port = 3000;
@@ -19,6 +20,7 @@ if (!JWT_SECRET) {
 }
 
 app.use(express.json());
+app.use(cookieParser());
 
 app.use(cors({
   origin: 'http://localhost:5173',
@@ -110,8 +112,8 @@ const dbRun = (query, params = []) => {
 
 // JWT authentication middleware
 function authenticateToken(req, res, next) {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
+  // Prefer cookie over header
+  const token = req.cookies.token || (req.headers['authorization'] && req.headers['authorization'].split(' ')[1]);
   if (!token) return res.status(401).json({ error: 'Token required' });
   jwt.verify(token, JWT_SECRET, (err, user) => {
     if (err) return res.status(403).json({ error: 'Token expired, you will be redirected in the login page' });
@@ -283,7 +285,16 @@ app.post('/api/login', async (req, res) => {
 
     const userId = user.id_user;
     const token = jwt.sign({ userId, nickname: user.nickname }, JWT_SECRET, { expiresIn: '12h' });
-    res.status(200).json({ message: 'Login successful', userId: userId, nickname: user.nickname, token });
+
+    // Set HttpOnly cookie
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production', // true in production
+      sameSite: 'lax', // or 'strict'
+      maxAge: 12 * 60 * 60 * 1000 // 12 hours
+    });
+
+    res.status(200).json({ message: 'Login successful', userId: userId, nickname: user.nickname });
   } catch (err) {
     res.status(500).json({ error: 'Login failed', details: err.message });
   }
@@ -873,14 +884,22 @@ app.use((err, req, res, next) => {
 
   // Log the error for server-side debugging
   console.error(`[${errorCode}]`, err);
-
-  res.status(err.status || 500).json({
-    error: {
-      code: errorCode,
-      message: err.message || 'Internal Server Error',
-      ...(isDev && { stack: err.stack })
+  if (isDev) {
+    res.status(err.status || 500).json({
+      error: {
+        code: errorCode,
+        message: err.message || 'Internal Server Error',
+        stack: err.stack
+      }
+    });
+   } else {
+      res.status(err.status || 500).json({
+      error: {
+        code: errorCode,
+        message: err.message || 'Internal Server Error'
+      }
+    });
     }
-  });
 });
 
 app.listen(port, () => {
