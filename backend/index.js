@@ -8,6 +8,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const cookieParser = require('cookie-parser');
+const helmet = require('helmet');
 
 const app = express();
 const port = 3000;
@@ -21,6 +22,7 @@ if (!JWT_SECRET) {
 
 app.use(express.json());
 app.use(cookieParser());
+app.use(helmet());
 
 app.use(cors({
   origin: 'http://localhost:5173',
