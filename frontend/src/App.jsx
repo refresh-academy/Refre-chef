@@ -23,6 +23,7 @@ import ForgotPassword from './routes/ForgotPassword.jsx';
 import ResetPassword from './routes/ResetPassword.jsx';
 import React, { createContext } from 'react';
 import ProtectedRoute from './routes/ProtectedRoute.jsx';
+import { API_BASE_URL } from './apiConfig';
 
 const Layout = ({ user }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -46,7 +47,7 @@ const Layout = ({ user }) => {
     if (user) {
       setNotifLoading(true);
       setNotifError('');
-      fetch('http://localhost:3000/api/notifications', {
+      fetch(`${API_BASE_URL}/notifications`, {
         credentials: 'include',
       })
         .then(res => {
@@ -106,7 +107,7 @@ const Layout = ({ user }) => {
   // Mark notification as read
   const markAsRead = async (id) => {
     try {
-      await fetch(`http://localhost:3000/api/notifications/${id}/read`, {
+      await fetch(`${API_BASE_URL}/notifications/${id}/read`, {
         method: 'POST',
         credentials: 'include',
       });
