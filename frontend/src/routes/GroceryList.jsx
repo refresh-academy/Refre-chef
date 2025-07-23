@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useContext } from 'react';
 import { useNavigate } from 'react-router';
 import ConfirmModal from './ConfirmModal';
+import { ApiContext } from '../App';
 
 const GroceryList = () => {
   const [items, setItems] = useState([]);
@@ -19,12 +20,13 @@ const GroceryList = () => {
   const [recipeToDelete, setRecipeToDelete] = useState(null);
 
   const token = localStorage.getItem('token');
+  const apiFetch = useContext(ApiContext);
 
   const fetchList = async () => {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch('http://localhost:3000/api/groceryList', {
+      const res = await apiFetch('http://localhost:3000/api/groceryList', {
         headers: { 'Authorization': token ? `Bearer ${token}` : '' },
       });
       const data = await res.json();
@@ -57,7 +59,7 @@ const GroceryList = () => {
 
   useEffect(() => {
     if (!loading && items.length === 0) {
-      fetch('http://localhost:3000/api/ricette-popolari')
+      apiFetch('http://localhost:3000/api/ricette-popolari')
         .then(res => res.json())
         .then(data => {
           if (Array.isArray(data)) setRecommended(data);
@@ -68,7 +70,7 @@ const GroceryList = () => {
   const handleConfirmModalAction = async (ingredient, recipe_id) => {
    
     try {
-      const res = await fetch('http://localhost:3000/api/groceryList/ingredient', {
+      const res = await apiFetch('http://localhost:3000/api/groceryList/ingredient', {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -95,7 +97,7 @@ const GroceryList = () => {
   const handleConfirmDelete = async () => {
     if (!ingredientToDelete || !recipeIdToDelete) return;
     try {
-      const res = await fetch('http://localhost:3000/api/groceryList/ingredient', {
+      const res = await apiFetch('http://localhost:3000/api/groceryList/ingredient', {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -125,7 +127,7 @@ const GroceryList = () => {
   const handleEditSave = async (ingredient, recipe_id) => {
     if (editValue < 1) return;
     try {
-      const res = await fetch('http://localhost:3000/api/groceryList/ingredient', {
+      const res = await apiFetch('http://localhost:3000/api/groceryList/ingredient', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -148,7 +150,7 @@ const GroceryList = () => {
   const handleClear = async () => {
     //if (!window.confirm('Svuotare tutta la lista della spesa?')) return;
     try {
-      const res = await fetch('http://localhost:3000/api/groceryList/clear', {
+      const res = await apiFetch('http://localhost:3000/api/groceryList/clear', {
         method: 'POST',
         headers: { 'Authorization': token ? `Bearer ${token}` : '' },
       });
@@ -167,7 +169,7 @@ const GroceryList = () => {
     //if (!window.confirm(`Rimuovere tutti gli ingredienti di "${recipe_name}" dalla lista?`)) return;
     setRemovingRecipeId(recipe_id);
     try {
-      const res = await fetch('http://localhost:3000/api/groceryList/recipe', {
+      const res = await apiFetch('http://localhost:3000/api/groceryList/recipe', {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -197,7 +199,7 @@ const GroceryList = () => {
     if (!recipeToDelete) return;
     setRemovingRecipeId(recipeToDelete.id);
     try {
-      const res = await fetch('http://localhost:3000/api/groceryList/recipe', {
+      const res = await apiFetch('http://localhost:3000/api/groceryList/recipe', {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -245,7 +247,7 @@ const GroceryList = () => {
     const newItems = await Promise.all(groupItems.map(async (item) => {
       const newQty = Math.max(1, Math.round(item.quantity * moltiplicatore));
       try {
-        const res = await fetch('http://localhost:3000/api/groceryList/ingredient', {
+        const res = await apiFetch('http://localhost:3000/api/groceryList/ingredient', {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',

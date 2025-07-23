@@ -23,6 +23,7 @@ const Login = ({ setUser }) => {
         credentials: 'include',
       });
       const data = await res.json();
+      console.log('Risposta login:', data); // LOG PER DEBUG
       if (!res.ok) {
         setError(data.error || 'Login failed');
       } else {
