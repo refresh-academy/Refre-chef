@@ -1,5 +1,8 @@
 require('dotenv').config(); // <-- Add this at the very top
 
+// Run migrations before starting the server
+const { runMigrations } = require('./migrate');
+
 const express = require('express');
 const cors = require('cors');
 const sqlite3 = require('sqlite3').verbose();
@@ -79,55 +82,6 @@ const db = new sqlite3.Database(dbPath, (err) => {
   } else {
     console.log('Connected to the SQLite database.');
     db.run('PRAGMA foreign_keys = ON;');
-    // Create groceryList table if it doesn't exist
-    db.run(`CREATE TABLE IF NOT EXISTS groceryList (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id INTEGER NOT NULL,
-      ingredient TEXT NOT NULL,
-      quantity INTEGER DEFAULT 1,
-      recipe_id INTEGER NOT NULL,
-      UNIQUE(user_id, ingredient, recipe_id)
-    )`);
-    // Crea la tabella recensioni se non esiste
-    db.run(`CREATE TABLE IF NOT EXISTS recensioni (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      ricetta_id INTEGER NOT NULL,
-      user_id INTEGER NOT NULL,
-      stelle INTEGER NOT NULL CHECK(stelle >= 1 AND stelle <= 5),
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      UNIQUE(ricetta_id, user_id)
-    )`);
-    // Crea la tabella contatti se non esiste
-    db.run(`CREATE TABLE IF NOT EXISTS contatti (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      nome TEXT NOT NULL,
-      email TEXT NOT NULL,
-      messaggio TEXT NOT NULL,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )`);
-    // Create commenti table if it doesn't exist
-    db.run(`CREATE TABLE IF NOT EXISTS commenti (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      ricetta_id INTEGER NOT NULL,
-      user_id INTEGER NOT NULL,
-      testo TEXT NOT NULL,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY(ricetta_id) REFERENCES ricettario(id),
-      FOREIGN KEY(user_id) REFERENCES utenti(id_user)
-    )`);
-    // Create notifications table if it doesn't exist
-    db.run(`CREATE TABLE IF NOT EXISTS notifications (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id INTEGER NOT NULL, -- recipient
-      type TEXT NOT NULL, -- e.g. 'comment'
-      data TEXT, -- JSON string for extra info
-      read INTEGER DEFAULT 0, -- 0 = unread, 1 = read
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY(user_id) REFERENCES utenti(id_user)
-    )`);
-    // Add a column for password reset tokens if not exists
-    db.run(`ALTER TABLE utenti ADD COLUMN reset_token TEXT`, () => {});
-    db.run(`ALTER TABLE utenti ADD COLUMN reset_token_expires INTEGER`, () => {});
   }
 });
 
@@ -952,9 +906,20 @@ app.use((err, req, res, next) => {
     }
 });
 
-app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
-});
+// Start server after running migrations
+async function startServer() {
+  try {
+    await runMigrations();
+    app.listen(port, () => {
+      console.log(`Server running at http://localhost:${port}`);
+    });
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  }
+}
+
+startServer();
 
 process.on('SIGINT', () => {
   db.close((err) => {

@@ -40,6 +40,27 @@ PORT=3000
    - Password reset endpoints: 3 attempts per hour per IP
    - This prevents brute-force attacks and ensures service availability
 
+5. **Database Migrations**: 
+   - Uses Knex.js for database schema management
+   - Migrations are automatically run on server startup
+   - Manual migration commands available for development
+
+## Database Migration Commands:
+
+```bash
+# Run all pending migrations
+npm run migrate:latest
+
+# Rollback the last migration
+npm run migrate:rollback
+
+# Check migration status
+npm run migrate:status
+
+# Create a new migration
+npm run migrate:make migration_name
+```
+
 ## Production Deployment:
 
 When deploying to production:

@@ -4,7 +4,13 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "watch": "nodemon --ignore data/"
+    "watch": "nodemon --ignore data/",
+    "migrate:latest": "knex migrate:latest",
+    "migrate:rollback": "knex migrate:rollback",
+    "migrate:make": "knex migrate:make",
+    "migrate:status": "knex migrate:status",
+    "migrate:existing": "node migrate-existing.js",
+    "migrate:test": "node test-migration.js"
   },
   "keywords": [],
   "author": "",
@@ -20,6 +26,7 @@
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
     "jwt-decode": "^4.0.0",
+    "knex": "^3.1.0",
     "nodemon": "^3.1.10",
     "sqlite3": "^5.1.7"
   }
