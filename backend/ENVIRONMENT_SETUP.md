@@ -34,6 +34,12 @@ PORT=3000
    - The application now only accepts requests from the specified FRONTEND_URL
    - This prevents unauthorized cross-origin requests
 
+4. **Rate Limiting**: 
+   - General API endpoints: 100 requests per 15 minutes per IP
+   - Authentication endpoints: 5 attempts per 15 minutes per IP
+   - Password reset endpoints: 3 attempts per hour per IP
+   - This prevents brute-force attacks and ensures service availability
+
 ## Production Deployment:
 
 When deploying to production:

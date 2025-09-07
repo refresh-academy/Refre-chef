@@ -9,6 +9,7 @@ const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const cookieParser = require('cookie-parser');
 const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 
 const app = express();
 const port = 3000;
@@ -30,6 +31,46 @@ app.use(cors({
   origin: FRONTEND_URL,
   credentials: true
 }));
+
+// Rate limiting configurations
+// General rate limit for all API endpoints
+const generalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  message: {
+    error: 'Too many requests from this IP, please try again later.',
+    retryAfter: '15 minutes'
+  },
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+});
+
+// Stricter rate limit for authentication endpoints
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // Limit each IP to 5 login attempts per windowMs
+  message: {
+    error: 'Too many authentication attempts, please try again later.',
+    retryAfter: '15 minutes'
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Rate limit for password reset endpoints
+const passwordResetLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 3, // Limit each IP to 3 password reset attempts per hour
+  message: {
+    error: 'Too many password reset attempts, please try again later.',
+    retryAfter: '1 hour'
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Apply general rate limiting to all API routes
+app.use('/api', generalLimiter);
 
 const dbPath = path.resolve(__dirname, 'data/myRefrechefDatabase');
 const db = new sqlite3.Database(dbPath, (err) => {
@@ -236,7 +277,7 @@ app.post('/api/salvaRicetta', authenticateToken, async (req, res) => {
 });
 
 // POST /api/users (create user with nickname and hashed password)
-app.post('/api/users', async (req, res) => {
+app.post('/api/users', authLimiter, async (req, res) => {
   const { nickname, email, password } = req.body;
 
   if (!nickname || !email || !password) {
@@ -265,7 +306,7 @@ app.post('/api/users', async (req, res) => {
 });
 
 // POST /api/login (login with password check)
-app.post('/api/login', async (req, res) => {
+app.post('/api/login', authLimiter, async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -851,7 +892,7 @@ app.post('/api/notifications/:id/read', authenticateToken, async (req, res) => {
 });
 
 // Request password reset (step 1)
-app.post('/api/request-password-reset', async (req, res) => {
+app.post('/api/request-password-reset', passwordResetLimiter, async (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ error: 'Email required' });
   try {
@@ -867,7 +908,7 @@ app.post('/api/request-password-reset', async (req, res) => {
   }
 });
 // Set new password using reset token (step 2)
-app.post('/api/reset-password', async (req, res) => {
+app.post('/api/reset-password', passwordResetLimiter, async (req, res) => {
   const { token, newPassword } = req.body;
   if (!token || !newPassword) return res.status(400).json({ error: 'Token and new password required' });
   try {
