@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router';
+import { useUser } from '../contexts/UserContext.jsx';
 
 // RecipeStars component from Ricettario.jsx
 function RecipeStars({ recipeId }) {

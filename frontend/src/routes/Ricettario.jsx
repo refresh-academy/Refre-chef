@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useOutletContext, useNavigate, useLocation, Link } from 'react-router';
+import { useUser } from '../contexts/UserContext.jsx';
 
 const RECIPES_PER_PAGE = 10;
 
@@ -145,7 +146,7 @@ function highlight(text, query) {
   });
 }
 
-const Ricettario = (props) => {
+const Ricettario = () => {
   const [recipes, setRecipes] = useState([]);
   const [allIngredients, setAllIngredients] = useState({}); // { ricettaId: [ingredienti] }
   const [loading, setLoading] = useState(true);
@@ -157,8 +158,9 @@ const Ricettario = (props) => {
   const { maxTime, maxKcal, alimentazione, sortBy } = useOutletContext();
   const location = useLocation();
   const navigate = useNavigate();
-  // Prendo userId solo da props.user, così la visibilità è reattiva e sicura
-  const userId = props.user ? props.user.userId : null;
+  const { user } = useUser();
+  // Prendo userId dal context, così la visibilità è reattiva e sicura
+  const userId = user ? user.userId : null;
 
   // Leggi il parametro di ricerca dalla query string
   function getQueryParam(name) {

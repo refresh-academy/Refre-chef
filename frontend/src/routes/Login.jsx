@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Link } from 'react-router';
+import { useUser } from '../contexts/UserContext.jsx';
 
-const Login = ({ setUser }) => {
+const Login = () => {
+  const { login } = useUser();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -28,7 +30,7 @@ const Login = ({ setUser }) => {
         setError(data.error || 'Login failed');
       } else {
         setSuccess('Login successful! Benvenuto, ' + data.nickname);
-        if (setUser) setUser({ userId: data.userId, nickname: data.nickname });
+        login({ userId: data.userId, nickname: data.nickname });
         localStorage.setItem('userId', data.userId);
         if (data.token) {
           localStorage.setItem('token', data.token);

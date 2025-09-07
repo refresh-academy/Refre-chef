@@ -1,11 +1,11 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router';
+import { useUser } from '../contexts/UserContext.jsx';
 
 /**
  * ProtectedRoute component for route protection.
  *
  * Props:
- * - user: the current user object (null if not logged in)
  * - cookieConsent: boolean or null
  * - message: message to show if blocked (optional)
  * - requireAuth: boolean (default true)
@@ -15,7 +15,6 @@ import { useNavigate } from 'react-router';
  * - redirectTo: path to redirect if not authenticated (default: '/login')
  */
 const ProtectedRoute = ({
-  user,
   cookieConsent,
   message,
   requireAuth = true,
@@ -25,6 +24,7 @@ const ProtectedRoute = ({
   redirectTo = '/login',
 }) => {
   const navigate = useNavigate();
+  const { user } = useUser();
 
   useEffect(() => {
     if (requireConsent && cookieConsent === false) {

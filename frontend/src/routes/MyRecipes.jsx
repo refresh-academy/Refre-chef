@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router';
 import ConfirmModal from '../routes/ConfirmModal.jsx';
+import { useUser } from '../contexts/UserContext.jsx';
 
 function ErrorModal({ message, onClose }) {
   if (!message) return null;
@@ -64,7 +65,7 @@ function RecipeCard({ ricetta, handleEdit, handleDelete, handleRecipeClick }) {
   );
 }
 
-const MyRecipes = ({ user }) => {
+const MyRecipes = () => {
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -72,6 +73,7 @@ const MyRecipes = ({ user }) => {
   const [deleteError, setDeleteError] = useState('');
   const [tokenExpired, setTokenExpired] = useState(false);
   const navigate = useNavigate();
+  const { user } = useUser();
 
   useEffect(() => {
     const fetchRecipes = async () => {

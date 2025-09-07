@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router';
 import ConfirmModal from './ConfirmModal';
+import { useUser } from '../contexts/UserContext.jsx';
 
 const isLoggedIn = (userId) =>
   userId && userId !== "null" && userId !== "" && userId !== undefined && userId !== "undefined";
@@ -13,7 +14,6 @@ const Ricetta = () => {
   const [error, setError] = useState("");
   const [imgError, setImgError] = useState(false);
   const [showCopied, setShowCopied] = useState(false);
-  const [userId, setUserId] = useState(null);
   const [saved, setSaved] = useState(false);
   const [groceryMsg, setGroceryMsg] = useState("");
   const [showGroceryModal, setShowGroceryModal] = useState(false);
@@ -32,11 +32,8 @@ const Ricetta = () => {
   const navigate = useNavigate();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [commentToDelete, setCommentToDelete] = useState(null);
-
-  useEffect(() => {
-    const stored = localStorage.getItem("userId");
-    setUserId(isLoggedIn(stored) ? stored : null);
-  }, []);
+  const { user } = useUser();
+  const userId = user ? user.userId : null;
 
   useEffect(() => {
     const checkSaved = async () => {

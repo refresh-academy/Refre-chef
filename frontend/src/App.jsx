@@ -24,8 +24,10 @@ import ResetPassword from './routes/ResetPassword.jsx';
 import React, { createContext } from 'react';
 import ProtectedRoute from './routes/ProtectedRoute.jsx';
 import { API_BASE_URL } from './apiConfig';
+import { UserProvider, useUser } from './contexts/UserContext.jsx';
 
-const Layout = ({ user }) => {
+const Layout = () => {
+  const { user, logout } = useUser();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [search, setSearch] = useState('');
@@ -201,8 +203,7 @@ const Layout = ({ user }) => {
                       <button
                         className="w-full text-left px-4 py-2 text-refresh-blue font-semibold hover:bg-white hover:text-refresh-pink rounded transition"
                         onClick={() => {
-                          if (typeof window.setUser === 'function') window.setUser(null);
-                          localStorage.removeItem('userId');
+                          logout();
                           setDropdownOpen(false);
                           navigate('/');
                         }}
@@ -245,8 +246,7 @@ const Layout = ({ user }) => {
                   <button
                     className="px-4 py-2 text-left text-refresh-blue font-semibold hover:bg-white hover:text-refresh-pink border-b rounded transition"
                     onClick={() => {
-                      if (typeof window.setUser === 'function') window.setUser(null);
-                      localStorage.removeItem('userId');
+                      logout();
                       setMobileMenuOpen(false);
                       navigate('/login');
                     }}
@@ -393,14 +393,6 @@ const Layout = ({ user }) => {
   );
 }
 
-function ProtectedGroceryList({ user }) {
-  const navigate = useNavigate();
-  if (!user) {
-    navigate('/login');
-    return null;
-  }
-  return <GroceryList />;
-}
 
 function CookieConsentBanner({ onConsentChange, forceShow }) {
   const [visible, setVisible] = useState(forceShow);
@@ -478,8 +470,9 @@ export async function apiFetch(url, options = {}) {
 
 export const ApiContext = createContext(apiFetch);
 
-function App() {
-  const [user, setUser] = useState(null);
+// AppContent component that uses the UserContext
+function AppContent() {
+  const { user, login } = useUser();
   const [cookieConsent, setCookieConsent] = useState(() => {
     const val = localStorage.getItem('cookieConsent');
     return val === 'true' ? true : val === 'false' ? false : null;
@@ -489,29 +482,6 @@ function App() {
     const val = localStorage.getItem('cookieConsent');
     return val !== 'true';
   });
-  // Make setUser available globally for logout in Layout
-  useEffect(() => { window.setUser = setUser; }, [setUser]);
-  // Persist user session after refresh ONLY if cookies are accepted
-  useEffect(() => {
-    if (cookieConsent) {
-      const token = localStorage.getItem('token');
-      if (token) {
-        try {
-          const decoded = jwtDecode(token);
-          if (decoded && decoded.userId && decoded.nickname) {
-            setUser({ userId: decoded.userId, nickname: decoded.nickname });
-          }
-        } catch {
-          // Ignore invalid token
-        }
-      }
-    } else if (cookieConsent === false) {
-      // Remove all session data if cookies are refused
-      localStorage.removeItem('token');
-      localStorage.removeItem('userId');
-      setUser(null);
-    }
-  }, [cookieConsent]);
   // Block login, registration, and save if cookies are refused
   const showCookieBlock = (msg) => {
     if (cookieConsent === null) {
@@ -530,104 +500,96 @@ function App() {
       <div className="fixed inset-0 -z-10 w-full h-full bg-cover bg-center bg-no-repeat bg-fixed bg-white" style={{ backgroundImage: "url('/background.webp')" }} />
       <BrowserRouter>
         <Routes>
-          <Route element={<Layout user={user} cookieConsent={cookieConsent} showCookieBlock={showCookieBlock} />}>
-            <Route index element={<HomePage user={user} />} />
-            <Route path="/ricette" element={<Ricettario user={user} />} />
+          <Route element={<Layout />}>
+            <Route index element={<HomePage />} />
+            <Route path="/ricette" element={<Ricettario />} />
             <Route path="/login" element={
               <ProtectedRoute
-                user={user}
                 cookieConsent={cookieConsent}
                 showCookieBlock={showCookieBlock}
                 requireAuth={false}
                 requireConsent={true}
                 message="Devi accettare i cookie tecnici per effettuare il login."
               >
-                <Login setUser={setUser} />
+                <Login />
               </ProtectedRoute>
             } />
             <Route path="/register" element={
               <ProtectedRoute
-                user={user}
                 cookieConsent={cookieConsent}
                 showCookieBlock={showCookieBlock}
                 requireAuth={false}
                 requireConsent={true}
                 message="Devi accettare i cookie tecnici per effettuare la registrazione."
               >
-                <Registration setUser={setUser} />
+                <Registration />
               </ProtectedRoute>
             } />
             <Route path="/saved-recipes/:userId" element={
               <ProtectedRoute
-                user={user}
                 cookieConsent={cookieConsent}
                 showCookieBlock={showCookieBlock}
                 requireAuth={true}
                 requireConsent={true}
                 message="Devi accettare i cookie tecnici per poter accedere alle ricette salvate"
               >
-                <SavedRecipes user={user} />
+                <SavedRecipes />
               </ProtectedRoute>
             } />
             <Route path="/saved-recipes" element={
               <ProtectedRoute
-                user={user}
                 cookieConsent={cookieConsent}
                 showCookieBlock={showCookieBlock}
                 requireAuth={true}
                 requireConsent={true}
                 message="Devi accettare i cookie tecnici per poter accedere alle ricette salvate"
               >
-                <SavedRecipes user={user} />
+                <SavedRecipes />
               </ProtectedRoute>
             } />
             <Route path="/add-recipe" element={
               <ProtectedRoute
-                user={user}
                 cookieConsent={cookieConsent}
                 showCookieBlock={showCookieBlock}
                 requireAuth={true}
                 requireConsent={true}
                 message="Devi accettare i cookie tecnici per aggiungere ricette."
               >
-                <AddRecipe user={user} />
+                <AddRecipe />
               </ProtectedRoute>
             } />
             <Route path="/edit-recipe/:id" element={
               <ProtectedRoute
-                user={user}
                 cookieConsent={cookieConsent}
                 showCookieBlock={showCookieBlock}
                 requireAuth={true}
                 requireConsent={true}
                 message="Devi accettare i cookie tecnici per modificare ricette."
               >
-                <AddRecipe user={user} editMode={true} />
+                <AddRecipe editMode={true} />
               </ProtectedRoute>
             } />
-            <Route path="/ricetta/:id" element={<Ricetta user={user} />} />
+            <Route path="/ricetta/:id" element={<Ricetta />} />
             <Route path="/grocery-list" element={
               <ProtectedRoute
-                user={user}
                 cookieConsent={cookieConsent}
                 showCookieBlock={showCookieBlock}
                 requireAuth={true}
                 requireConsent={true}
                 message="Devi accettare i cookie tecnici per usare la lista spesa."
               >
-                <GroceryList user={user} />
+                <GroceryList />
               </ProtectedRoute>
             } />
             <Route path="/my-recipes" element={
               <ProtectedRoute
-                user={user}
                 cookieConsent={cookieConsent}
                 showCookieBlock={showCookieBlock}
                 requireAuth={true}
                 requireConsent={true}
                 message="Devi accettare i cookie tecnici per vedere le tue ricette."
               >
-                <MyRecipes user={user} />
+                <MyRecipes />
               </ProtectedRoute>
             } />
             <Route path="/chef/:authorId" element={<ChefProfile />} />
@@ -643,6 +605,20 @@ function App() {
       </BrowserRouter>
     </ApiContext.Provider>
   )
+}
+
+// Main App component that provides the UserContext
+function App() {
+  const [cookieConsent, setCookieConsent] = useState(() => {
+    const val = localStorage.getItem('cookieConsent');
+    return val === 'true' ? true : val === 'false' ? false : null;
+  });
+
+  return (
+    <UserProvider cookieConsent={cookieConsent}>
+      <AppContent />
+    </UserProvider>
+  );
 }
 
 export default App

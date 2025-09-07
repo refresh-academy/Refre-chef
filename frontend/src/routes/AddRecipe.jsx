@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router';
+import { useUser } from '../contexts/UserContext.jsx';
 
 const initialState = {
   nome: '',
@@ -14,9 +15,10 @@ const initialState = {
   kcal: '',
 };
 
-const AddRecipe = ({ user, editMode }) => {
+const AddRecipe = ({ editMode }) => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const { user } = useUser();
   const [form, setForm] = useState(initialState);
   const [ingredients, setIngredients] = useState([{ nome: '', grammi: '', unita: 'g' }]);
   const [steps, setSteps] = useState(['']);
@@ -76,7 +78,6 @@ const AddRecipe = ({ user, editMode }) => {
       };
       fetchRecipe();
     }
-    // eslint-disable-next-line
   }, [editMode, id, user]);
 
   if (!user) {

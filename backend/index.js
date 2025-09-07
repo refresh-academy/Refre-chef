@@ -24,8 +24,10 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(helmet());
 
+// CORS configuration - allow specific frontend origin
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: FRONTEND_URL,
   credentials: true
 }));
 
